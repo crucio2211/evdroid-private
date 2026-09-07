@@ -5,11 +5,14 @@ package org.evvdroid
  *
  * Generated from https://unicode.org/Public/emoji/16.0/emoji-test.txt:
  * fully-qualified, minimally-qualified and unqualified sequences, except
- * single ASCII characters, which are ordinary text on their own. Regenerate with the
- * script beside the skill that wrote this when a new emoji version lands.
+ * single ASCII characters, which are ordinary text on their own. Regenerate
+ * with the script beside the skill that wrote this when a new emoji version
+ * lands.
  *
- * 5033 entries. Matching is longest-first through [matchAt], so a family
- * wins over its first person and a keycap over its digit.
+ * 5033 entries in chunks: one map literal this size would overflow the
+ * sixty-four kilobytes a single JVM method may hold, so the table is built
+ * in parts. Matching is longest-first through [matchAt], so a family wins
+ * over its first person and a keycap over its digit.
  */
 object EmojiNames {
 
@@ -19,7 +22,17 @@ object EmojiNames {
 	/** Every unit an entry can start with, for skipping plain text fast. */
 	val STARTERS: Set<Char> = setOf('\u0023', '\u002A', '\u0030', '\u0031', '\u0032', '\u0033', '\u0034', '\u0035', '\u0036', '\u0037', '\u0038', '\u0039', '\u00A9', '\u00AE', '\u203C', '\u2049', '\u2122', '\u2139', '\u2194', '\u2195', '\u2196', '\u2197', '\u2198', '\u2199', '\u21A9', '\u21AA', '\u231A', '\u231B', '\u2328', '\u23CF', '\u23E9', '\u23EA', '\u23EB', '\u23EC', '\u23ED', '\u23EE', '\u23EF', '\u23F0', '\u23F1', '\u23F2', '\u23F3', '\u23F8', '\u23F9', '\u23FA', '\u24C2', '\u25AA', '\u25AB', '\u25B6', '\u25C0', '\u25FB', '\u25FC', '\u25FD', '\u25FE', '\u2600', '\u2601', '\u2602', '\u2603', '\u2604', '\u260E', '\u2611', '\u2614', '\u2615', '\u2618', '\u261D', '\u2620', '\u2622', '\u2623', '\u2626', '\u262A', '\u262E', '\u262F', '\u2638', '\u2639', '\u263A', '\u2640', '\u2642', '\u2648', '\u2649', '\u264A', '\u264B', '\u264C', '\u264D', '\u264E', '\u264F', '\u2650', '\u2651', '\u2652', '\u2653', '\u265F', '\u2660', '\u2663', '\u2665', '\u2666', '\u2668', '\u267B', '\u267E', '\u267F', '\u2692', '\u2693', '\u2694', '\u2695', '\u2696', '\u2697', '\u2699', '\u269B', '\u269C', '\u26A0', '\u26A1', '\u26A7', '\u26AA', '\u26AB', '\u26B0', '\u26B1', '\u26BD', '\u26BE', '\u26C4', '\u26C5', '\u26C8', '\u26CE', '\u26CF', '\u26D1', '\u26D3', '\u26D4', '\u26E9', '\u26EA', '\u26F0', '\u26F1', '\u26F2', '\u26F3', '\u26F4', '\u26F5', '\u26F7', '\u26F8', '\u26F9', '\u26FA', '\u26FD', '\u2702', '\u2705', '\u2708', '\u2709', '\u270A', '\u270B', '\u270C', '\u270D', '\u270F', '\u2712', '\u2714', '\u2716', '\u271D', '\u2721', '\u2728', '\u2733', '\u2734', '\u2744', '\u2747', '\u274C', '\u274E', '\u2753', '\u2754', '\u2755', '\u2757', '\u2763', '\u2764', '\u2795', '\u2796', '\u2797', '\u27A1', '\u27B0', '\u27BF', '\u2934', '\u2935', '\u2B05', '\u2B06', '\u2B07', '\u2B1B', '\u2B1C', '\u2B50', '\u2B55', '\u3030', '\u303D', '\u3297', '\u3299', '\uD83C', '\uD83D', '\uD83E')
 
-	private val NAMES: Map<String, String> = mapOf(
+	private val NAMES: Map<String, String> =
+		part0() +
+		part1() +
+		part2() +
+		part3() +
+		part4() +
+		part5() +
+		part6() +
+		part7()
+
+	private fun part0(): Map<String, String> = mapOf(
 		"👨🏻‍❤️‍💋‍👨🏻" to "kiss: man, man, light skin tone",
 		"👨🏻‍❤️‍💋‍👨🏼" to "kiss: man, man, light skin tone, medium-light skin tone",
 		"👨🏻‍❤️‍💋‍👨🏽" to "kiss: man, man, light skin tone, medium skin tone",
@@ -670,6 +683,9 @@ object EmojiNames {
 		"👨🏼‍🦼‍➡" to "man in motorized wheelchair facing right: medium-light skin tone",
 		"👨🏼‍🦽‍➡" to "man in manual wheelchair facing right: medium-light skin tone",
 		"👨🏽‍🦯‍➡" to "man with white cane facing right: medium skin tone",
+	)
+
+	private fun part1(): Map<String, String> = mapOf(
 		"👨🏽‍🦼‍➡" to "man in motorized wheelchair facing right: medium skin tone",
 		"👨🏽‍🦽‍➡" to "man in manual wheelchair facing right: medium skin tone",
 		"👨🏾‍🦯‍➡" to "man with white cane facing right: medium-dark skin tone",
@@ -1320,6 +1336,9 @@ object EmojiNames {
 		"🫱🏻‍🫲🏼" to "handshake: light skin tone, medium-light skin tone",
 		"🫱🏻‍🫲🏽" to "handshake: light skin tone, medium skin tone",
 		"🫱🏻‍🫲🏾" to "handshake: light skin tone, medium-dark skin tone",
+	)
+
+	private fun part2(): Map<String, String> = mapOf(
 		"🫱🏻‍🫲🏿" to "handshake: light skin tone, dark skin tone",
 		"🫱🏼‍🫲🏻" to "handshake: medium-light skin tone, light skin tone",
 		"🫱🏼‍🫲🏽" to "handshake: medium-light skin tone, medium skin tone",
@@ -1970,6 +1989,9 @@ object EmojiNames {
 		"🤸‍♂️" to "man cartwheeling",
 		"🤸🏻‍♀" to "woman cartwheeling: light skin tone",
 		"🤸🏻‍♂" to "man cartwheeling: light skin tone",
+	)
+
+	private fun part3(): Map<String, String> = mapOf(
 		"🤸🏼‍♀" to "woman cartwheeling: medium-light skin tone",
 		"🤸🏼‍♂" to "man cartwheeling: medium-light skin tone",
 		"🤸🏽‍♀" to "woman cartwheeling: medium skin tone",
@@ -2620,6 +2642,9 @@ object EmojiNames {
 		"⚗️" to "alembic",
 		"⚙️" to "gear",
 		"⚛️" to "atom symbol",
+	)
+
+	private fun part4(): Map<String, String> = mapOf(
 		"⚜️" to "fleur-de-lis",
 		"⚠️" to "warning",
 		"⚧️" to "transgender symbol",
@@ -3270,6 +3295,9 @@ object EmojiNames {
 		"🖐🏼" to "hand with fingers splayed: medium-light skin tone",
 		"🖐🏽" to "hand with fingers splayed: medium skin tone",
 		"🖐🏾" to "hand with fingers splayed: medium-dark skin tone",
+	)
+
+	private fun part5(): Map<String, String> = mapOf(
 		"🖐🏿" to "hand with fingers splayed: dark skin tone",
 		"🖕🏻" to "middle finger: light skin tone",
 		"🖕🏼" to "middle finger: medium-light skin tone",
@@ -3920,6 +3948,9 @@ object EmojiNames {
 		"🌰" to "chestnut",
 		"🌱" to "seedling",
 		"🌲" to "evergreen tree",
+	)
+
+	private fun part6(): Map<String, String> = mapOf(
 		"🌳" to "deciduous tree",
 		"🌴" to "palm tree",
 		"🌵" to "cactus",
@@ -4570,6 +4601,9 @@ object EmojiNames {
 		"🙀" to "weary cat",
 		"🙁" to "slightly frowning face",
 		"🙂" to "slightly smiling face",
+	)
+
+	private fun part7(): Map<String, String> = mapOf(
 		"🙃" to "upside-down face",
 		"🙄" to "face with rolling eyes",
 		"🙅" to "person gesturing NO",
