@@ -107,8 +107,45 @@ class DictionaryTest {
 	}
 
 	@Test
-	fun forgettingPutsTheEngineBack() {
-		val e = open()
+	fun sharedNamesRouteToTheirVolumes() {
+		assertEquals(Eci.DICT_MAIN, Dictionaries.volumeForFile("enumain.dic"))
+		assertEquals(Eci.DICT_ROOT, Dictionaries.volumeForFile("enuroot.dic"))
+		assertEquals(Eci.DICT_ABBREVIATION, Dictionaries.volumeForFile("enuabbr.dic"))
+		assertEquals(Eci.DICT_MAIN, Dictionaries.volumeForFile("ESPMAIN.DIC"))
+		assertEquals(Eci.DICT_ABBREVIATION, Dictionaries.volumeForFile("esmabbrev.dic"))
+		assertNull(Dictionaries.volumeForFile("mydict.dic"))
+		assertNull(Dictionaries.volumeForFile("main.dic"))
+	}
+
+	@Test
+	fun sharedNamesSayTheirLanguages() {
+		assertEquals("American English", Dictionaries.languageForFile("enumain.dic"))
+		assertEquals("British English", Dictionaries.languageForFile("engroot.dic"))
+		assertEquals("Castilian Spanish", Dictionaries.languageForFile("espabbr.dic"))
+		assertEquals("French", Dictionaries.languageForFile("fraMain.dic"))
+		assertNull(Dictionaries.languageForFile("mydict.dic"))
+	}
+
+	@Test
+	fun binaryFilesAreKnown() {
+		assertTrue(Dictionaries.isBinary(writeBytes(byteArrayOf(0x41, 0x09, 0x42, 0x00, 0x43))))
+		assertFalse(Dictionaries.isBinary(write("DOJ\tdee oe jeigh\n")))
+		assertFalse(Dictionaries.isBinary(File(dir(), "not-there.dic")))
+	}
+
+	@Test
+	fun unusableEntriesAreKnown() {
+		assertTrue(Dictionaries.isUsable("DOJ", "dee oe jeigh"))
+		assertFalse(Dictionaries.isUsable("", "dee oe jeigh"))
+		assertFalse(Dictionaries.isUsable("DOJ", ""))
+		assertFalse(Dictionaries.isUsable("DOJ", "say\tnothing"))
+		assertFalse(Dictionaries.isUsable("DOJ", "say\rnothing"))
+		assertFalse(Dictionaries.isUsable("D".repeat(129), "dee"))
+		assertFalse(Dictionaries.isUsable("DOJ", "d".repeat(513)))
+	}
+
+	@Test
+	fun forgettingPutsTheEngineBack() {		val e = open()
 		try {
 			e.teachWord(Eci.DICT_MAIN, "DOJ", "dee oe jeigh")
 			assertNotNull(e.lookUpWord(Eci.DICT_MAIN, "DOJ"))
@@ -131,6 +168,19 @@ class DictionaryTest {
 		val to = InstrumentationRegistry.getInstrumentation().targetContext
 		val file = File(to.cacheDir, "test.dic")
 		file.writeBytes(text.toByteArray(Charsets.ISO_8859_1))
+		return file
+	}
+
+	private fun dir(): File {
+		val to = InstrumentationRegistry.getInstrumentation().targetContext
+		return File(to.cacheDir, "dicttests").apply { mkdirs() }
+	}
+
+	private var fileNumber = 0
+
+	private fun writeBytes(bytes: ByteArray): File {
+		val file = File(dir(), "bytes-${fileNumber++}.dic")
+		file.writeBytes(bytes)
 		return file
 	}
 

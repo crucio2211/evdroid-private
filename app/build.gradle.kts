@@ -83,6 +83,22 @@ android {
 		jniLibs.srcDirs(nativeOut)
 	}
 
+	// One key for every CI build, so each installs as an update over the
+	// last. The keystore itself travels as a secret and never lands in the
+	// tree; without its properties local builds keep the default debug key.
+	signingConfigs {
+		create("fixedDebug") {
+			val storePath = findProperty("evvdroid.keystore") as String?
+			if (!storePath.isNullOrBlank()) {
+				storeFile = file(storePath)
+				storePassword = findProperty("evvdroid.storePass") as String?
+				keyAlias = "evvdroid"
+				keyPassword = findProperty("evvdroid.keyPass") as String?
+				storeType = "PKCS12"
+			}
+		}
+	}
+
 	buildTypes {
 		release {
 			isMinifyEnabled = true
@@ -91,6 +107,11 @@ android {
 		}
 		debug {
 			isJniDebuggable = true
+			// The fixed CI key when its properties are here, else the
+			// default debug key for local builds.
+			if (!(findProperty("evvdroid.keystore") as String?).isNullOrBlank()) {
+				signingConfig = signingConfigs.getByName("fixedDebug")
+			}
 			// Shrinking a debug build is off for the fast loop and on in CI,
 			// where install size matters more than readable stack traces.
 			// The JNI bridge's names are kept by proguard-rules.pro.

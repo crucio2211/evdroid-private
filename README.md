@@ -194,9 +194,16 @@ digit; modifiers standing alone are dropped.
 ## Dictionaries
 
 Three rows pick a file each for the main, root and abbreviation volumes,
-each with a switch for whether it is used. A fourth row opens the regex
-dictionary, with a switch to turn it on and off. "Remove dictionaries"
-clears all four.
+each with a switch for whether it is used. A shared name says which volume
+it is: an enuabbr picked on the main row still goes to abbreviations, and
+so for every language prefix. A fourth row opens the regex dictionary,
+with a switch to turn it on and off. "Remove dictionaries" clears all
+four.
+
+A binary dictionary is refused outright -- it belongs to the engine's own
+loader, and teaching its bytes as words can silence the engine -- as is a
+file with nothing usable in it. Unsavable entries are skipped line by line,
+and one bad volume never takes an utterance down with it.
 
 The files people share are text: a word, a tab, then either a respelling
 (`dee oe jeigh`) or a pronunciation in the engine's own alphabet

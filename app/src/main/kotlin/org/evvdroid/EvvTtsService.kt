@@ -195,14 +195,25 @@ class EvvTtsService : TextToSpeechService() {
 	private fun loadDictionaries(target: EvvEngine, s: Settings) {
 		val want = s.dictionaryPaths().filterKeys { s.useDictionary(it) }
 		if (want == loadedDictionaries) return
-		target.forgetDictionaries()
-		for ((volume, path) in want) {
-			val file = java.io.File(path)
-			if (!file.exists()) continue
-			val taught = Dictionaries.load(target, volume, file)
-			Log.i(TAG, "volume $volume: $taught entries from ${file.name}")
+		try {
+			target.forgetDictionaries()
+			for ((volume, path) in want) {
+				try {
+					val file = java.io.File(path)
+					if (!file.exists()) continue
+					val taught = Dictionaries.load(target, volume, file)
+					Log.i(TAG, "volume $volume: $taught entries from ${file.name}")
+				} catch (failed: Exception) {
+					// One bad volume must not take the utterance, or every
+					// utterance after it, down with it.
+					Log.e(TAG, "volume $volume not loaded", failed)
+				}
+			}
+		} finally {
+			// Recorded even half-done: retrying a poisoned file on every
+			// utterance is what turns one bad pick into lasting silence.
+			loadedDictionaries = want
 		}
-		loadedDictionaries = want
 	}
 
 	override fun onStop() {

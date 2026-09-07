@@ -198,28 +198,41 @@ class SettingsModel(context: Context) {
 	 */
 	fun chooseDictionary(volume: Int, uri: android.net.Uri) {
 		val into = java.io.File(app.filesDir, "dictionaries").apply { mkdirs() }
-		val file = java.io.File(into, "volume-$volume.dic")
-		val name = nameOf(uri) ?: file.name
+		val pending = java.io.File(into, "pending.dic")
+		val name = nameOf(uri) ?: pending.name
 		try {
 			app.contentResolver.openInputStream(uri).use { source ->
 				if (source == null) return
-				file.outputStream().use { sink -> source.copyTo(sink) }
+				pending.outputStream().use { sink -> source.copyTo(sink) }
 			}
 		} catch (unreadable: Exception) {
 			android.util.Log.e("evvdroid", "cannot read the dictionary picked", unreadable)
+			pending.delete()
 			return
 		}
-		val entries = Dictionaries.count(file)
+		// A shared name says which volume it is: an enuabbr picked on the
+		// main row still goes to abbreviations. A binary file is refused
+		// outright: teaching its bytes as words can silence the engine.
+		if (Dictionaries.isBinary(pending)) {
+			android.util.Log.e("evvdroid", "refusing binary dictionary $name")
+			pending.delete()
+			return
+		}
+		val routed = Dictionaries.volumeForFile(name) ?: volume
+		val entries = Dictionaries.count(pending)
 		if (entries == 0) {
-			file.delete()
-			dictionaries = dictionaries - volume
-			settings.setDictionary(volume, null, null)
+			pending.delete()
+			dictionaries = dictionaries - routed
+			settings.setDictionary(routed, null, null)
 			return
 		}
+		val file = java.io.File(into, "volume-$routed.dic")
+		pending.copyTo(file, overwrite = true)
+		pending.delete()
 		val said = app.getString(R.string.dictionary_entries, name, entries)
-		settings.setDictionary(volume, file.absolutePath, said)
-		dictionaries = dictionaries + (volume to said)
-		chooseUseDictionary(volume, true)
+		settings.setDictionary(routed, file.absolutePath, said)
+		dictionaries = dictionaries + (routed to said)
+		chooseUseDictionary(routed, true)
 	}
 
 	fun removeDictionaries() {
