@@ -201,7 +201,14 @@ class EvvTtsService : TextToSpeechService() {
 		s?.let { target.setAbbreviations(it.abbreviations) }
 		target.setRatePercent(request.speechRate)
 		target.setPitchPercent(request.pitch)
-		val text = TextFixes.apply(request.charSequenceText?.toString().orEmpty())
+		// Crash guards first, readability fixes after: AntiCrash must see words
+		// as written, and the backquote strip must run before Pauses and
+		// Prosody add annotations of their own.
+		val guarded = AntiCrash.apply(
+			request.charSequenceText?.toString().orEmpty(),
+			stripBackquotes = s?.backquoteTags != true
+		)
+		val text = TextFixes.apply(guarded)
 		if (text.isEmpty()) {
 			callback.start(target.sampleRateHz, AudioFormat.ENCODING_PCM_16BIT, 1)
 			callback.done()

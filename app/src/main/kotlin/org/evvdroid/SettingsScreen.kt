@@ -52,9 +52,9 @@ import kotlin.math.roundToInt
  * stops for a screen reader, so each row merges into a single node that says
  * what it is and what it is set to, and adjusts in place.
  *
- * And the numbers are percentages. The engine's own are on three scales --
- * gender is a choice of two, speed runs to 250, the rest to a hundred -- and a
- * bare number leaves it to the listener to remember which scale they are on.
+ * And the numbers are percentages. The engine's speed runs to 250 and the
+ * rest to a hundred, and a bare number leaves it to the listener to remember
+ * which scale they are on.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,17 +79,6 @@ fun SettingsScreen(state: SettingsModel) {
 				chosen = state.voice,
 				onChoose = state::chooseVoice
 			)
-			Gap()
-			ChoiceRow(
-				label = stringResource(R.string.gender_label),
-				options = listOf(
-					stringResource(R.string.gender_male),
-					stringResource(R.string.gender_female)
-				),
-				chosen = state.gender,
-				onChoose = { state.setShape(Eci.VOICE_GENDER, it) }
-			)
-
 			Gap()
 			for (param in Settings.SLIDERS) {
 				SliderRow(
@@ -122,6 +111,11 @@ fun SettingsScreen(state: SettingsModel) {
 				label = stringResource(R.string.abbreviations_label),
 				checked = state.abbreviations,
 				onChange = state::chooseAbbreviations
+			)
+			SwitchRow(
+				label = stringResource(R.string.backquote_tags_label),
+				checked = state.backquoteTags,
+				onChange = state::chooseBackquoteTags
 			)
 			Gap()
 			for (volume in Eci.DICT_VOLUMES) {

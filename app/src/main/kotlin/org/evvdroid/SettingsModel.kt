@@ -36,6 +36,9 @@ class SettingsModel(context: Context) {
 	var phrasePrediction by mutableStateOf(settings.phrasePrediction)
 		private set
 
+	var backquoteTags by mutableStateOf(settings.backquoteTags)
+		private set
+
 	private val shape = mutableStateMapOf<Int, Int>().apply { putAll(settings.shape(settings.voice)) }
 
 	private var dictionaries: Map<Int, String> by mutableStateOf(
@@ -43,8 +46,6 @@ class SettingsModel(context: Context) {
 			settings.dictionaryName(volume)?.let { volume to it }
 		}.toMap()
 	)
-
-	val gender: Int get() = shape[Eci.VOICE_GENDER] ?: 0
 
 	init {
 		preview?.open {
@@ -154,6 +155,11 @@ class SettingsModel(context: Context) {
 	fun choosePhrasePrediction(on: Boolean) {
 		phrasePrediction = on
 		settings.phrasePrediction = on
+	}
+
+	fun chooseBackquoteTags(on: Boolean) {
+		backquoteTags = on
+		settings.backquoteTags = on
 	}
 
 	fun choosePauses(mode: Int) {

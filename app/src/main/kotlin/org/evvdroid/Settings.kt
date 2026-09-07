@@ -36,6 +36,7 @@ class Settings(context: Context) {
 
 	init {
 		carryOverTheOldKeys()
+		dropRetiredGenderKeys()
 		prefs.registerOnSharedPreferenceChangeListener(watcher)
 	}
 
@@ -44,8 +45,8 @@ class Settings(context: Context) {
 		set(value) = prefs.edit().putInt(KEY_VOICE, value).apply()
 
 	var sampleRateHz: Int
-		get() = prefs.getInt(KEY_SAMPLE_RATE, DEFAULT_SAMPLE_RATE)
-		set(value) = prefs.edit().putInt(KEY_SAMPLE_RATE, value).apply()
+		get() = Eci.coerceSampleRate(prefs.getInt(KEY_SAMPLE_RATE, DEFAULT_SAMPLE_RATE))
+		set(value) = prefs.edit().putInt(KEY_SAMPLE_RATE, Eci.coerceSampleRate(value)).apply()
 
 	/** The abbreviation dictionary. Off by default: it expands what it takes
 	 *  for an abbreviation whether that was wanted or not. */
@@ -65,6 +66,14 @@ class Settings(context: Context) {
 	var phrasePrediction: Boolean
 		get() = prefs.getBoolean(KEY_PHRASE_PREDICTION, false)
 		set(value) = prefs.edit().putBoolean(KEY_PHRASE_PREDICTION, value).apply()
+
+	/** Whether text may carry the engine's backquote annotations, such as
+	 *  `vs for speed or `p for a pause. Off: a backquote becomes a space
+	 *  before the engine sees it, which keeps stray or hostile markup in
+	 *  ordinary text from reaching the engine and crashing it. */
+	var backquoteTags: Boolean
+		get() = prefs.getBoolean(KEY_BACKQUOTE_TAGS, false)
+		set(value) = prefs.edit().putBoolean(KEY_BACKQUOTE_TAGS, value).apply()
 
 	/** One speed for every voice. */
 	var speed: Int
@@ -140,6 +149,22 @@ class Settings(context: Context) {
 		edit.apply()
 	}
 
+	/** Gender was once a setting of its own. The presets already are who they
+	 *  are -- Shelley is Shelley without anyone choosing female -- so stored
+	 *  gender choices are forgotten and the preset's own stands. */
+	private fun dropRetiredGenderKeys() {
+		val edit = prefs.edit()
+		var changed = false
+		for (voice in Eci.PRESET_NAMES.indices) {
+			val key = "voice${voice}_param${Eci.VOICE_GENDER}"
+			if (prefs.contains(key)) {
+				edit.remove(key)
+				changed = true
+			}
+		}
+		if (changed) edit.apply()
+	}
+
 	// ---- dictionaries ----------------------------------------------------
 
 	fun dictionaryPath(volume: Int): String? = prefs.getString("dict_path_$volume", null)
@@ -169,11 +194,12 @@ class Settings(context: Context) {
 		const val KEY_SPEED = "speed"
 		const val KEY_PAUSES = "pauses"
 		const val KEY_PHRASE_PREDICTION = "phrase_prediction"
+		const val KEY_BACKQUOTE_TAGS = "backquote_tags"
 		const val DEFAULT_SAMPLE_RATE = 11025
 
-		/** The eight, in the order the settings screen shows them. */
+		/** The seven, in the order the settings screen shows them. Gender is not
+		 *  among them: the presets already are who they are. */
 		val SHAPE = listOf(
-			Eci.VOICE_GENDER,
 			Eci.VOICE_SPEED,
 			Eci.VOICE_PITCH_BASELINE,
 			Eci.VOICE_PITCH_FLUCTUATION,
@@ -183,10 +209,10 @@ class Settings(context: Context) {
 			Eci.VOICE_VOLUME
 		)
 
-		/** The seven that belong to a voice. Speed belongs to the listener. */
+		/** The six that belong to a voice. Speed belongs to the listener. */
 		val PER_VOICE = SHAPE.filter { it != Eci.VOICE_SPEED }
 
-		/** The seven that are a slider. Gender is a choice of two. */
-		val SLIDERS = SHAPE.filter { it != Eci.VOICE_GENDER }
+		/** Every one of them is a slider. */
+		val SLIDERS = SHAPE
 	}
 }

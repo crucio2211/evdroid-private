@@ -87,8 +87,14 @@ object Eci {
 	}
 
 	/** What eciSampleRate's index means in hertz, in the order the engine
-	 *  numbers them. The first four are IBM's numbering and the rest openevv's. */
-	val SAMPLE_RATES = intArrayOf(8000, 11025, 22050, 16000, 32000, 44100, 48000)
+	 *  numbers them. Only the two the engine actually plays are offered: the
+	 *  rest are numbered successfully and then come out wrong, so they are
+	 *  not listed here at all. */
+	val SAMPLE_RATES = intArrayOf(8000, 11025)
+
+	/** [hz] as one of [SAMPLE_RATES]. Anything else -- including a rate a
+	 *  previous build stored -- comes back as the default. */
+	fun coerceSampleRate(hz: Int): Int = if (hz == SAMPLE_RATES[0]) SAMPLE_RATES[0] else SAMPLE_RATES[1]
 
 	fun sampleRateHz(index: Int): Int =
 		SAMPLE_RATES.getOrElse(index) { SAMPLE_RATES[1] }

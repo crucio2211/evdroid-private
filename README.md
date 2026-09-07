@@ -26,8 +26,8 @@ redistributing anything.
 * US English.
 * Eight preset voices: Reed, Shelley, Bobby, Rocko, Glen, Sandy, Grandma,
   Grandpa. Offered through the Android voice API, so they appear separately.
-* All eight voice parameters: speed, pitch, inflection, head size, roughness,
-  breathiness, volume, gender.
+* All seven voice parameters: speed, pitch, inflection, head size, roughness,
+  breathiness and volume.
 * Speech rate and pitch from the system settings.
 * Pronunciation dictionaries.
 * Android 6 and later. arm64-v8a, armeabi-v7a, x86_64.
@@ -80,8 +80,9 @@ constantly.
 
 Launcher icon, or the gear beside the engine in the text-to-speech settings.
 
-Sliders for the seven numeric voice parameters, plus gender, voice, sample
-rate, pauses, phrase prediction, abbreviations and dictionaries. "Speak a sample" sits under the sliders.
+Sliders for the seven voice parameters, plus voice, sample
+rate (8 and 11 kHz, the two the engine actually plays), pauses, phrase
+prediction, abbreviations, backquote voice tags and dictionaries. "Speak a sample" sits under the sliders.
 Nothing speaks on its own. A setting takes effect when you set it, and the
 button is how you hear it.
 
@@ -91,7 +92,7 @@ Each row is one control. A label, a bar and a number would be three stops for a
 screen reader, so each row merges into a single node with
 `clearAndSetSemantics`. It reads as "Speed, 20 percent" and adjusts in place.
 
-Values are percentages. The engine uses three scales (gender is 0 or 1, speed
+Values are percentages. The engine uses two scales (speed
 runs to 250, the rest to 100), so a raw number means nothing without knowing
 which. Everything is hundredths of its own range.
 
@@ -108,7 +109,7 @@ only for the voice you are on.
 
 Speed is the listener's, not the voice's. Six presets ship at engine speed 50
 and Glen and Sandy ship at 70, half again as fast. That is IBM's data, but it
-made changing voice change the pace, so a preset brings its other seven
+made changing voice change the pace, so a preset brings its other six
 settings and leaves the speed alone.
 
 Sliders start at the voice's own values. Each preset carries its own head size,

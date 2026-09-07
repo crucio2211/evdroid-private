@@ -9,11 +9,11 @@ import org.junit.runner.RunWith
 
 /** That the settings screen builds itself without falling over.
  *
- *  It reads the engine's own voices to fill itself in, and the eight settings
- *  are driven off one list of keys where seven are sliders and gender is a
- *  choice of two, so it is a screen that can fail before it is ever seen. It
- *  has done, twice: once casting the gender control to a slider and once
- *  writing a number into a control that stores text.
+ *  It reads the engine's own voices to fill itself in, and the settings are
+ *  driven off one list of keys where every one is a slider, so it is a screen
+ *  that can fail before it is ever seen. It has done, twice: once casting a
+ *  choice control to a slider and once writing a number into a control that
+ *  stores text.
  *
  *  ActivityScenario.launch throws if anything in onCreate does, which is the
  *  whole of the check. What state it settles in afterwards is the device's
