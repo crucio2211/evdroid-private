@@ -10,6 +10,10 @@ val abis = (findProperty("evvdroid.abis") as String? ?: "arm64-v8a,armeabi-v7a,x
 	.split(",").map { it.trim() }.filter { it.isNotEmpty() }
 val rulesForm = findProperty("evvdroid.rules") as String? ?: "c"
 val languages = findProperty("evvdroid.langs") as String? ?: "lang/enus"
+// CI passes its run number so every build installs as an update over the
+// last: same versionCode twice and Android may keep the old APK in place.
+val versionCodeNumber = (findProperty("evvdroid.versionCode") as String?)?.toIntOrNull() ?: 1
+val versionNameText = findProperty("evvdroid.versionName") as String? ?: "0.1.0"
 val nativeOut = layout.buildDirectory.dir("native/jniLibs")
 
 // The engine is built by its own Makefile rather than by CMake, because that
@@ -62,8 +66,8 @@ android {
 		applicationId = "org.evvdroid"
 		minSdk = 23
 		targetSdk = 36
-		versionCode = 1
-		versionName = "0.1.0"
+		versionCode = versionCodeNumber
+		versionName = versionNameText
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		ndk {
 			abiFilters += abis

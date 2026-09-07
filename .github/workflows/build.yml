@@ -61,7 +61,7 @@ jobs:
           echo "ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/${NDK_VERSION}" >> "${GITHUB_ENV}"
 
       - name: Build the debug APK and compile the device checks
-        run: ./gradlew assembleDebug assembleDebugAndroidTest -Pevvdroid.abis=arm64-v8a -Pevvdroid.langs="$EVVDROID_LANGS" --stacktrace
+        run: ./gradlew assembleDebug assembleDebugAndroidTest -Pevvdroid.abis=arm64-v8a -Pevvdroid.langs="$EVVDROID_LANGS" -Pevvdroid.versionCode="$GITHUB_RUN_NUMBER" --stacktrace
 
       - name: Upload the APK
         uses: actions/upload-artifact@v4

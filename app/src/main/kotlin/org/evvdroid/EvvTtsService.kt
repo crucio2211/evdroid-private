@@ -35,6 +35,10 @@ class EvvTtsService : TextToSpeechService() {
 	override fun onCreate() {
 		settings = Settings(this)
 		super.onCreate()
+		// The five-thousand-entry emoji table builds on first touch, which
+		// would otherwise land on the first utterance. Warm it here, off
+		// every thread that speaks.
+		Thread({ EmojiNames.STARTERS.size }, "emoji-warmup").start()
 	}
 
 	override fun onDestroy() {
