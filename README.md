@@ -166,10 +166,11 @@ the one setting with nothing to say whether something else has moved it.
 
 ## Numbers and punctuation
 
-"Process numbers" regroups standalone digit runs before anything else sees
-them: apart, in pairs, in threes or in fours, left to right with a short
-tail. Decimals, thousands, times, dates and letter-glued tokens are not
-standalone and are left alone.
+"Process numbers" reads standalone digit runs whole up to pairs, threes
+or fours, and spells out longer runs digit by digit: 12 stays twelve in
+pairs while 123 becomes 1 2 3, and digits always come apart. Decimals,
+thousands, times, dates and letter-glued tokens are not standalone and are
+left alone, and with the switch off the synthesiser decides everything.
 
 "Process punctuation" is NVDA's symbol levels as rewrites: none drops the
 standalone marks, some speaks the sentence marks, most speaks those and the

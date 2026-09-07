@@ -3,10 +3,12 @@ package org.evvdroid
 /**
  * Numbers read the way the listener asks.
  *
- * Left alone the engine reads 1234 as a number, twelve thirty-four's
- * thirteen-thousand cousin. Sometimes that is what is wanted and sometimes
- * a phone number or a code is, which wants its digits apart or in small
- * groups instead.
+ * A run no longer than the mode reads whole, as the engine would say it:
+ * pairs leaves twelve alone, triplets leaves one hundred twenty-three
+ * alone. A run
+ * longer than the mode falls back to digits, so 1234 in pairs is 1 2 3 4
+ * while in quadruplets it stays one number. Digits always come apart, and
+ * with the switch off the synthesiser decides everything.
  *
  * Only standalone runs qualify: a run glued to letters or to number
  * punctuation is somebody else's business, so 3.14, 1,024, 2:30,
@@ -26,9 +28,8 @@ object NumberProcessing {
 	private val RUN = Regex("""(?<![\w.,:/-])\d+(?![\w.,:/-])""")
 
 	/**
-	 * [text] with every standalone digit run regrouped for [mode]: apart,
-	 * in pairs, in threes or in fours. Grouping runs left to right with a
-	 * short tail of its own, so 12345 in pairs is 12 34 5.
+	 * [text] with every standalone digit run either left whole or spelled
+	 * out for [mode].
 	 */
 	fun apply(text: String, mode: Int): String {
 		if (text.isEmpty()) return text
@@ -39,20 +40,9 @@ object NumberProcessing {
 			else -> 1
 		}
 		return RUN.replace(text) { match ->
-			if (size == 1) match.value.toCharArray().joinToString(" ")
-			else group(match.value, size)
+			val digits = match.value
+			if (digits.length <= size) digits
+			else digits.toCharArray().joinToString(" ")
 		}
-	}
-
-	private fun group(digits: String, size: Int): String {
-		if (digits.length <= size) return digits
-		val out = StringBuilder()
-		var at = 0
-		while (at < digits.length) {
-			if (at > 0) out.append(' ')
-			out.append(digits.substring(at, minOf(at + size, digits.length)))
-			at += size
-		}
-		return out.toString()
 	}
 }

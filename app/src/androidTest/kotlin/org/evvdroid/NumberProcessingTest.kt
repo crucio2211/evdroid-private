@@ -8,37 +8,40 @@ import org.junit.runner.RunWith
 /**
  * Numbers read the way the listener asks.
  *
- * Each check regroups a standalone run and says what must come out, and the
- * untouched checks say what is somebody else's business: decimals, grouped
- * thousands, times, dates and letter-glued tokens are not numbers standing
- * alone.
+ * Each check says what a standalone run becomes: whole up to the mode,
+ * digits past it. The untouched checks say what is somebody else's
+ * business: decimals, grouped thousands, times, dates and letter-glued
+ * tokens are not numbers standing alone.
  */
 @RunWith(AndroidJUnit4::class)
 class NumberProcessingTest {
 
 	@Test
-	fun digitsComeApart() {
+	fun digitsAlwaysComeApart() {
 		assertEquals("Call 1 2 3 4 5", NumberProcessing.apply("Call 12345", NumberProcessing.DIGITS))
 		assertEquals("Room 1 0 1", NumberProcessing.apply("Room 101", NumberProcessing.DIGITS))
 		assertEquals("7", NumberProcessing.apply("7", NumberProcessing.DIGITS))
 	}
 
 	@Test
-	fun pairsGroupLeftToRight() {
-		assertEquals("12 34 56", NumberProcessing.apply("123456", NumberProcessing.PAIRS))
-		assertEquals("12 34 5", NumberProcessing.apply("12345", NumberProcessing.PAIRS))
+	fun pairsKeepTwoAndSpellLonger() {
 		assertEquals("12", NumberProcessing.apply("12", NumberProcessing.PAIRS))
+		assertEquals("1 2 3", NumberProcessing.apply("123", NumberProcessing.PAIRS))
+		assertEquals("1 2 3 4 5 6", NumberProcessing.apply("123456", NumberProcessing.PAIRS))
 	}
 
 	@Test
-	fun tripletsGroupLeftToRight() {
-		assertEquals("123 456 7", NumberProcessing.apply("1234567", NumberProcessing.TRIPLETS))
-		assertEquals("123 456", NumberProcessing.apply("123456", NumberProcessing.TRIPLETS))
+	fun tripletsKeepThreeAndSpellLonger() {
+		assertEquals("123", NumberProcessing.apply("123", NumberProcessing.TRIPLETS))
+		assertEquals("1 2 3 4", NumberProcessing.apply("1234", NumberProcessing.TRIPLETS))
+		assertEquals("1 2 3 4 5 6", NumberProcessing.apply("123456", NumberProcessing.TRIPLETS))
 	}
 
 	@Test
-	fun quadrupletsGroupLeftToRight() {
-		assertEquals("1234 5678", NumberProcessing.apply("12345678", NumberProcessing.QUADRUPLETS))
+	fun quadrupletsKeepFourAndSpellLonger() {
+		assertEquals("1234", NumberProcessing.apply("1234", NumberProcessing.QUADRUPLETS))
+		assertEquals("1 2 3 4 5", NumberProcessing.apply("12345", NumberProcessing.QUADRUPLETS))
+		assertEquals("1 2 3 4 5 6 7 8", NumberProcessing.apply("12345678", NumberProcessing.QUADRUPLETS))
 	}
 
 	@Test
