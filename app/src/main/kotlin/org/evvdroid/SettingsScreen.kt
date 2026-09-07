@@ -63,6 +63,9 @@ fun SettingsScreen(state: SettingsModel) {
 	val pick = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
 		uri?.let { state.chooseDictionary(wanted, it) }
 	}
+	val pickRegex = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+		uri?.let { state.chooseRegexDictionary(it) }
+	}
 	Scaffold(
 		topBar = { TopAppBar(title = { Text(stringResource(R.string.app_name)) }) }
 	) { inset ->
@@ -125,7 +128,17 @@ fun SettingsScreen(state: SettingsModel) {
 					onClick = { wanted = volume; pick.launch(arrayOf("*/*")) }
 				)
 			}
-			ActionRow(stringResource(R.string.dictionary_remove), state::removeDictionaries)
+			ValueRow(
+			label = stringResource(R.string.regex_dictionary_label),
+			value = state.regexDictionary,
+			onClick = { pickRegex.launch(arrayOf("*/*")) }
+		)
+		SwitchRow(
+			label = stringResource(R.string.regex_dictionary_use_label),
+			checked = state.regexDictionaryEnabled,
+			onChange = state::chooseRegexDictionaryEnabled
+		)
+		ActionRow(stringResource(R.string.dictionary_remove), state::removeDictionaries)
 
 			Gap()
 			ChoiceRow(

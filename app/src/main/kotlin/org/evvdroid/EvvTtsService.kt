@@ -29,6 +29,9 @@ class EvvTtsService : TextToSpeechService() {
 
 	private var loadedDictionaries: Map<Int, String> = emptyMap()
 
+	private var loadedRegex: RegexDictionaries.Loaded? = null
+	private var regexEnabled = false
+
 	override fun onCreate() {
 		settings = Settings(this)
 		super.onCreate()
@@ -150,8 +153,25 @@ class EvvTtsService : TextToSpeechService() {
 		target.setSampleRate(s.sampleRateHz)
 		target.setAbbreviations(s.abbreviations)
 		loadDictionaries(target, s)
+		loadRegexDictionary(s)
 		target.applyVoice(s.voice, s.shape(s.voice))
 		appliedRevision = s.revision
+	}
+
+	/** The regex dictionary is recompiled when the settings change, which is
+	 *  the only time the file it reads can have changed: it is a copy of
+	 *  our own, written by the settings screen. */
+	private fun loadRegexDictionary(s: Settings) {
+		regexEnabled = s.regexDictionaryEnabled
+		val path = if (regexEnabled) s.regexDictionaryPath() else null
+		val file = path?.let { java.io.File(it) }
+		loadedRegex = if (file != null && file.exists()) {
+			RegexDictionaries.load(file).also {
+				Log.i(TAG, "regex dictionary: ${it?.entries?.size ?: 0} patterns from ${file.name}")
+			}
+		} else {
+			null
+		}
 	}
 
 	/** Teaching three thousand words costs about half a second, so it happens
@@ -208,7 +228,10 @@ class EvvTtsService : TextToSpeechService() {
 			request.charSequenceText?.toString().orEmpty(),
 			stripBackquotes = s?.backquoteTags != true
 		)
-		val text = TextFixes.apply(guarded)
+		val fixed = TextFixes.apply(guarded)
+		// The user's own rewrites go last, closest to the engine, so what is
+		// written in the regex dictionary is what gets said.
+		val text = if (regexEnabled) RegexDictionaries.apply(loadedRegex, fixed) else fixed
 		if (text.isEmpty()) {
 			callback.start(target.sampleRateHz, AudioFormat.ENCODING_PCM_16BIT, 1)
 			callback.done()

@@ -82,7 +82,8 @@ Launcher icon, or the gear beside the engine in the text-to-speech settings.
 
 Sliders for the seven voice parameters, plus voice, sample
 rate (8 and 11 kHz, the two the engine actually plays), pauses, phrase
-prediction, abbreviations, backquote voice tags and dictionaries. "Speak a sample" sits under the sliders.
+prediction, abbreviations, backquote voice tags, volume dictionaries and a
+regex dictionary. "Speak a sample" sits under the sliders.
 Nothing speaks on its own. A setting takes effect when you set it, and the
 button is how you hear it.
 
@@ -159,7 +160,8 @@ the one setting with nothing to say whether something else has moved it.
 ## Dictionaries
 
 Three rows pick a file each for the main, root and abbreviation volumes.
-"Remove dictionaries" clears all three.
+A fourth row picks a regex dictionary, with a switch to turn it on and off.
+"Remove dictionaries" clears all four.
 
 The files people share are text: a word, a tab, then either a respelling
 (`dee oe jeigh`) or a pronunciation in the engine's own alphabet
@@ -176,6 +178,14 @@ They reload only when the files change.
 A picked file is copied into app storage. A content URI belongs to whichever
 app supplied it, may not be readable later, and the speech service reads it
 from another process.
+
+A regex dictionary is one more text file: a pattern, a tab, and what to put
+in its place, so `NVDA` with a tab and `en vee dee ay` says the letters.
+Lines starting with `#` are comments, blank lines are skipped, and a pattern
+that does not compile is skipped and logged rather than sinking the file.
+Replacements use `$1` group references. It applies after the crash guards
+and readability fixes, closest to the engine, so what is written there is
+what gets said. Picking a file turns it on.
 
 No dictionary is shipped here. See LICENSE.
 

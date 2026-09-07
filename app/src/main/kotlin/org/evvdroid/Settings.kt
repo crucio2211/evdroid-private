@@ -187,6 +187,28 @@ class Settings(context: Context) {
 		return out
 	}
 
+	// ---- regex dictionary ----------------------------------------------
+
+	/** Whether the regex dictionary is applied. Off until a file is picked,
+	 *  which turns it on. */
+	var regexDictionaryEnabled: Boolean
+		get() = prefs.getBoolean(KEY_REGEX_ENABLED, false)
+		set(value) = prefs.edit().putBoolean(KEY_REGEX_ENABLED, value).apply()
+
+	fun regexDictionaryPath(): String? = prefs.getString(KEY_REGEX_PATH, null)
+
+	fun regexDictionaryName(): String? = prefs.getString(KEY_REGEX_NAME, null)
+
+	fun setRegexDictionary(path: String?, name: String?) {
+		val edit = prefs.edit()
+		if (path == null) {
+			edit.remove(KEY_REGEX_PATH).remove(KEY_REGEX_NAME)
+		} else {
+			edit.putString(KEY_REGEX_PATH, path).putString(KEY_REGEX_NAME, name)
+		}
+		edit.apply()
+	}
+
 	companion object {
 		const val KEY_VOICE = "voice_preset"
 		const val KEY_SAMPLE_RATE = "sample_rate_hz"
@@ -195,6 +217,9 @@ class Settings(context: Context) {
 		const val KEY_PAUSES = "pauses"
 		const val KEY_PHRASE_PREDICTION = "phrase_prediction"
 		const val KEY_BACKQUOTE_TAGS = "backquote_tags"
+		const val KEY_REGEX_ENABLED = "regex_enabled"
+		const val KEY_REGEX_PATH = "regex_path"
+		const val KEY_REGEX_NAME = "regex_name"
 		const val DEFAULT_SAMPLE_RATE = 11025
 
 		/** The seven, in the order the settings screen shows them. Gender is not

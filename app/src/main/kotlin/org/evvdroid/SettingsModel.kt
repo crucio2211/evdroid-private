@@ -39,6 +39,9 @@ class SettingsModel(context: Context) {
 	var backquoteTags by mutableStateOf(settings.backquoteTags)
 		private set
 
+	var regexDictionaryEnabled by mutableStateOf(settings.regexDictionaryEnabled)
+		private set
+
 	private val shape = mutableStateMapOf<Int, Int>().apply { putAll(settings.shape(settings.voice)) }
 
 	private var dictionaries: Map<Int, String> by mutableStateOf(
@@ -104,6 +107,12 @@ class SettingsModel(context: Context) {
 	/** What the row for [volume] says: the file picked for it, or nothing. */
 	fun dictionaryName(volume: Int): String = dictionaries[volume] ?: app.getString(R.string.dictionary_none)
 
+	/** What the regex dictionary row says: the file picked for it, or nothing. */
+	var regexDictionary: String by mutableStateOf(
+		settings.regexDictionaryName() ?: app.getString(R.string.dictionary_none)
+	)
+		private set
+
 	/**
 	 * Takes a copy of the file the picker handed back.
 	 *
@@ -143,6 +152,49 @@ class SettingsModel(context: Context) {
 			settings.setDictionary(volume, null, null)
 		}
 		dictionaries = emptyMap()
+		settings.regexDictionaryPath()?.let { java.io.File(it).delete() }
+		settings.setRegexDictionary(null, null)
+		chooseRegexDictionaryEnabled(false)
+		regexDictionary = app.getString(R.string.dictionary_none)
+	}
+
+	/**
+	 * Takes a copy of the regex dictionary the picker handed back.
+	 *
+	 * Same copy-of-our-own arrangement as the volume dictionaries. A file
+	 * with no usable patterns in it is refused rather than kept: keeping it
+	 * would show a name on the screen for a dictionary that says nothing.
+	 * Picking a good file turns the dictionary on.
+	 */
+	fun chooseRegexDictionary(uri: android.net.Uri) {
+		val into = java.io.File(app.filesDir, "dictionaries").apply { mkdirs() }
+		val file = java.io.File(into, "regex.dic")
+		val name = nameOf(uri) ?: file.name
+		try {
+			app.contentResolver.openInputStream(uri).use { source ->
+				if (source == null) return
+				file.outputStream().use { sink -> source.copyTo(sink) }
+			}
+		} catch (unreadable: Exception) {
+			android.util.Log.e("evvdroid", "cannot read the regex dictionary picked", unreadable)
+			return
+		}
+		val patterns = RegexDictionaries.count(file)
+		if (patterns == 0) {
+			file.delete()
+			settings.setRegexDictionary(null, null)
+			regexDictionary = app.getString(R.string.dictionary_none)
+			return
+		}
+		val said = app.getString(R.string.regex_dictionary_entries, name, patterns)
+		settings.setRegexDictionary(file.absolutePath, said)
+		regexDictionary = said
+		chooseRegexDictionaryEnabled(true)
+	}
+
+	fun chooseRegexDictionaryEnabled(on: Boolean) {
+		regexDictionaryEnabled = on
+		settings.regexDictionaryEnabled = on
 	}
 
 	private fun nameOf(uri: android.net.Uri): String? = runCatching {

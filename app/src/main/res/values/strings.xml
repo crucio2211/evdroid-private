@@ -33,6 +33,10 @@
 	<string name="dictionary_entries">%1$s, %2$d words</string>
 	<string name="dictionary_remove">Remove dictionaries</string>
 
+	<string name="regex_dictionary_label">Regex dictionary</string>
+	<string name="regex_dictionary_use_label">Use regex dictionary</string>
+	<string name="regex_dictionary_entries">%1$s, %2$d patterns</string>
+
 	<string name="sample_rate_label">Sample rate</string>
 	<string name="hertz">%1$d Hz</string>
 
