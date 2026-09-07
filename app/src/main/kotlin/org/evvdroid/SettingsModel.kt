@@ -47,6 +47,9 @@ class SettingsModel(context: Context) {
 	var phrasePrediction by mutableStateOf(settings.phrasePrediction)
 		private set
 
+	var speakEmoji by mutableStateOf(settings.speakEmoji)
+		private set
+
 	var numberProcessing by mutableStateOf(settings.numberProcessing)
 		private set
 
@@ -316,6 +319,11 @@ class SettingsModel(context: Context) {
 	fun choosePhrasePrediction(on: Boolean) {
 		phrasePrediction = on
 		settings.phrasePrediction = on
+	}
+
+	fun chooseSpeakEmoji(on: Boolean) {
+		speakEmoji = on
+		settings.speakEmoji = on
 	}
 
 	fun chooseNumberProcessing(on: Boolean) {

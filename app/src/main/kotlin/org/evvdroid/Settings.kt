@@ -88,6 +88,12 @@ class Settings(context: Context) {
 		get() = prefs.getBoolean(KEY_BACKQUOTE_TAGS, false)
 		set(value) = prefs.edit().putBoolean(KEY_BACKQUOTE_TAGS, value).apply()
 
+	/** Whether emoji are spoken by name. On: an emoji becomes its plain
+	 *  words before anything else sees the text. */
+	var speakEmoji: Boolean
+		get() = prefs.getBoolean(KEY_SPEAK_EMOJI, true)
+		set(value) = prefs.edit().putBoolean(KEY_SPEAK_EMOJI, value).apply()
+
 	/** Whether digit runs are regrouped for reading, and how. */
 	var numberProcessing: Boolean
 		get() = prefs.getBoolean(KEY_NUMBER_PROCESSING, false)
@@ -274,6 +280,7 @@ class Settings(context: Context) {
 		const val KEY_SPEED = "speed"
 		const val KEY_PAUSES = "pauses"
 		const val KEY_PHRASE_PREDICTION = "phrase_prediction"
+		const val KEY_SPEAK_EMOJI = "speak_emoji"
 		const val KEY_NUMBER_PROCESSING = "number_processing"
 		const val KEY_NUMBER_MODE = "number_mode"
 		const val KEY_PUNCT_PROCESSING = "punct_processing"

@@ -133,6 +133,11 @@ fun SettingsScreen(state: SettingsModel) {
 				onChange = state::chooseBackquoteTags
 			)
 			SwitchRow(
+				label = stringResource(R.string.emoji_speak_label),
+				checked = state.speakEmoji,
+				onChange = state::chooseSpeakEmoji
+			)
+			SwitchRow(
 				label = stringResource(R.string.number_processing_label),
 				checked = state.numberProcessing,
 				onChange = state::chooseNumberProcessing

@@ -86,7 +86,7 @@ Launcher icon, or the gear beside the engine in the text-to-speech settings.
 
 Sliders for the seven voice parameters, plus voice, force language,
 sample rate (8 and 11 kHz, the two the engine actually plays), pauses,
-phrase prediction, abbreviations, backquote voice tags, numbers,
+phrase prediction, abbreviations, backquote voice tags, emoji, numbers,
 punctuation, volume dictionaries and a regex dictionary. "Speak a sample"
 sits under the sliders.
 Nothing speaks on its own. A setting takes effect when you set it, and the
@@ -174,6 +174,16 @@ standalone marks, some speaks the sentence marks, most speaks those and the
 prose marks, all speaks everything listed. Speaking a mark writes its name
 in plain words. A mark glued inside a word by ' - . , or : stays put, so
 don't, 3.14 and well-known survive every level.
+
+## Emoji
+
+"Speak emoji" turns every emoji into its plain-English name before anything
+else sees the text: grinning face, red heart, flag Philippines. The table
+holds Unicode 16.0, the newest there is -- there is no 17.0 yet -- all five
+thousand of fully-qualified, minimally-qualified and unqualified sequences
+except single ASCII characters, which are ordinary text. Matching is
+longest-first, so a family wins over its first person and a keycap over its
+digit; modifiers standing alone are dropped.
 
 ## Dictionaries
 

@@ -234,11 +234,13 @@ class EvvTtsService : TextToSpeechService() {
 		s?.let { target.setAbbreviations(it.abbreviations) }
 		target.setRatePercent(request.speechRate)
 		target.setPitchPercent(request.pitch)
-		// Numbers first so every guard below sees one shape of digits, then
-		// punctuation into words, then the crash guards, readability fixes
-		// and the user's own rewrites closest to the engine.
+		// Emoji into words first, then numbers so every guard below sees one
+		// shape of digits, then punctuation into words, then the crash
+		// guards, readability fixes and the user's own rewrites closest to
+		// the engine.
 		val raw = request.charSequenceText?.toString().orEmpty()
-		val numbered = if (s?.numberProcessing == true) NumberProcessing.apply(raw, s.numberMode) else raw
+		val worded = if (s?.speakEmoji != false) EmojiProcessing.apply(raw) else raw
+		val numbered = if (s?.numberProcessing == true) NumberProcessing.apply(worded, s.numberMode) else worded
 		val punctuated = if (s?.punctProcessing == true) PunctuationProcessing.apply(numbered, s.punctLevel) else numbered
 		val guarded = AntiCrash.apply(
 			punctuated,
