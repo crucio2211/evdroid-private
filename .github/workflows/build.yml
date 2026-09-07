@@ -92,8 +92,9 @@ jobs:
         with:
           api-level: 34
           arch: x86_64
-          target: google_apis
+          target: aosp_atd
           disable-animations: true
+          emulator-boot-timeout: 900
           script: ./gradlew connectedDebugAndroidTest -Pevvdroid.abis=x86_64 --stacktrace
 
       - name: Upload the test report
