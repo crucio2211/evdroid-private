@@ -8,33 +8,55 @@ import org.junit.runner.RunWith
 /**
  * Punctuation spoken out instead of paused at, or gone altogether.
  *
- * The level checks say each mark is spoken at its level and left below it,
- * and the glued checks say what no level may touch: contractions, decimals,
- * thousands, times and hyphenated words keep their marks everywhere.
+ * Levels and names are NVDA's built-in symbols.dic, mark for mark: some
+ * speaks the dot but leaves the comma, the bang and the question mark to
+ * the synthesiser, and most still leaves those plus dollar and ellipsis
+ * alone. Glued marks survive every level, which is this port's one
+ * deliberate divergence from NVDA.
  */
 @RunWith(AndroidJUnit4::class)
 class PunctuationProcessingTest {
 
 	@Test
-	fun someSpeaksTheSentenceMarks() {
+	fun someSpeaksDotsNotBangs() {
 		assertEquals(
-			"Hello dot Are you OK question mark Yes exclamation mark",
+			"Hello dot Are you OK? Yes!",
 			PunctuationProcessing.apply("Hello. Are you OK? Yes!", PunctuationProcessing.SOME)
+		)
+	}
+
+	@Test
+	fun someSpeaksTheSmallMarks() {
+		assertEquals(
+			"a plus b equals c",
+			PunctuationProcessing.apply("a+b=c", PunctuationProcessing.SOME)
+		)
+		assertEquals(
+			"100 percent and more",
+			PunctuationProcessing.apply("100% & more", PunctuationProcessing.SOME)
+		)
+		assertEquals(
+			"a at b dot com",
+			PunctuationProcessing.apply("a@b.com", PunctuationProcessing.SOME)
 		)
 	}
 
 	@Test
 	fun belowLevelIsLeftForTheEngine() {
 		assertEquals(
-			"Hello, world dot a@b",
+			"Hello, world dot a at b",
 			PunctuationProcessing.apply("Hello, world. a@b", PunctuationProcessing.SOME)
 		)
 	}
 
 	@Test
-	fun mostSpeaksTheProseMarks() {
+	fun mostLeavesCommaBangAndQuestion() {
 		assertEquals(
-			"Hello comma world dot",
+			"Wait, what? No!",
+			PunctuationProcessing.apply("Wait, what? No!", PunctuationProcessing.MOST)
+		)
+		assertEquals(
+			"Hello, world dot",
 			PunctuationProcessing.apply("Hello, world.", PunctuationProcessing.MOST)
 		)
 		assertEquals(
@@ -44,14 +66,14 @@ class PunctuationProcessingTest {
 	}
 
 	@Test
-	fun allSpeaksTheRest() {
+	fun allSpeaksThem() {
 		assertEquals(
-			"a at b.com",
-			PunctuationProcessing.apply("a@b.com", PunctuationProcessing.ALL)
+			"Wait comma what question No bang",
+			PunctuationProcessing.apply("Wait, what? No!", PunctuationProcessing.ALL)
 		)
 		assertEquals(
-			"C plus plus",
-			PunctuationProcessing.apply("C++", PunctuationProcessing.ALL)
+			"rock tick n tick roll",
+			PunctuationProcessing.apply("rock 'n' roll", PunctuationProcessing.ALL)
 		)
 		assertEquals(
 			"12 slash 05",
@@ -59,8 +81,6 @@ class PunctuationProcessingTest {
 		)
 	}
 
-	/** A trailing dot after an abbreviation still stands alone, so e.g.
-	 *  ends spoken even where its inner dot survives. */
 	@Test
 	fun gluedMarksSurviveEveryLevel() {
 		for (text in listOf("don't", "3.14", "1,024", "2:30", "well-known")) {

@@ -3,18 +3,16 @@ package org.evvdroid
 /**
  * Punctuation spoken out instead of paused at, or gone altogether.
  *
- * Left alone the engine pauses at a mark and says nothing: comma is a gap.
- * These are NVDA's symbol levels, ported to rewrites -- none speaks no
- * mark, some speaks the sentence marks, most speaks those and the prose
- * marks, all speaks everything listed -- where speaking a mark means
- * writing its name in plain words for the engine to read.
+ * These are NVDA's own symbol levels, mark for mark: the built-in
+ * symbols.dic says which level speaks what, so some speaks the dot but
+ * leaves the comma and the question mark to the synthesiser, and most
+ * still leaves bang, dollar, comma, question and ellipsis alone. Speaking
+ * a mark means writing its NVDA name in plain words for the engine to read.
  *
- * A mark only counts standing alone: anything glued between two word
- * characters by one of ' - . , : stays put, so don't stays don't, 3.14
- * stays 3.14 and well-known stays hyphenated, while hello, world and even
- * a@b.com do not. At none the standalone marks are dropped; above none a
- * mark below the level is left for the engine's default, the way an
- * unlisted mark always is.
+ * One deliberate divergence: a mark glued inside a word by ' - . , or :
+ * stays put at every level, so don't stays don't, 3.14 stays 3.14 and
+ * well-known stays hyphenated. NVDA would spell those out; here
+ * readability wins, and the engine's own pauses stay where they were.
  *
  * This runs after numbers and before AntiCrash: the names it writes are
  * ordinary words, which is what every guard below wants to see.
@@ -26,44 +24,43 @@ object PunctuationProcessing {
 	const val MOST = 2
 	const val ALL = 3
 
-	/** A mark to the words that say it and the lowest level that speaks it. */
+	/** A mark to the words that say it and the lowest level that speaks it.
+	 *  Levels and names are NVDA's built-in symbols.dic, mark for mark. */
 	private val WORDS: Map<Char, Pair<String, Int>> = mapOf(
 		'.' to ("dot" to SOME),
-		'?' to ("question mark" to SOME),
-		'!' to ("exclamation mark" to SOME),
-		',' to ("comma" to MOST),
-		';' to ("semicolon" to MOST),
-		':' to ("colon" to MOST),
-		'\'' to ("apostrophe" to MOST),
+		'%' to ("percent" to SOME),
+		'&' to ("and" to SOME),
+		'*' to ("star" to SOME),
+		'/' to ("slash" to SOME),
+		'@' to ("at" to SOME),
+		'+' to ("plus" to SOME),
+		'=' to ("equals" to SOME),
+		'<' to ("less" to SOME),
+		'>' to ("greater" to SOME),
+		'•' to ("bullet" to SOME),
 		'"' to ("quote" to MOST),
-		'-' to ("dash" to MOST),
-		'–' to ("dash" to MOST),
-		'—' to ("dash" to MOST),
-		'…' to ("ellipsis" to MOST),
 		'(' to ("left paren" to MOST),
 		')' to ("right paren" to MOST),
-		'@' to ("at" to ALL),
-		'#' to ("hash" to ALL),
+		'-' to ("dash" to MOST),
+		'–' to ("en dash" to MOST),
+		'—' to ("em dash" to MOST),
+		':' to ("colon" to MOST),
+		';' to ("semi" to MOST),
+		'[' to ("left bracket" to MOST),
+		']' to ("right bracket" to MOST),
+		'^' to ("caret" to MOST),
+		'_' to ("line" to MOST),
+		'{' to ("left brace" to MOST),
+		'}' to ("right brace" to MOST),
+		'|' to ("bar" to MOST),
+		'~' to ("tilda" to MOST),
+		'·' to ("middle dot" to MOST),
+		'!' to ("bang" to ALL),
 		'$' to ("dollar" to ALL),
-		'%' to ("percent" to ALL),
-		'&' to ("ampersand" to ALL),
-		'*' to ("asterisk" to ALL),
-		'+' to ("plus" to ALL),
-		'=' to ("equals" to ALL),
-		'/' to ("slash" to ALL),
-		'\\' to ("backslash" to ALL),
-		'|' to ("bar" to ALL),
-		'<' to ("less" to ALL),
-		'>' to ("greater" to ALL),
-		'~' to ("tilde" to ALL),
-		'^' to ("caret" to ALL),
-		'_' to ("underscore" to ALL),
-		'{' to ("left brace" to ALL),
-		'}' to ("right brace" to ALL),
-		'[' to ("left bracket" to ALL),
-		']' to ("right bracket" to ALL),
-		'•' to ("bullet" to ALL),
-		'·' to ("middle dot" to ALL)
+		',' to ("comma" to ALL),
+		'?' to ("question" to ALL),
+		'…' to ("dot dot dot" to ALL),
+		'\'' to ("tick" to ALL)
 	)
 
 	fun apply(text: String, level: Int): String {

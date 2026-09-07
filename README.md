@@ -172,11 +172,14 @@ pairs while 123 becomes 1 2 3, and digits always come apart. Decimals,
 thousands, times, dates and letter-glued tokens are not standalone and are
 left alone, and with the switch off the synthesiser decides everything.
 
-"Process punctuation" is NVDA's symbol levels as rewrites: none drops the
-standalone marks, some speaks the sentence marks, most speaks those and the
-prose marks, all speaks everything listed. Speaking a mark writes its name
-in plain words. A mark glued inside a word by ' - . , or : stays put, so
-don't, 3.14 and well-known survive every level.
+"Process punctuation" is NVDA's symbol levels, mark for mark from its
+built-in symbols.dic: some speaks the dot and the small marks but leaves
+the comma, the bang and the question mark to the synthesiser, and most
+still leaves bang, dollar, comma, question and ellipsis alone. Speaking a
+mark writes its NVDA name in plain words. A mark glued inside a word by
+' - . , or : stays put at every level -- the one deliberate divergence
+from NVDA, so don't, 3.14 and well-known survive where spelling them
+would mangle the words.
 
 ## Emoji
 
