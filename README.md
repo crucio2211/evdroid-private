@@ -23,10 +23,11 @@ redistributing anything.
 
 ## What works
 
-* Nine languages: US and British English, Castilian and Latin American
-  Spanish, French and Canadian French, German, Italian and Polish. "Force
-  language" in the settings speaks every utterance in one of them no matter
-  what the caller asked for.
+* Ten languages: US and British English, Castilian and Latin American
+  Spanish, French and Canadian French, German, Italian, Polish and
+  Japanese. "Force language" in the settings speaks every utterance in one
+  of them no matter what the caller asked for. Japanese travels to the
+  engine as UTF-16; everything else travels as bytes.
 * Eight preset voices: Reed, Shelley, Bobby, Rocko, Glen, Sandy, Grandma,
   Grandpa. Offered through the Android voice API, so they appear separately.
 * All seven voice parameters: speed, pitch, inflection, head size, roughness,
@@ -85,9 +86,9 @@ Launcher icon, or the gear beside the engine in the text-to-speech settings.
 
 Sliders for the seven voice parameters, plus voice, force language,
 sample rate (8 and 11 kHz, the two the engine actually plays), pauses,
-phrase prediction, abbreviations, backquote voice tags, volume
-dictionaries and a regex dictionary. "Speak a sample" sits under the
-sliders.
+phrase prediction, abbreviations, backquote voice tags, numbers,
+punctuation, volume dictionaries and a regex dictionary. "Speak a sample"
+sits under the sliders.
 Nothing speaks on its own. A setting takes effect when you set it, and the
 button is how you hear it.
 
@@ -161,6 +162,19 @@ Expand abbreviations is `eciDictionary`, which is inverted in the engine: zero
 turns it on. Off by default. It is re-sent with every utterance, since it is
 the one setting with nothing to say whether something else has moved it.
 
+## Numbers and punctuation
+
+"Process numbers" regroups standalone digit runs before anything else sees
+them: apart, in pairs, in threes or in fours, left to right with a short
+tail. Decimals, thousands, times, dates and letter-glued tokens are not
+standalone and are left alone.
+
+"Process punctuation" is NVDA's symbol levels as rewrites: none drops the
+standalone marks, some speaks the sentence marks, most speaks those and the
+prose marks, all speaks everything listed. Speaking a mark writes its name
+in plain words. A mark glued inside a word by ' - . , or : stays put, so
+don't, 3.14 and well-known survive every level.
+
 ## Dictionaries
 
 Three rows pick a file each for the main, root and abbreviation volumes,
@@ -197,6 +211,10 @@ order, one stop each, where pressing one deletes it after asking; adding,
 importing a file to replace it, and exporting a copy elsewhere.
 
 No dictionary is shipped here. See LICENSE.
+
+The volume dictionaries teach bytes and do not cover Japanese, which
+travels as UTF-16; the regex dictionary rewrites text and works in every
+language.
 
 ## Interrupting
 

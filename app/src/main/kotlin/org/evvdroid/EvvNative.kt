@@ -27,6 +27,9 @@ internal object EvvNative {
 
 	external fun speak(handle: Long, text: ByteArray): Boolean
 
+	/** Hands UTF-16 units over for a language in the Unicode code set. */
+	external fun speakWide(handle: Long, text: CharArray): Boolean
+
 	/** Fills [dst] with PCM bytes. Answers 0 at the end of the utterance and
 	 *  -1 when it was stopped or something went wrong. */
 	external fun read(handle: Long, dst: ByteArray): Int

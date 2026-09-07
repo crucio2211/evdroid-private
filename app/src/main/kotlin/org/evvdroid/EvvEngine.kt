@@ -41,19 +41,28 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		}
 
 		/** Makes an instance speaking [language], which is one of the words
-		 *  eciGetAvailableLanguages answered with and nothing else. */
+		 *  eciGetAvailableLanguages answered with and nothing else. A
+		 *  Japanese instance is opened in the Unicode code set, which is the
+		 *  only form that engine takes text in. */
 		fun open(language: Int): EvvEngine? {
 			if (!EvvNative.loaded) {
 				Log.e(TAG, "the native library did not load", EvvNative.loadError)
 				return null
 			}
-			val handle = EvvNative.create(language)
+			val id = if (isWide(language)) language or Eci.UNICODE_CODE_SET else language
+			val handle = EvvNative.create(id)
 			if (handle == 0L) {
-				Log.e(TAG, "no engine instance for language 0x%08x".format(language))
+				Log.e(TAG, "no engine instance for language 0x%08x".format(id))
 				return null
 			}
-			return EvvEngine(handle, language).apply { configure() }
+			return EvvEngine(handle, id).apply { configure() }
 		}
+
+		/** Whether utterances for [language] travel as UTF-16 units rather
+		 *  than bytes. The code-set bit is ignored either way, so this
+		 *  answers for the family however the engine worded it. */
+		fun isWide(language: Int): Boolean =
+			Eci.family(Eci.baseLanguage(language)) == Eci.JAPANESE_FAMILY
 	}
 
 	private fun configure() {
@@ -171,9 +180,12 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		if (!closed) EvvNative.forgetDictionaries(handle)
 	}
 
-	/** Queues [text] and starts the engine. The samples come out of [read]. */
+	/** Queues [text] and starts the engine. The samples come out of [read].
+	 *  Japanese travels as UTF-16, everything else as bytes. */
 	fun speak(text: String): Boolean = synchronized(guard) {
-		if (closed) false else EvvNative.speak(handle, WesternText.encode(text))
+		if (closed) false
+		else if (isWide(language)) EvvNative.speakWide(handle, WesternText.encodeWide(text))
+		else EvvNative.speak(handle, WesternText.encode(text))
 	}
 
 	/** Bytes of PCM, blocking until there are some. 0 ends the utterance and

@@ -47,6 +47,18 @@ class SettingsModel(context: Context) {
 	var phrasePrediction by mutableStateOf(settings.phrasePrediction)
 		private set
 
+	var numberProcessing by mutableStateOf(settings.numberProcessing)
+		private set
+
+	var numberMode by mutableStateOf(settings.numberMode)
+		private set
+
+	var punctProcessing by mutableStateOf(settings.punctProcessing)
+		private set
+
+	var punctLevel by mutableStateOf(settings.punctLevel)
+		private set
+
 	var backquoteTags by mutableStateOf(settings.backquoteTags)
 		private set
 
@@ -304,6 +316,26 @@ class SettingsModel(context: Context) {
 	fun choosePhrasePrediction(on: Boolean) {
 		phrasePrediction = on
 		settings.phrasePrediction = on
+	}
+
+	fun chooseNumberProcessing(on: Boolean) {
+		numberProcessing = on
+		settings.numberProcessing = on
+	}
+
+	fun chooseNumberMode(mode: Int) {
+		numberMode = mode
+		settings.numberMode = mode
+	}
+
+	fun choosePunctProcessing(on: Boolean) {
+		punctProcessing = on
+		settings.punctProcessing = on
+	}
+
+	fun choosePunctLevel(level: Int) {
+		punctLevel = level
+		settings.punctLevel = level
 	}
 
 	fun chooseBackquoteTags(on: Boolean) {

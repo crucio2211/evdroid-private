@@ -234,11 +234,14 @@ class EvvTtsService : TextToSpeechService() {
 		s?.let { target.setAbbreviations(it.abbreviations) }
 		target.setRatePercent(request.speechRate)
 		target.setPitchPercent(request.pitch)
-		// Crash guards first, readability fixes after: AntiCrash must see words
-		// as written, and the backquote strip must run before Pauses and
-		// Prosody add annotations of their own.
+		// Numbers first so every guard below sees one shape of digits, then
+		// punctuation into words, then the crash guards, readability fixes
+		// and the user's own rewrites closest to the engine.
+		val raw = request.charSequenceText?.toString().orEmpty()
+		val numbered = if (s?.numberProcessing == true) NumberProcessing.apply(raw, s.numberMode) else raw
+		val punctuated = if (s?.punctProcessing == true) PunctuationProcessing.apply(numbered, s.punctLevel) else numbered
 		val guarded = AntiCrash.apply(
-			request.charSequenceText?.toString().orEmpty(),
+			punctuated,
 			stripBackquotes = s?.backquoteTags != true
 		)
 		val fixed = TextFixes.apply(guarded)

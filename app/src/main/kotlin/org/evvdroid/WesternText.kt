@@ -67,6 +67,31 @@ object WesternText {
 	}
 
 	/**
+	 * The characters to hand the engine for a language in the Unicode code
+	 * set, which is Japanese here: UTF-16 units rather than bytes, with the
+	 * same plain equivalents for typographic characters and a space wherever
+	 * a nought or a lone surrogate would end the text early or poison it.
+	 */
+	fun encodeWide(text: String): CharArray {
+		val flat = StringBuilder(text.length)
+		var i = 0
+		while (i < text.length) {
+			val c = text[i]
+			val plain = PLAIN[c]
+			when {
+				plain != null -> flat.append(plain)
+				c.code == 0 -> flat.append(' ')
+				Character.isHighSurrogate(c) && i + 1 < text.length ->
+					flat.append(c).append(text[i + 1])
+				Character.isSurrogate(c) -> flat.append(' ')
+				else -> flat.append(c)
+			}
+			i += if (Character.isHighSurrogate(c) && i + 1 < text.length) 2 else 1
+		}
+		return flat.toString().toCharArray()
+	}
+
+	/**
 	 * What to say for a character the code set has no room for. An accent that
 	 * decomposes gives up its base letter, which turns a name like Dvořák into
 	 * one the engine can read; everything else becomes a space rather than a
