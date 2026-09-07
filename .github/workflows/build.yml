@@ -3,7 +3,12 @@ name: build
 # Builds the debug APK and runs the on-device checks on an emulator.
 # The engine is cross-compiled by its own Makefile (needs the NDK, Python
 # and make), so this is slower than an ordinary app build: about five
-# minutes of native build per job before Gradle even starts.
+# minutes of native build per job before Gradle even takes over.
+#
+# The emulator job runs on macOS because the Linux runners have no nested
+# virtualization, so an x86_64 emulator never finishes booting there. macOS
+# minutes cost ten times the Linux ones, so that job only runs when asked
+# for by hand, not on every push.
 
 on:
   push:
@@ -61,8 +66,11 @@ jobs:
 
   test:
     name: on-device checks (emulator)
-    runs-on: ubuntu-latest
-    timeout-minutes: 50
+    # Manual runs only: macOS minutes are precious, and every push already
+    # gets the full compile through the build job above.
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-15
+    timeout-minutes: 60
     steps:
       - name: Check out with the engine submodule
         uses: actions/checkout@v4
@@ -87,15 +95,18 @@ jobs:
           sdkmanager "ndk;${NDK_VERSION}"
           echo "ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/${NDK_VERSION}" >> "${GITHUB_ENV}"
 
+      - name: Ensure Rosetta 2 for the x86_64 NDK toolchain
+        run: /usr/sbin/softwareupdate --install-rosetta --agree-to-license || true
+
       - name: Run the instrumented tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
-          arch: x86_64
+          arch: arm64-v8a
           target: aosp_atd
           disable-animations: true
           emulator-boot-timeout: 900
-          script: ./gradlew connectedDebugAndroidTest -Pevvdroid.abis=x86_64 --stacktrace
+          script: ./gradlew connectedDebugAndroidTest -Pevvdroid.abis=arm64-v8a --stacktrace
 
       - name: Upload the test report
         if: always()
