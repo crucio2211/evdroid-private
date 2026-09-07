@@ -46,6 +46,13 @@ class EmojiTest {
 	}
 
 	@Test
+	fun newestEmojiHaveNames() {
+		assertEquals("treasure chest", EmojiProcessing.apply("🪎"))
+		assertEquals("trombone", EmojiProcessing.apply("🪊"))
+		assertEquals("distorted face", EmojiProcessing.apply("🫪"))
+	}
+
+	@Test
 	fun textPresentationStaysNamed() {
 		assertEquals("copyright 2024", EmojiProcessing.apply("© 2024"))
 	}

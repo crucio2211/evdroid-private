@@ -179,8 +179,8 @@ don't, 3.14 and well-known survive every level.
 
 "Speak emoji" turns every emoji into its plain-English name before anything
 else sees the text: grinning face, red heart, flag Philippines. The table
-holds Unicode 16.0, the newest there is -- there is no 17.0 yet -- all five
-thousand of fully-qualified, minimally-qualified and unqualified sequences
+holds Unicode 16.0 plus the Emoji 17.0 additions -- there is no 18.0 yet,
+only a draft -- all five thousand of fully-qualified, minimally-qualified and unqualified sequences
 except single ASCII characters, which are ordinary text. Matching is
 longest-first, so a family wins over its first person and a keycap over its
 digit; modifiers standing alone are dropped.
