@@ -41,27 +41,24 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		}
 
 		/** Makes an instance speaking [language], which is one of the words
-		 *  eciGetAvailableLanguages answered with and nothing else. A
-		 *  Japanese instance is opened in the Unicode code set, which is the
-		 *  only form that engine takes text in. */
+		 *  eciGetAvailableLanguages answered with and nothing else. */
 		fun open(language: Int): EvvEngine? {
 			if (!EvvNative.loaded) {
 				Log.e(TAG, "the native library did not load", EvvNative.loadError)
 				return null
 			}
-			val id = if (isWide(language)) language or Eci.UNICODE_CODE_SET else language
-			val handle = EvvNative.create(id)
+			val handle = EvvNative.create(language)
 			if (handle == 0L) {
-				Log.e(TAG, "no engine instance for language 0x%08x".format(id))
+				Log.e(TAG, "no engine instance for language 0x%08x".format(language))
 				return null
 			}
-			return EvvEngine(handle, id).apply { configure() }
+			return EvvEngine(handle, language).apply { configure() }
 		}
 
-		/** Whether utterances for [language] travel as UTF-16 units rather
-		 *  than bytes. The code-set bit is ignored either way, so this
-		 *  answers for the family however the engine worded it. */
-		fun isWide(language: Int): Boolean =
+		/** Whether utterances for [language] travel Shift-JIS encoded rather
+		 *  than in the Western set. The code-set bit is ignored either way,
+		 *  so this answers for the family however the engine worded it. */
+		fun isJapanese(language: Int): Boolean =
 			Eci.family(Eci.baseLanguage(language)) == Eci.JAPANESE_FAMILY
 	}
 
@@ -181,10 +178,11 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 	}
 
 	/** Queues [text] and starts the engine. The samples come out of [read].
-	 *  Japanese travels as UTF-16, everything else as bytes. */
+	 *  Japanese travels Shift-JIS encoded, everything else in the Western
+	 *  set. */
 	fun speak(text: String): Boolean = synchronized(guard) {
 		if (closed) false
-		else if (isWide(language)) EvvNative.speakWide(handle, WesternText.encodeWide(text))
+		else if (isJapanese(language)) EvvNative.speak(handle, WesternText.encodeJapanese(text))
 		else EvvNative.speak(handle, WesternText.encode(text))
 	}
 

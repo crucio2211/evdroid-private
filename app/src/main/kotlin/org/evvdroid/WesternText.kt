@@ -67,12 +67,14 @@ object WesternText {
 	}
 
 	/**
-	 * The characters to hand the engine for a language in the Unicode code
-	 * set, which is Japanese here: UTF-16 units rather than bytes, with the
-	 * same plain equivalents for typographic characters and a space wherever
-	 * a nought or a lone surrogate would end the text early or poison it.
+	 * The bytes to hand the engine for Japanese: Shift-JIS, which is what
+	 * its romanizer reads, with the same plain equivalents for typographic
+	 * characters and a space where a nought would end the text early.
+	 * Anything Shift-JIS has no room for comes out as a question mark,
+	 * which is the encoder's own replacement and reads as punctuation
+	 * rather than silence.
 	 */
-	fun encodeWide(text: String): CharArray {
+	fun encodeJapanese(text: String): ByteArray {
 		val flat = StringBuilder(text.length)
 		var i = 0
 		while (i < text.length) {
@@ -83,13 +85,15 @@ object WesternText {
 				c.code == 0 -> flat.append(' ')
 				Character.isHighSurrogate(c) && i + 1 < text.length ->
 					flat.append(c).append(text[i + 1])
-				Character.isSurrogate(c) -> flat.append(' ')
 				else -> flat.append(c)
 			}
 			i += if (Character.isHighSurrogate(c) && i + 1 < text.length) 2 else 1
 		}
-		return flat.toString().toCharArray()
+		return flat.toString().toByteArray(SHIFT_JIS)
 	}
+
+	private val SHIFT_JIS: java.nio.charset.Charset =
+		java.nio.charset.Charset.forName("Shift_JIS")
 
 	/**
 	 * What to say for a character the code set has no room for. An accent that

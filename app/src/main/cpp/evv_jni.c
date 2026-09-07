@@ -311,52 +311,6 @@ JNIEXPORT jboolean JNICALL Java_org_evvdroid_EvvNative_speak(JNIEnv* env, jclass
 	return JNI_TRUE;
 }
 
-/* Hands UTF-16 text over for a language in the Unicode code set, which is
-   Japanese here and the only form the engine takes it in: eciAddText reads
-   whatever the language word says, and the bytes path above is not it.
-   Otherwise a mirror of speak. */
-JNIEXPORT jboolean JNICALL Java_org_evvdroid_EvvNative_speakWide(JNIEnv* env, jclass cls, jlong handle, jcharArray text) {
-	instance*      in = unwrap(handle);
-	jsize          n;
-	unsigned short* buf;
-	(void)cls;
-	if (in == NULL || text == NULL)
-		return JNI_FALSE;
-	n = (*env)->GetArrayLength(env, text);
-	buf = (unsigned short*)malloc(((size_t)n + 1) * sizeof(unsigned short));
-	if (buf == NULL)
-		return JNI_FALSE;
-	(*env)->GetCharArrayRegion(env, text, 0, n, (jchar*)buf);
-	buf[n] = 0;
-	wait_until_idle(in);
-	pthread_mutex_lock(&in->lock);
-	in->aborted = 0;
-	in->started = 0;
-	in->done = 0;
-	in->busy = 1;
-	in->head = in->tail = in->count = 0;
-	pthread_mutex_unlock(&in->lock);
-	free(in->text);
-	in->text = (unsigned char*)buf;
-	if (!in->running) {
-		LOGE("there is no worker to run the engine");
-		return finished(in);
-	}
-	if (!eciAddText(in->eci, buf)) {
-		LOGE("eciAddText refused the text");
-		return finished(in);
-	}
-	if (!eciSynthesize(in->eci)) {
-		LOGE("eciSynthesize refused");
-		return finished(in);
-	}
-	pthread_mutex_lock(&in->lock);
-	in->pending = 1;
-	pthread_cond_broadcast(&in->work);
-	pthread_mutex_unlock(&in->lock);
-	return JNI_TRUE;
-}
-
 /* Bytes out, blocking until there are some. Answers 0 at the end of the
    utterance and -1 when it was stopped. */
 JNIEXPORT jint JNICALL Java_org_evvdroid_EvvNative_read(JNIEnv* env, jclass cls, jlong handle, jbyteArray dst) {

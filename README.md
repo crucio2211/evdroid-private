@@ -27,7 +27,7 @@ redistributing anything.
   Spanish, French and Canadian French, German, Italian, Polish and
   Japanese. "Force language" in the settings speaks every utterance in one
   of them no matter what the caller asked for. Japanese travels to the
-  engine as UTF-16; everything else travels as bytes.
+  engine Shift-JIS encoded; everything else travels in the Western set.
 * Eight preset voices: Reed, Shelley, Bobby, Rocko, Glen, Sandy, Grandma,
   Grandpa. Offered through the Android voice API, so they appear separately.
 * All seven voice parameters: speed, pitch, inflection, head size, roughness,
@@ -212,9 +212,9 @@ importing a file to replace it, and exporting a copy elsewhere.
 
 No dictionary is shipped here. See LICENSE.
 
-The volume dictionaries teach bytes and do not cover Japanese, which
-travels as UTF-16; the regex dictionary rewrites text and works in every
-language.
+The volume dictionaries teach Western bytes and do not cover Japanese,
+which travels Shift-JIS encoded; the regex dictionary rewrites text and
+works in every language.
 
 ## Interrupting
 

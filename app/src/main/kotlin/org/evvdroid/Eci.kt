@@ -33,8 +33,8 @@ object Eci {
 	 *  travels in the language word, not in a setting of its own. */
 	const val UNICODE_CODE_SET = 0x800
 
-	/** The one linked language that takes UTF-16. Every other takes bytes
-	 *  in the Western set. */
+	/** The one linked language that takes Japanese-encoded bytes rather than
+	 *  the Western set. */
 	const val JAPANESE_FAMILY = 0x00080000
 
 	const val NUM_VOICE_PARAMS = 8
