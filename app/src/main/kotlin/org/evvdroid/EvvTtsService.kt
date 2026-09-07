@@ -177,7 +177,7 @@ class EvvTtsService : TextToSpeechService() {
 	/** Teaching three thousand words costs about half a second, so it happens
 	 *  when the files change rather than whenever any setting does. */
 	private fun loadDictionaries(target: EvvEngine, s: Settings) {
-		val want = s.dictionaryPaths()
+		val want = s.dictionaryPaths().filterKeys { s.useDictionary(it) }
 		if (want == loadedDictionaries) return
 		target.forgetDictionaries()
 		for ((volume, path) in want) {

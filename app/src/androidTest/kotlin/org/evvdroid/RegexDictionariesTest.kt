@@ -110,6 +110,56 @@ class RegexDictionariesTest {
 		assertEquals("say en vee dee ay", RegexDictionaries.apply(loaded, "say nvda"))
 	}
 
+	@Test
+	fun entriesReadBackAsWritten() {
+		val file = write("NVDA\ten vee dee ay\n# comment\n\\b(\\d+)kg\t$1 kilograms\n")
+		val entries = RegexDictionaries.readEntries(file)
+		assertEquals(2, entries.size)
+		assertEquals("NVDA", entries[0].pattern)
+		assertEquals("en vee dee ay", entries[0].replacement)
+		assertEquals("\\b(\\d+)kg", entries[1].pattern)
+	}
+
+	@Test
+	fun appendedEntriesTakeEffectInOrder() {
+		val file = write("NVDA\ten vee dee ay\n")
+		assertTrue(RegexDictionaries.appendEntry(file, "vee", "V"))
+		assertEquals("say en V dee ay", RegexDictionaries.apply(RegexDictionaries.load(file), "say NVDA"))
+	}
+
+	@Test
+	fun invalidEntriesAreNotAppended() {
+		val file = write("NVDA\ten vee dee ay\n")
+		assertFalse(RegexDictionaries.appendEntry(file, "([a-z", "broken"))
+		assertFalse(RegexDictionaries.appendEntry(file, "   ", "blank pattern"))
+		assertFalse(RegexDictionaries.appendEntry(file, "fine", "   "))
+		assertEquals(1, RegexDictionaries.count(file))
+	}
+
+	@Test
+	fun appendingTerminatesAnUnterminatedFile() {
+		val file = write("NVDA\ten vee dee ay")
+		assertTrue(RegexDictionaries.appendEntry(file, "vee", "V"))
+		assertEquals(2, RegexDictionaries.count(file))
+		assertEquals("say en V dee ay", RegexDictionaries.apply(RegexDictionaries.load(file), "say NVDA"))
+	}
+
+	@Test
+	fun removingDropsOneEntryAndKeepsTheRest() {
+		val file = write("# keep me\nNVDA\ten vee dee ay\n\\b(\\d+)kg\t$1 kilograms\n")
+		assertTrue(RegexDictionaries.removeEntryAt(file, 0))
+		assertEquals("say NVDA", RegexDictionaries.apply(RegexDictionaries.load(file), "say NVDA"))
+		assertEquals("5 kilograms", RegexDictionaries.apply(RegexDictionaries.load(file), "5kg"))
+	}
+
+	@Test
+	fun removingNothingFailsQuietly() {
+		val file = write("NVDA\ten vee dee ay\n")
+		assertFalse(RegexDictionaries.removeEntryAt(file, 3))
+		assertFalse(RegexDictionaries.removeEntryAt(file, -1))
+		assertEquals(1, RegexDictionaries.count(file))
+	}
+
 	private fun load(text: String): RegexDictionaries.Loaded? {
 		val loaded = RegexDictionaries.load(write(text))
 		assertNotNull("nothing usable in: $text", loaded)

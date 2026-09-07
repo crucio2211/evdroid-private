@@ -50,6 +50,20 @@ class SettingsModel(context: Context) {
 		}.toMap()
 	)
 
+	private var useDictionaries: Map<Int, Boolean> by mutableStateOf(
+		Eci.DICT_VOLUMES.associateWith { settings.useDictionary(it) }
+	)
+
+	/** Whether the file picked for [volume] is in use, which needs a file to
+	 *  mean anything: a volume with nothing picked reads as off. */
+	fun useDictionary(volume: Int): Boolean =
+		useDictionaries[volume] == true && dictionaries.contains(volume)
+
+	fun chooseUseDictionary(volume: Int, on: Boolean) {
+		settings.setUseDictionary(volume, on)
+		useDictionaries = useDictionaries + (volume to on)
+	}
+
 	init {
 		preview?.open {
 			// A voice's own settings are what the sliders start at, and only
@@ -113,6 +127,20 @@ class SettingsModel(context: Context) {
 	)
 		private set
 
+	/** The regex dictionary's entries as written, for the editor screen. */
+	var regexEntries: List<RegexDictionaries.RawEntry> by mutableStateOf(
+		settings.regexDictionaryFile()?.let { RegexDictionaries.readEntries(it) } ?: emptyList()
+	)
+		private set
+
+	/** The regex dictionary file itself, for exporting a copy. */
+	fun regexFile(): java.io.File? = settings.regexDictionaryFile()
+
+	fun refreshRegexEntries() {
+		regexEntries = settings.regexDictionaryFile()?.let { RegexDictionaries.readEntries(it) } ?: emptyList()
+		regexDictionary = settings.regexDictionaryName() ?: app.getString(R.string.dictionary_none)
+	}
+
 	/**
 	 * Takes a copy of the file the picker handed back.
 	 *
@@ -144,6 +172,7 @@ class SettingsModel(context: Context) {
 		val said = app.getString(R.string.dictionary_entries, name, entries)
 		settings.setDictionary(volume, file.absolutePath, said)
 		dictionaries = dictionaries + (volume to said)
+		chooseUseDictionary(volume, true)
 	}
 
 	fun removeDictionaries() {
@@ -156,6 +185,7 @@ class SettingsModel(context: Context) {
 		settings.setRegexDictionary(null, null)
 		chooseRegexDictionaryEnabled(false)
 		regexDictionary = app.getString(R.string.dictionary_none)
+		regexEntries = emptyList()
 	}
 
 	/**
@@ -184,17 +214,63 @@ class SettingsModel(context: Context) {
 			file.delete()
 			settings.setRegexDictionary(null, null)
 			regexDictionary = app.getString(R.string.dictionary_none)
+			regexEntries = emptyList()
 			return
 		}
 		val said = app.getString(R.string.regex_dictionary_entries, name, patterns)
 		settings.setRegexDictionary(file.absolutePath, said)
 		regexDictionary = said
 		chooseRegexDictionaryEnabled(true)
+		refreshRegexEntries()
 	}
 
 	fun chooseRegexDictionaryEnabled(on: Boolean) {
 		regexDictionaryEnabled = on
 		settings.regexDictionaryEnabled = on
+	}
+
+	/**
+	 * Adds one entry typed on the editor screen.
+	 *
+	 * When no file has been picked yet the entry starts one, named for the
+	 * copy it is. Either way the dictionary is switched on: an entry just
+	 * written is one meant to be heard.
+	 */
+	fun addRegexEntry(pattern: String, replacement: String): Boolean {
+		var file = settings.regexDictionaryFile()
+		if (file == null) {
+			val into = java.io.File(app.filesDir, "dictionaries").apply { mkdirs() }
+			file = java.io.File(into, "regex.dic")
+		}
+		if (!RegexDictionaries.appendEntry(file, pattern, replacement)) return false
+		refreshRegexName(file)
+		chooseRegexDictionaryEnabled(true)
+		refreshRegexEntries()
+		return true
+	}
+
+	/** Drops one entry from the editor screen. An emptied file is removed
+	 *  rather than kept as a name for nothing. */
+	fun removeRegexEntryAt(index: Int): Boolean {
+		val file = settings.regexDictionaryFile() ?: return false
+		if (!RegexDictionaries.removeEntryAt(file, index)) return false
+		if (RegexDictionaries.count(file) == 0) {
+			file.delete()
+			settings.setRegexDictionary(null, null)
+			regexDictionary = app.getString(R.string.dictionary_none)
+		} else {
+			refreshRegexName(file)
+		}
+		refreshRegexEntries()
+		return true
+	}
+
+	/** The display name with a fresh count, keeping whichever file it names. */
+	private fun refreshRegexName(file: java.io.File) {
+		val base = settings.regexDictionaryName()?.substringBefore(", ")?.takeIf { it.isNotEmpty() } ?: file.name
+		val said = app.getString(R.string.regex_dictionary_entries, base, RegexDictionaries.count(file))
+		settings.setRegexDictionary(file.absolutePath, said)
+		regexDictionary = said
 	}
 
 	private fun nameOf(uri: android.net.Uri): String? = runCatching {

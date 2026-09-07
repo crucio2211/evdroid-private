@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.Role
@@ -59,6 +60,7 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(state: SettingsModel) {
+	val context = LocalContext.current
 	var wanted by remember { mutableStateOf(Eci.DICT_MAIN) }
 	val pick = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
 		uri?.let { state.chooseDictionary(wanted, it) }
@@ -121,13 +123,21 @@ fun SettingsScreen(state: SettingsModel) {
 				onChange = state::chooseBackquoteTags
 			)
 			Gap()
-			for (volume in Eci.DICT_VOLUMES) {
-				ValueRow(
-					label = stringResource(dictionaryLabelOf(volume)),
-					value = state.dictionaryName(volume),
-					onClick = { wanted = volume; pick.launch(arrayOf("*/*")) }
-				)
-			}
+		for (volume in Eci.DICT_VOLUMES) {
+			ValueRow(
+				label = stringResource(dictionaryLabelOf(volume)),
+				value = state.dictionaryName(volume),
+				onClick = { wanted = volume; pick.launch(arrayOf("*/*")) }
+			)
+			SwitchRow(
+				label = stringResource(
+					R.string.use_dictionary,
+					stringResource(dictionaryLabelOf(volume))
+				),
+				checked = state.useDictionary(volume),
+				onChange = { state.chooseUseDictionary(volume, it) }
+			)
+		}
 			ValueRow(
 			label = stringResource(R.string.regex_dictionary_label),
 			value = state.regexDictionary,
@@ -138,6 +148,11 @@ fun SettingsScreen(state: SettingsModel) {
 			checked = state.regexDictionaryEnabled,
 			onChange = state::chooseRegexDictionaryEnabled
 		)
+		ActionRow(stringResource(R.string.regex_manage_label)) {
+			context.startActivity(
+				android.content.Intent(context, RegexDictionaryActivity::class.java)
+			)
+		}
 		ActionRow(stringResource(R.string.dictionary_remove), state::removeDictionaries)
 
 			Gap()

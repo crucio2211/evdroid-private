@@ -187,6 +187,15 @@ class Settings(context: Context) {
 		return out
 	}
 
+	/** Whether the file picked for [volume] is actually taught to the engine.
+	 *  On unless switched off: picking a file turns its volume on. */
+	fun useDictionary(volume: Int): Boolean =
+		prefs.getBoolean(KEY_USE_DICT_PREFIX + volume, true)
+
+	fun setUseDictionary(volume: Int, on: Boolean) {
+		prefs.edit().putBoolean(KEY_USE_DICT_PREFIX + volume, on).apply()
+	}
+
 	// ---- regex dictionary ----------------------------------------------
 
 	/** Whether the regex dictionary is applied. Off until a file is picked,
@@ -198,6 +207,10 @@ class Settings(context: Context) {
 	fun regexDictionaryPath(): String? = prefs.getString(KEY_REGEX_PATH, null)
 
 	fun regexDictionaryName(): String? = prefs.getString(KEY_REGEX_NAME, null)
+
+	/** The regex dictionary file if one has been picked and still exists. */
+	fun regexDictionaryFile(): java.io.File? =
+		regexDictionaryPath()?.let { java.io.File(it) }?.takeIf { it.exists() }
 
 	fun setRegexDictionary(path: String?, name: String?) {
 		val edit = prefs.edit()
@@ -220,6 +233,7 @@ class Settings(context: Context) {
 		const val KEY_REGEX_ENABLED = "regex_enabled"
 		const val KEY_REGEX_PATH = "regex_path"
 		const val KEY_REGEX_NAME = "regex_name"
+		const val KEY_USE_DICT_PREFIX = "use_dict_"
 		const val DEFAULT_SAMPLE_RATE = 11025
 
 		/** The seven, in the order the settings screen shows them. Gender is not

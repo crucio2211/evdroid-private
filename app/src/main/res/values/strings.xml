@@ -32,10 +32,24 @@
 	<string name="dictionary_none">None</string>
 	<string name="dictionary_entries">%1$s, %2$d words</string>
 	<string name="dictionary_remove">Remove dictionaries</string>
+	<string name="use_dictionary">Use %1$s</string>
 
 	<string name="regex_dictionary_label">Regex dictionary</string>
 	<string name="regex_dictionary_use_label">Use regex dictionary</string>
 	<string name="regex_dictionary_entries">%1$s, %2$d patterns</string>
+
+	<string name="regex_editor_title">Regex entries</string>
+	<string name="regex_manage_label">Manage regex entries</string>
+	<string name="regex_add_label">Add pattern</string>
+	<string name="regex_import_label">Import file</string>
+	<string name="regex_export_label">Export file</string>
+	<string name="regex_pattern_hint">Pattern</string>
+	<string name="regex_replacement_hint">Replacement</string>
+	<string name="regex_save">Save</string>
+	<string name="regex_delete_title">Delete this pattern?</string>
+	<string name="regex_delete">Delete</string>
+	<string name="regex_invalid">Enter a pattern and a replacement. The pattern must be a valid regular expression.</string>
+	<string name="regex_entry_delete">Delete %1$s, says %2$s</string>
 
 	<string name="sample_rate_label">Sample rate</string>
 	<string name="hertz">%1$d Hz</string>

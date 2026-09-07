@@ -76,7 +76,95 @@ object RegexDictionaries {
 		return file.exists() && file.lastModified() == loaded.modified
 	}
 
+	/** One line as written, for showing and editing. */
+	data class RawEntry(val pattern: String, val replacement: String)
+
+	/** The file's entries as written, in file order. Lines that never take
+	 *  effect -- comments, blanks and patterns that do not compile -- are not
+	 *  listed, and stay in the file untouched by editing. */
+	fun readEntries(file: File): List<RawEntry> {
+		val out = ArrayList<RawEntry>()
+		try {
+			file.forEachLine(Charsets.UTF_8) { line ->
+				val (pattern, replacement) = splitLine(line) ?: return@forEachLine
+				if (runCatching { Regex(pattern); true }.getOrDefault(false)) {
+					out.add(RawEntry(pattern, replacement))
+				}
+			}
+		} catch (unreadable: Exception) {
+			Log.e(TAG, "cannot read ${file.name}", unreadable)
+		}
+		return out
+	}
+
+	/** Appends one entry. Answers false when it is not a valid entry or the
+	 *  file cannot be written. */
+	fun appendEntry(file: File, pattern: String, replacement: String): Boolean {
+		val search = pattern.trim()
+		val say = replacement.trim()
+		if (search.isEmpty() || say.isEmpty()) return false
+		try {
+			Regex(search)
+		} catch (bad: PatternSyntaxException) {
+			Log.e(TAG, "not adding bad pattern: $search", bad)
+			return false
+		}
+		return try {
+			if (file.exists() && file.length() > 0L) {
+				if (!file.readText(Charsets.UTF_8).endsWith("\n")) {
+					file.appendText("\n", Charsets.UTF_8)
+				}
+			} else {
+				file.parentFile?.mkdirs()
+			}
+			file.appendText("$search\t$say\n", Charsets.UTF_8)
+			true
+		} catch (unwritable: Exception) {
+			Log.e(TAG, "cannot write ${file.name}", unwritable)
+			false
+		}
+	}
+
+	/** Drops the [index]-th entry as [readEntries] lists them, leaving every
+	 *  other line byte for byte as it was. Answers false when there is no
+	 *  such entry or the file cannot be rewritten. */
+	fun removeEntryAt(file: File, index: Int): Boolean {
+		if (index < 0) return false
+		return try {
+			val kept = ArrayList<String>()
+			var seen = -1
+			var changed = false
+			for (line in file.readLines(Charsets.UTF_8)) {
+				val usable = splitLine(line)?.let { (search, _) ->
+					runCatching { Regex(search); true }.getOrDefault(false)
+				} == true
+				if (usable) seen++
+				if (usable && seen == index) {
+					changed = true
+					continue
+				}
+				kept.add(line)
+			}
+			if (!changed) return false
+			file.writeText(kept.joinToString("\n", postfix = if (kept.isEmpty()) "" else "\n"), Charsets.UTF_8)
+			true
+		} catch (unreadable: Exception) {
+			Log.e(TAG, "cannot rewrite ${file.name}", unreadable)
+			false
+		}
+	}
+
 	private fun entryOf(line: String): Entry? {
+		val (pattern, replacement) = splitLine(line) ?: return null
+		return try {
+			Entry(Regex(pattern), replacement)
+		} catch (bad: PatternSyntaxException) {
+			Log.e(TAG, "skipping bad pattern: $pattern", bad)
+			null
+		}
+	}
+
+	private fun splitLine(line: String): Pair<String, String>? {
 		val trimmed = line.trim()
 		if (trimmed.isEmpty() || trimmed.startsWith("#")) return null
 		val split = line.indexOf('\t')
@@ -84,12 +172,7 @@ object RegexDictionaries {
 		val pattern = line.substring(0, split).trim()
 		val replacement = line.substring(split + 1).trim()
 		if (pattern.isEmpty() || replacement.isEmpty()) return null
-		return try {
-			Entry(Regex(pattern), replacement)
-		} catch (bad: PatternSyntaxException) {
-			Log.e(TAG, "skipping bad pattern: $pattern", bad)
-			null
-		}
+		return pattern to replacement
 	}
 
 	private const val TAG = "evvdroid"

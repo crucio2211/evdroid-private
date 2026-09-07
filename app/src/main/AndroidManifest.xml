@@ -57,5 +57,10 @@
 			</intent-filter>
 		</activity>
 
+		<activity
+			android:name=".RegexDictionaryActivity"
+			android:exported="false"
+			android:label="@string/regex_editor_title" />
+
 	</application>
 </manifest>

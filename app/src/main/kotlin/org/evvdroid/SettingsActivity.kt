@@ -31,6 +31,13 @@ class SettingsActivity : ComponentActivity() {
 		model?.stopSpeaking()
 	}
 
+	override fun onResume() {
+		super.onResume()
+		// The regex editor is its own screen with its own model, so coming
+		// back from it must re-read what it may have changed.
+		model?.refreshRegexEntries()
+	}
+
 	override fun onDestroy() {
 		super.onDestroy()
 		model?.close()
