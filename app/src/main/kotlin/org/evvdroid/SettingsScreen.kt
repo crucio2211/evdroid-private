@@ -81,6 +81,19 @@ fun SettingsScreen(state: SettingsModel) {
 				chosen = state.voice,
 				onChoose = state::chooseVoice
 			)
+			SwitchRow(
+				label = stringResource(R.string.force_language_label),
+				checked = state.forceLanguage,
+				onChange = state::chooseForceLanguage
+			)
+			if (state.forceLanguage && state.languageOptions.isNotEmpty()) {
+				ChoiceRow(
+					label = stringResource(R.string.forced_language_label),
+					options = state.languageOptions.map { Eci.displayName(it) },
+					chosen = state.languageOptions.indexOf(state.forcedLanguage).coerceAtLeast(0),
+					onChoose = { state.chooseForcedLanguage(state.languageOptions[it]) }
+				)
+			}
 			Gap()
 			for (param in Settings.SLIDERS) {
 				SliderRow(

@@ -138,6 +138,18 @@ class EvvTtsService : TextToSpeechService() {
 
 	// ---- speaking --------------------------------------------------------
 
+	/** The language to speak in: the forced one when set and linked into the
+	 *  engine, else the caller's. A forced language from a build with fewer
+	 *  languages falls back instead of failing the utterance. */
+	private fun resolveLanguage(s: Settings?, fallback: Int): Int {
+		if (s?.forceLanguage == true) {
+			val forced = s.forcedLanguage
+			if (EvvEngine.available.contains(forced)) return forced
+			Log.w(TAG, "forced language ${"0x%08x".format(forced)} is not linked; using the requested one")
+		}
+		return fallback
+	}
+
 	private fun ensureEngine(language: Int): EvvEngine? {
 		val held = engine
 		if (held != null && held.language == language) return held
@@ -206,9 +218,10 @@ class EvvTtsService : TextToSpeechService() {
 		// caller named. A caller holds on to the Voice it was given, so a
 		// screen reader that connected while Reed was chosen goes on asking
 		// for Reed however many times the setting is changed underneath it.
-		// The name still decides the language, since that is what it is for.
+		// The name still decides the language, since that is what it is for --
+		// unless a language is forced, which overrules every caller.
 		val wanted = findVoice(request.voiceName)
-		val language = wanted?.first ?: found.first
+		val language = resolveLanguage(s, wanted?.first ?: found.first)
 		val target = ensureEngine(language)
 		if (target == null) {
 			callback.error(TextToSpeech.ERROR_SERVICE)

@@ -23,7 +23,10 @@ redistributing anything.
 
 ## What works
 
-* US English.
+* Nine languages: US and British English, Castilian and Latin American
+  Spanish, French and Canadian French, German, Italian and Polish. "Force
+  language" in the settings speaks every utterance in one of them no matter
+  what the caller asked for.
 * Eight preset voices: Reed, Shelley, Bobby, Rocko, Glen, Sandy, Grandma,
   Grandpa. Offered through the Android voice API, so they appear separately.
 * All seven voice parameters: speed, pitch, inflection, head size, roughness,
@@ -80,10 +83,11 @@ constantly.
 
 Launcher icon, or the gear beside the engine in the text-to-speech settings.
 
-Sliders for the seven voice parameters, plus voice, sample
-rate (8 and 11 kHz, the two the engine actually plays), pauses, phrase
-prediction, abbreviations, backquote voice tags, volume dictionaries and a
-regex dictionary. "Speak a sample" sits under the sliders.
+Sliders for the seven voice parameters, plus voice, force language,
+sample rate (8 and 11 kHz, the two the engine actually plays), pauses,
+phrase prediction, abbreviations, backquote voice tags, volume
+dictionaries and a regex dictionary. "Speak a sample" sits under the
+sliders.
 Nothing speaks on its own. A setting takes effect when you set it, and the
 button is how you hear it.
 

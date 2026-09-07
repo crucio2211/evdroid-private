@@ -24,6 +24,17 @@ class SettingsModel(context: Context) {
 	var voice by mutableStateOf(settings.voice)
 		private set
 
+	var forceLanguage by mutableStateOf(settings.forceLanguage)
+		private set
+
+	var forcedLanguage by mutableStateOf(settings.forcedLanguage)
+		private set
+
+	/** The languages the linked engine speaks, in its own order. Empty when
+	 *  the native library is missing, in which case the screen hides the
+	 *  language choice rather than offering nothing. */
+	val languageOptions: List<Int> get() = EvvEngine.available.toList()
+
 	var abbreviations by mutableStateOf(settings.abbreviations)
 		private set
 
@@ -93,6 +104,16 @@ class SettingsModel(context: Context) {
 		if (!settings.shapeIsCustom(which)) adoptVoice()
 		shape.clear()
 		shape.putAll(settings.shape(which))
+	}
+
+	fun chooseForceLanguage(on: Boolean) {
+		forceLanguage = on
+		settings.forceLanguage = on
+	}
+
+	fun chooseForcedLanguage(id: Int) {
+		forcedLanguage = id
+		settings.forcedLanguage = id
 	}
 
 	fun setPercent(param: Int, percent: Int) = setShape(param, Eci.fromPercent(param, percent))

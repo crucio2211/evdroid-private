@@ -44,6 +44,19 @@ class Settings(context: Context) {
 		get() = prefs.getInt(KEY_VOICE, 0).coerceIn(0, Eci.PRESET_NAMES.lastIndex)
 		set(value) = prefs.edit().putInt(KEY_VOICE, value).apply()
 
+	/** Whether every utterance is spoken in [forcedLanguage] no matter what
+	 *  language the caller asked for. Off: the caller's language decides. */
+	var forceLanguage: Boolean
+		get() = prefs.getBoolean(KEY_FORCE_LANGUAGE, false)
+		set(value) = prefs.edit().putBoolean(KEY_FORCE_LANGUAGE, value).apply()
+
+	/** The ECI language id spoken in when [forceLanguage] is on. Stored raw
+	 *  and validated against the linked engine where it is used, so a build
+	 *  with fewer languages falls back instead of failing. */
+	var forcedLanguage: Int
+		get() = prefs.getInt(KEY_FORCED_LANGUAGE, DEFAULT_FORCED_LANGUAGE)
+		set(value) = prefs.edit().putInt(KEY_FORCED_LANGUAGE, value).apply()
+
 	var sampleRateHz: Int
 		get() = Eci.coerceSampleRate(prefs.getInt(KEY_SAMPLE_RATE, DEFAULT_SAMPLE_RATE))
 		set(value) = prefs.edit().putInt(KEY_SAMPLE_RATE, Eci.coerceSampleRate(value)).apply()
@@ -224,6 +237,9 @@ class Settings(context: Context) {
 
 	companion object {
 		const val KEY_VOICE = "voice_preset"
+		const val KEY_FORCE_LANGUAGE = "force_language"
+		const val KEY_FORCED_LANGUAGE = "forced_language"
+		const val DEFAULT_FORCED_LANGUAGE = 0x00010000
 		const val KEY_SAMPLE_RATE = "sample_rate_hz"
 		const val KEY_ABBREVIATIONS = "abbreviations"
 		const val KEY_SPEED = "speed"

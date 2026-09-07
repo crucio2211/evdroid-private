@@ -26,12 +26,16 @@ concurrency:
 
 env:
   NDK_VERSION: 26.1.10909125
+  # Every Latin-script language the engine ships, in one APK. Japanese is
+  # left out until the wide-charset path it needs exists; Korean, Chinese
+  # and Portuguese were never in the SDK this engine is transcribed from.
+  EVVDROID_LANGS: lang/enus lang/engb lang/dede lang/eses lang/esus lang/frfr lang/frca lang/itit lang/plpl
 
 jobs:
   build:
     name: debug APK (arm64)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - name: Check out with the engine submodule
         uses: actions/checkout@v4
@@ -57,7 +61,7 @@ jobs:
           echo "ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/${NDK_VERSION}" >> "${GITHUB_ENV}"
 
       - name: Build the debug APK and compile the device checks
-        run: ./gradlew assembleDebug assembleDebugAndroidTest -Pevvdroid.abis=arm64-v8a --stacktrace
+        run: ./gradlew assembleDebug assembleDebugAndroidTest -Pevvdroid.abis=arm64-v8a -Pevvdroid.langs="$EVVDROID_LANGS" --stacktrace
 
       - name: Upload the APK
         uses: actions/upload-artifact@v4
