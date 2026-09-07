@@ -279,17 +279,9 @@ files named `lib*.so`, and openevv's own library records a soname of
 `native/patches` holds fixes to openevv itself. These are engine bugs, not
 Android changes. The submodule stays as upstream left it and the build applies
 any patch not already applied, so `git status` inside `native/openevv` shows
-modified files after a build. That is these and nothing else.
-
-`0001-delta_low-adjacent-stores.patch`. `delta_low_at` maps an address in the
-program to its copy in the arena. A rule may name the byte after a store, so
-the lookup counts one past the end as inside, in the same pass as the ordinary
-case, first match winning. Where the linker puts two stores next to each other,
-the first byte of the second is also one past the end of the first, and
-whichever registered first claims it. On x86 these stores do not land
-adjacently. On aarch64 they do. Symptoms: slightly different samples for most
-text, no samples at all for some ordinary words (`seven.`, `eight.`), and a
-null dereference in the pitch rules for others.
+modified files after a build. That is these and nothing else. A patch whose
+fix lands upstream is deleted; the adjacent-stores fix went that way when the
+engine started resolving proper containment first.
 
 `0002-arm32-frame-alignment.patch`. The backtracking stack puts a frame
 wherever the machine's frame sizes land it, and one of those sizes is
