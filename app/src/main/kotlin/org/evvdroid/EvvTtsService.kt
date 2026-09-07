@@ -209,6 +209,7 @@ class EvvTtsService : TextToSpeechService() {
 	override fun onSynthesizeText(request: SynthesisRequest?, callback: SynthesisCallback?) {
 		if (request == null || callback == null) return
 		stopped = false
+		val s = settings
 		val found = matchLanguage(request.language, request.country)
 		if (found == null) {
 			callback.error(TextToSpeech.ERROR_NOT_INSTALLED_YET)
@@ -227,7 +228,6 @@ class EvvTtsService : TextToSpeechService() {
 			callback.error(TextToSpeech.ERROR_SERVICE)
 			return
 		}
-		val s = settings
 		if (s != null && s.revision != appliedRevision) applySettings(target)
 		// Re-sent every time rather than once, because it is the one setting
 		// with no way of telling whether something else has moved it.
