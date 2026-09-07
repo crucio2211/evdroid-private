@@ -160,7 +160,7 @@ the one setting with nothing to say whether something else has moved it.
 ## Dictionaries
 
 Three rows pick a file each for the main, root and abbreviation volumes,
-each with a switch for whether it is used. A fourth row picks a regex
+each with a switch for whether it is used. A fourth row opens the regex
 dictionary, with a switch to turn it on and off. "Remove dictionaries"
 clears all four.
 
@@ -188,7 +188,7 @@ Replacements use `$1` group references. It applies after the crash guards
 and readability fixes, closest to the engine, so what is written there is
 what gets said. Picking a file turns it on.
 
-"Manage regex entries" opens the entries themselves: every pattern in file
+The regex row opens the entries themselves: every pattern in file
 order, one stop each, where pressing one deletes it after asking; adding,
 importing a file to replace it, and exporting a copy elsewhere.
 

@@ -39,7 +39,6 @@
 	<string name="regex_dictionary_entries">%1$s, %2$d patterns</string>
 
 	<string name="regex_editor_title">Regex entries</string>
-	<string name="regex_manage_label">Manage regex entries</string>
 	<string name="regex_add_label">Add pattern</string>
 	<string name="regex_import_label">Import file</string>
 	<string name="regex_export_label">Export file</string>
