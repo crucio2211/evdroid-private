@@ -18,8 +18,9 @@ class SettingsModel(context: Context) {
 
 	private val app = context.applicationContext
 	private val settings = Settings(app)
-	private val preview: EvvPreview? =
-		EvvEngine.available.firstOrNull()?.let { EvvPreview(it) }
+
+	private var preview: EvvPreview? = null
+	private var previewLang: Int? = null
 
 	var voice by mutableStateOf(settings.voice)
 		private set
@@ -91,12 +92,22 @@ class SettingsModel(context: Context) {
 	}
 
 	init {
+		ensurePreview(EvvEngine.available.firstOrNull())
 		preview?.open {
 			// A voice's own settings are what the sliders start at, and only
 			// the engine knows them.
 			if (!settings.shapeIsCustom(settings.voice)) adoptVoice()
 			shape.putAll(settings.shape(settings.voice))
 		}
+	}
+
+	/** The preview engine speaking [language], opening a new one when the
+	 *  language changed under it. A null language leaves whatever is there. */
+	private fun ensurePreview(language: Int?) {
+		if (language == null || (language == previewLang && preview != null)) return
+		preview?.close()
+		previewLang = language
+		preview = EvvPreview(language).apply { open() }
 	}
 
 	fun stopSpeaking() {
@@ -364,8 +375,13 @@ class SettingsModel(context: Context) {
 	// ---- hearing it ------------------------------------------------------
 
 	/** Nothing here speaks by itself. Every setting is in force the moment it
-	 *  is written down, and this is how it gets heard. */
+	 *  is written down, and this is how it gets heard. The sample follows a
+	 *  forced language the same way utterances do. */
 	fun say() {
+		val forced = settings.forcedLanguage.takeIf {
+			settings.forceLanguage && EvvEngine.available.contains(it)
+		}
+		ensurePreview(forced ?: EvvEngine.available.firstOrNull())
 		preview?.say(app.getString(R.string.preview_text), voice, settings.shape(voice), sampleRateHz)
 	}
 
