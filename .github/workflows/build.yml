@@ -1,0 +1,104 @@
+name: build
+
+# Builds the debug APK and runs the on-device checks on an emulator.
+# The engine is cross-compiled by its own Makefile (needs the NDK, Python
+# and make), so this is slower than an ordinary app build: about five
+# minutes of native build per job before Gradle even starts.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NDK_VERSION: 26.1.10909125
+
+jobs:
+  build:
+    name: debug APK (arm64)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out with the engine submodule
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up the Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle caching
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install the NDK
+        run: |
+          yes | sdkmanager --licenses > /dev/null
+          sdkmanager "ndk;${NDK_VERSION}"
+          echo "ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/${NDK_VERSION}" >> "${GITHUB_ENV}"
+
+      - name: Build the debug APK
+        run: ./gradlew assembleDebug -Pevvdroid.abis=arm64-v8a --stacktrace
+
+      - name: Upload the APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: evvdroid-debug-arm64
+          path: app/build/outputs/apk/debug/*.apk
+
+  test:
+    name: on-device checks (emulator)
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - name: Check out with the engine submodule
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up the Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle caching
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install the NDK
+        run: |
+          yes | sdkmanager --licenses > /dev/null
+          sdkmanager "ndk;${NDK_VERSION}"
+          echo "ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/${NDK_VERSION}" >> "${GITHUB_ENV}"
+
+      - name: Run the instrumented tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x64
+          target: google_apis
+          disable-animations: true
+          script: ./gradlew connectedDebugAndroidTest -Pevvdroid.abis=x86_64 --stacktrace
+
+      - name: Upload the test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: app/build/reports/androidTests/
