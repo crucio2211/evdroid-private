@@ -72,6 +72,7 @@ first ABI pays for it.
 | `evvdroid.rules` | `c` | `bytecode` builds in 30s and runs at under half the speed |
 | `evvdroid.langs` | `lang/enus` | language modules to link in |
 | `evvdroid.abiSplits` | `false` | one APK per ABI |
+| `evvdroid.minify` | `false` | R8 + resource shrinking on debug builds |
 | `evvdroid.versionCode` | `1` | CI passes its run number so updates install |
 
 `-Pevvdroid.abis=arm64-v8a -Pevvdroid.rules=bytecode` is the fast loop for

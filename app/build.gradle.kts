@@ -91,6 +91,15 @@ android {
 		}
 		debug {
 			isJniDebuggable = true
+			// Shrinking a debug build is off for the fast loop and on in CI,
+			// where install size matters more than readable stack traces.
+			// The JNI bridge's names are kept by proguard-rules.pro.
+			val minify = (findProperty("evvdroid.minify") as String?)?.toBoolean() ?: false
+			isMinifyEnabled = minify
+			isShrinkResources = minify
+			if (minify) {
+				proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+			}
 		}
 	}
 

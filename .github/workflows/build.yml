@@ -26,6 +26,9 @@ concurrency:
 
 env:
   NDK_VERSION: 26.1.10909125
+  # arm64 for phones, 32-bit ARM for older phones and watches. x86_64 is
+  # emulator-only and nobody installs there, so it does not ship.
+  EVVDROID_ABIS: arm64-v8a,armeabi-v7a
   # Every language the engine ships except Korean, Chinese and Portuguese,
   # which were never in the SDK it is transcribed from. Japanese travels as
   # UTF-16 through a path of its own; the rest travel as bytes.
@@ -61,10 +64,12 @@ jobs:
           echo "ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/${NDK_VERSION}" >> "${GITHUB_ENV}"
 
       - name: Build the debug APK and compile the device checks
-        run: ./gradlew assembleDebug assembleDebugAndroidTest -Pevvdroid.abis=arm64-v8a -Pevvdroid.langs="$EVVDROID_LANGS" -Pevvdroid.versionCode="$GITHUB_RUN_NUMBER" --stacktrace
+        run: ./gradlew assembleDebug assembleDebugAndroidTest -Pevvdroid.abis="$EVVDROID_ABIS" -Pevvdroid.abiSplits=true -Pevvdroid.minify=true -Pevvdroid.langs="$EVVDROID_LANGS" -Pevvdroid.versionCode="$GITHUB_RUN_NUMBER" --stacktrace
 
-      - name: Upload the APK
+      - name: Upload the APKs
         uses: actions/upload-artifact@v4
         with:
-          name: evvdroid-debug-arm64
-          path: app/build/outputs/apk/debug/*.apk
+          name: evvdroid-debug-apks
+          path: |
+            app/build/outputs/apk/debug/*-arm64-v8a-*.apk
+            app/build/outputs/apk/debug/*-armeabi-v7a-*.apk
