@@ -59,13 +59,21 @@ class PunctuationProcessingTest {
 			PunctuationProcessing.apply("Wait, what? No!", PunctuationProcessing.MOST)
 		)
 		assertEquals(
-			"Hello, world dot",
+			"Hello, world.",
 			PunctuationProcessing.apply("Hello, world.", PunctuationProcessing.MOST)
 		)
 		assertEquals(
 			"left paren s right paren",
 			PunctuationProcessing.apply("(s)", PunctuationProcessing.MOST)
 		)
+	}
+
+	@Test
+	fun trailingDotAlwaysStaysEngineBusiness() {
+		assertEquals("Hello.", PunctuationProcessing.apply("Hello.", PunctuationProcessing.SOME))
+		assertEquals("Hello.", PunctuationProcessing.apply("Hello.", PunctuationProcessing.MOST))
+		assertEquals("Hello.", PunctuationProcessing.apply("Hello.", PunctuationProcessing.ALL))
+		assertEquals("e.g.", PunctuationProcessing.apply("e.g.", PunctuationProcessing.SOME))
 	}
 
 	@Test
@@ -91,7 +99,8 @@ class PunctuationProcessingTest {
 			assertEquals(text, PunctuationProcessing.apply(text, PunctuationProcessing.MOST))
 			assertEquals(text, PunctuationProcessing.apply(text, PunctuationProcessing.ALL))
 		}
-		assertEquals("e.g dot", PunctuationProcessing.apply("e.g.", PunctuationProcessing.SOME))
+		assertEquals("e.g.", PunctuationProcessing.apply("e.g.", PunctuationProcessing.SOME))
+		assertEquals("e.g.", PunctuationProcessing.apply("e.g.", PunctuationProcessing.ALL))
 	}
 
 	@Test

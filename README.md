@@ -183,9 +183,11 @@ the comma, the bang and the question mark alone, and most still leaves
 bang, dollar, comma, question and ellipsis alone. A spoken mark replaces
 its place -- keeping it was tried, and the engine spells an isolated mark
 aloud, so every spoken mark came out twice. At none a brief pause stands
-where each mark stood. A mark glued inside a word by ' - . , or : stays
-put at every level -- the one deliberate divergence from NVDA, so don't,
-3.14 and well-known survive where spelling them would mangle the words.
+where each mark stood. A dot ending the utterance always stays put, at
+every spoken level, because it is prosody rather than content. A mark
+glued inside a word by ' - . , or : stays put at every level -- the one
+deliberate divergence from NVDA, so don't, 3.14 and well-known survive
+where spelling them would mangle the words.
 
 ## Emoji
 

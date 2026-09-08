@@ -38,7 +38,8 @@ object NumberProcessing {
 
 	/** A thousands grouping is one number wearing commas: 1,024 and
 	 *  95,266,261 read their digits, so they follow the mode instead of
-	 *  leaking millions through. */
+	 *  leaking millions through. The commas never survive: the engine
+	 *  spells a grouped comma aloud, so a kept one would always be heard. */
 	private val THOUSANDS = Regex("""^\d{1,3}(,\d{3})+$""")
 
 	/** A clock time reads whole in every mode: 2:30 is two thirty, never
@@ -75,10 +76,15 @@ object NumberProcessing {
 	}
 
 	/** [part] regrouped, or itself when it is no plain run: short, mixed,
-	 *  or a thousands grouping short enough to read whole. */
+	 *  or -- for a thousands grouping -- its bare digits, since a kept
+	 *  comma would be spelled aloud. */
 	private fun regroup(part: String, size: Int): String {
-		val digits = if (THOUSANDS.matches(part)) part.replace(",", "") else part
-		if (!digits.all { it.isDigit() } || digits.length <= size) return part
-		return digits.toCharArray().joinToString(" ")
+		if (THOUSANDS.matches(part)) {
+			val digits = part.replace(",", "")
+			if (digits.length <= size) return digits
+			return digits.toCharArray().joinToString(" ")
+		}
+		if (!part.all { it.isDigit() } || part.length <= size) return part
+		return part.toCharArray().joinToString(" ")
 	}
 }

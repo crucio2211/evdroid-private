@@ -14,7 +14,9 @@ package org.evvdroid
  * One deliberate divergence: a mark glued inside a word by ' - . , or :
  * stays put at every level, so don't stays don't, 3.14 stays 3.14 and
  * well-known stays hyphenated. NVDA would spell those out; here
- * readability wins.
+ * readability wins. A second: a dot ending the utterance always stays
+ * put, at every spoken level, because it is prosody rather than content
+ * and spelling it ends every utterance with noise.
  *
  * This runs after AntiCrash, so the guards see words as typed, and after
  * TextFixes, so its letter-digit rule never walks into the `p1 left here
@@ -69,12 +71,13 @@ object PunctuationProcessing {
 
 	fun apply(text: String, level: Int): String {
 		if (text.isEmpty()) return text
+		val lastContent = text.indexOfLast { !it.isWhitespace() }
 		val out = StringBuilder(text.length)
 		var i = 0
 		while (i < text.length) {
 			val c = text[i]
 			val word = WORDS[c]
-			if (word == null || glued(text, i, c)) {
+			if (word == null || glued(text, i, c) || (c == '.' && i == lastContent)) {
 				out.append(c)
 			} else if (level == NONE) {
 				// A brief pause where the mark stood: the rhythm stays and

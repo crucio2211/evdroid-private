@@ -62,7 +62,7 @@ class NumberProcessingTest {
 
 	@Test
 	fun thousandsGroupingsFollowTheMode() {
-		assertEquals("1,024", NumberProcessing.apply("1,024", NumberProcessing.QUADRUPLETS))
+		assertEquals("1024", NumberProcessing.apply("1,024", NumberProcessing.QUADRUPLETS))
 		assertEquals("1 0 2 4", NumberProcessing.apply("1,024", NumberProcessing.PAIRS))
 		assertEquals("1 0 2 4", NumberProcessing.apply("1,024", NumberProcessing.DIGITS))
 		assertEquals(
