@@ -13,10 +13,12 @@ package org.evvdroid
  * Only standalone runs qualify: a run glued to letters is somebody else's
  * business, and a run with number punctuation inside it is a decimal, a
  * grouped thousand, a time, a date or a range, so 3.14, 1,024, 2:30,
- * 2026-09-07 and teamtalk5 come through exactly as they went in. But
- * punctuation merely leaning on the edge -- the full stop ending
- * "call 95266261." -- is not part of the number and never saved it from
- * regrouping, which is what used to let millions through.
+ * 2026-09-07 and teamtalk5 come through exactly as they went in. A colon
+ * only glues a clock time; anywhere else it is a boundary, so 12:3000000
+ * regroups its long side instead of leaking millions. But punctuation
+ * merely leaning on the edge -- the full stop ending "call 95266261." --
+ * is not part of the number and never saved it from regrouping, which is
+ * what used to let millions through.
  *
  * This runs first of all, before AntiCrash: grouping canonicalises the
  * digits so every guard below sees one shape of them.
@@ -39,6 +41,10 @@ object NumberProcessing {
 	 *  leaking millions through. */
 	private val THOUSANDS = Regex("""^\d{1,3}(,\d{3})+$""")
 
+	/** A clock time reads whole in every mode: 2:30 is two thirty, never
+	 *  two three oh. Any other colon is a boundary, not glue. */
+	private val TIME = Regex("""^\d{1,2}:\d{2}(:\d{2})?$""")
+
 	/**
 	 * [text] with every standalone digit run either left whole or spelled
 	 * out for [mode].
@@ -52,17 +58,27 @@ object NumberProcessing {
 			else -> 1
 		}
 		return CHUNK.replace(text) { match ->
-			val core = match.value.trim { it in SEPS }
+			val v = match.value
+			val leading = v.takeWhile { it in SEPS }
+			val trailing = v.takeLastWhile { it in SEPS }
+			val core = v.trim { it in SEPS }
 			if (core.isEmpty()) {
-				return@replace match.value
+				return@replace v
 			}
-			val digits = if (THOUSANDS.matches(core)) core.replace(",", "") else core
-			if (!digits.all { it.isDigit() } || digits.length <= size) {
-				return@replace match.value
+			val out = if (':' in core && !TIME.matches(core)) {
+				core.split(':').joinToString(":") { regroup(it, size) }
+			} else {
+				regroup(core, size)
 			}
-			val leading = match.value.takeWhile { it in SEPS }
-			val trailing = match.value.takeLastWhile { it in SEPS }
-			leading + digits.toCharArray().joinToString(" ") + trailing
+			leading + out + trailing
 		}
+	}
+
+	/** [part] regrouped, or itself when it is no plain run: short, mixed,
+	 *  or a thousands grouping short enough to read whole. */
+	private fun regroup(part: String, size: Int): String {
+		val digits = if (THOUSANDS.matches(part)) part.replace(",", "") else part
+		if (!digits.all { it.isDigit() } || digits.length <= size) return part
+		return digits.toCharArray().joinToString(" ")
 	}
 }

@@ -46,10 +46,19 @@ class NumberProcessingTest {
 
 	@Test
 	fun decimalsTimesAndDatesAreLeftAlone() {
-		for (text in listOf("3.14", "2:30", "2026-09-07", "12/05", "1st")) {
+		for (text in listOf("3.14", "2:30", "2:30:15", "2026-09-07", "12/05", "1st")) {
 			assertEquals(text, NumberProcessing.apply(text, NumberProcessing.DIGITS))
 			assertEquals(text, NumberProcessing.apply(text, NumberProcessing.TRIPLETS))
 		}
+	}
+
+	@Test
+	fun onlyClockTimesKeepTheirColons() {
+		assertEquals("12:3 0 0 0 0 0 0", NumberProcessing.apply("12:3000000", NumberProcessing.PAIRS))
+		assertEquals("1:2 3 0", NumberProcessing.apply("1:230", NumberProcessing.PAIRS))
+		assertEquals("Call 95:2 6 6.", NumberProcessing.apply("Call 95:266.", NumberProcessing.PAIRS))
+		assertEquals("Meet at 2:30.", NumberProcessing.apply("Meet at 2:30.", NumberProcessing.DIGITS))
+	}
 	}
 
 	@Test
