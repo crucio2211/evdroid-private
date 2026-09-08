@@ -17,9 +17,10 @@ package org.evvdroid
  * well-known stays hyphenated. NVDA would spell those out; here
  * readability wins.
  *
- * This runs after AntiCrash, so the guards see words as typed, and before
- * TextFixes, so the kept marks still get their pauses shortened like any
- * other mark.
+ * This runs after AntiCrash, so the guards see words as typed, and after
+ * TextFixes, so its letter-digit rule never walks into the `p1 left here
+ * and turns it into a spoken `p 1. The kept marks still reach Pauses and
+ * get their pauses shortened like any other mark.
  */
 object PunctuationProcessing {
 

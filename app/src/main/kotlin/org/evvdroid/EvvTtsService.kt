@@ -292,10 +292,12 @@ class EvvTtsService : TextToSpeechService() {
 		target.setRatePercent(request.speechRate)
 		target.setPitchPercent(request.pitch)
 		// Emoji into words and numbers regrouped first, then the crash
-		// guards on words as typed, then punctuation into words and kept
-		// marks, then readability fixes and the user's own rewrites closest
-		// to the engine. Punctuation runs after the backquote strip so the
-		// pauses it leaves always survive.
+		// guards on words as typed, then readability fixes, then
+		// punctuation into words and kept marks, and the user's own
+		// rewrites closest to the engine. Punctuation runs after the
+		// backquote strip so its pauses always survive, and after the
+		// fixes so the letter-digit rule never walks into its `p1 and
+		// turns it into a spoken `p 1.
 		val raw = request.charSequenceText?.toString().orEmpty()
 		val worded = if (s?.speakEmoji != false) EmojiProcessing.apply(raw) else raw
 		val numbered = if (s?.numberProcessing == true) NumberProcessing.apply(worded, s.numberMode) else worded
@@ -303,8 +305,8 @@ class EvvTtsService : TextToSpeechService() {
 			numbered,
 			stripBackquotes = s?.backquoteTags != true
 		)
-		val punctuated = if (s?.punctProcessing == true) PunctuationProcessing.apply(guarded, s.punctLevel) else guarded
-		val fixed = TextFixes.apply(punctuated)
+		val fixed = TextFixes.apply(guarded)
+		val punctuated = if (s?.punctProcessing == true) PunctuationProcessing.apply(fixed, s.punctLevel) else fixed
 		// The user's own rewrites go last, closest to the engine, so what is
 		// written in the regex dictionary is what gets said.
 		val text = if (regexEnabled) RegexDictionaries.apply(loadedRegex, fixed) else fixed

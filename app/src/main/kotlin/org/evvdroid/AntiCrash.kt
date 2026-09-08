@@ -18,9 +18,9 @@ package org.evvdroid
  * speaks. Nothing here changes what is said, only how it is written down for
  * the engine.
  *
- * This runs first of all, before TextFixes: a crash guard that puts a space
- * into h're must see the word as written, and the backquote strip must run
- * before anything that adds annotations of its own.
+ * This runs before TextFixes and Punctuation: a crash guard that puts a
+ * space into h're must see the word as written, and the backquote strip
+ * must run before anything that adds annotations of its own.
  */
 object AntiCrash {
 
