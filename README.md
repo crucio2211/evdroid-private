@@ -168,8 +168,9 @@ the one setting with nothing to say whether something else has moved it.
 
 "Process numbers" reads standalone digit runs whole up to pairs, threes
 or fours, and spells out longer runs digit by digit: 12 stays twelve in
-pairs while 123 becomes 1 2 3, and digits always come apart. Decimals,
-thousands, times, dates and letter-glued tokens are not standalone and are
+pairs while 123 becomes 1 2 3, and digits always come apart. A thousands
+grouping reads its digits too, so 95,266,261 never leaks millions.
+Decimals, times, dates and letter-glued tokens are not standalone and are
 left alone -- but punctuation merely leaning on the edge, like the full
 stop in "call 95266261.", never shielded a run, so long numbers at
 sentence ends regroup too. With the switch off the synthesiser decides

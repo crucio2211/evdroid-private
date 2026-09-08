@@ -212,6 +212,19 @@ fun SettingsScreen(state: SettingsModel) {
 				chosen = SettingsModel.RATES.indexOf(state.sampleRateHz).coerceAtLeast(0),
 				onChoose = { state.chooseSampleRate(SettingsModel.RATES[it]) }
 			)
+			Gap()
+			Text(
+				text = stringResource(
+					R.string.version_info,
+					BuildConfig.VERSION_NAME,
+					BuildConfig.VERSION_CODE
+				),
+				style = MaterialTheme.typography.bodySmall,
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(horizontal = 16.dp, vertical = 8.dp),
+				textAlign = androidx.compose.ui.text.style.TextAlign.Center
+			)
 		}
 	}
 }

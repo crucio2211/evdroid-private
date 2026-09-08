@@ -34,6 +34,11 @@ object NumberProcessing {
 
 	private const val SEPS = ".,:/-"
 
+	/** A thousands grouping is one number wearing commas: 1,024 and
+	 *  95,266,261 read their digits, so they follow the mode instead of
+	 *  leaking millions through. */
+	private val THOUSANDS = Regex("""^\d{1,3}(,\d{3})+$""")
+
 	/**
 	 * [text] with every standalone digit run either left whole or spelled
 	 * out for [mode].
@@ -48,12 +53,16 @@ object NumberProcessing {
 		}
 		return CHUNK.replace(text) { match ->
 			val core = match.value.trim { it in SEPS }
-			if (core.isEmpty() || !core.all { it.isDigit() } || core.length <= size) {
+			if (core.isEmpty()) {
+				return@replace match.value
+			}
+			val digits = if (THOUSANDS.matches(core)) core.replace(",", "") else core
+			if (!digits.all { it.isDigit() } || digits.length <= size) {
 				return@replace match.value
 			}
 			val leading = match.value.takeWhile { it in SEPS }
 			val trailing = match.value.takeLastWhile { it in SEPS }
-			leading + core.toCharArray().joinToString(" ") + trailing
+			leading + digits.toCharArray().joinToString(" ") + trailing
 		}
 	}
 }

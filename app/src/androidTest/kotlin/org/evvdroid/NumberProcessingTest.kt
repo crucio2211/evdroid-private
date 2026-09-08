@@ -45,11 +45,26 @@ class NumberProcessingTest {
 	}
 
 	@Test
-	fun decimalsThousandsTimesAndDatesAreLeftAlone() {
-		for (text in listOf("3.14", "1,024", "2:30", "2026-09-07", "12/05", "1st")) {
+	fun decimalsTimesAndDatesAreLeftAlone() {
+		for (text in listOf("3.14", "2:30", "2026-09-07", "12/05", "1st")) {
 			assertEquals(text, NumberProcessing.apply(text, NumberProcessing.DIGITS))
 			assertEquals(text, NumberProcessing.apply(text, NumberProcessing.TRIPLETS))
 		}
+	}
+
+	@Test
+	fun thousandsGroupingsFollowTheMode() {
+		assertEquals("1,024", NumberProcessing.apply("1,024", NumberProcessing.QUADRUPLETS))
+		assertEquals("1 0 2 4", NumberProcessing.apply("1,024", NumberProcessing.PAIRS))
+		assertEquals("1 0 2 4", NumberProcessing.apply("1,024", NumberProcessing.DIGITS))
+		assertEquals(
+			"9 5 2 6 6 2 6 1",
+			NumberProcessing.apply("95,266,261", NumberProcessing.QUADRUPLETS)
+		)
+		assertEquals(
+			"9 5 2 6 6 2 6 1",
+			NumberProcessing.apply("95,266,261", NumberProcessing.DIGITS)
+		)
 	}
 
 	@Test
