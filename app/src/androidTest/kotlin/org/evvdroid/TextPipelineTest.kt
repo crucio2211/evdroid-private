@@ -19,7 +19,7 @@ class TextPipelineTest {
 	@Test
 	fun punctuationReachesTheEngine() {
 		assertEquals(
-			"Hello dot .",
+			"Hello dot",
 			TextPipeline.process(
 				"Hello.",
 				emoji = false,
@@ -33,7 +33,7 @@ class TextPipelineTest {
 	@Test
 	fun numbersRunBeforePunctuation() {
 		assertEquals(
-			"Call 1 2 3 dot .",
+			"Call 1 2 3 dot",
 			TextPipeline.process(
 				"Call 123.",
 				emoji = false,

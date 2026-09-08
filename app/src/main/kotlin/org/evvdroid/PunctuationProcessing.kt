@@ -1,16 +1,15 @@
 package org.evvdroid
 
 /**
- * Punctuation spoken out instead of only paused at, but never taken from
- * the synthesiser.
+ * Punctuation spoken out instead of only paused at.
  *
  * Levels and names are NVDA's built-in symbols.dic, mark for mark: some
  * speaks the dot but leaves the comma, the bang and the question mark
  * alone, and most still leaves bang, dollar, comma, question and ellipsis
- * alone. Speaking a mark writes its NVDA name in plain words -- and keeps
- * the mark itself behind it, so the synthesiser still sees every pause it
- * was going to make. At none the marks become brief pauses instead of
- * words, so the rhythm stays and nothing is spelled.
+ * alone. Speaking a mark writes its NVDA name in place of it -- keeping
+ * the mark behind its name was tried, and the engine spells an isolated
+ * mark aloud, so every spoken mark came out twice. At none a brief pause
+ * stands where each mark stood, so the rhythm stays with nothing spelled.
  *
  * One deliberate divergence: a mark glued inside a word by ' - . , or :
  * stays put at every level, so don't stays don't, 3.14 stays 3.14 and
@@ -86,7 +85,7 @@ object PunctuationProcessing {
 				if (i + 1 >= text.length || !text[i + 1].isWhitespace()) out.append(' ')
 			} else if (word.second <= level) {
 				pad(out)
-				out.append(word.first).append(' ').append(c)
+				out.append(word.first)
 				if (i + 1 >= text.length || !text[i + 1].isWhitespace()) out.append(' ')
 			} else {
 				out.append(c)

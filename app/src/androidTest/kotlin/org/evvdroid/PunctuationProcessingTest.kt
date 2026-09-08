@@ -6,23 +6,24 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Punctuation spoken out but never taken from the synthesiser.
+ * Punctuation spoken out instead of only paused at.
  *
  * Levels and names are NVDA's built-in symbols.dic, mark for mark: some
  * speaks the dot but leaves the comma, the bang and the question mark
  * alone, and most still leaves those plus dollar and ellipsis alone. A
- * spoken mark keeps its place behind its name, so the engine still pauses
- * where it was going to; at none a brief pause stands where the mark
- * stood. Glued marks survive every level, this port's one deliberate
- * divergence from NVDA.
+ * spoken mark replaces its place -- keeping it behind its name was tried,
+ * and the engine spells an isolated mark aloud, so every spoken mark came
+ * out twice. At none a brief pause stands where each mark stood. Glued
+ * marks survive every level, this port's one deliberate divergence from
+ * NVDA.
  */
 @RunWith(AndroidJUnit4::class)
 class PunctuationProcessingTest {
 
 	@Test
-	fun someSpeaksDotsKeepsMarks() {
+	fun someSpeaksDotsNotBangs() {
 		assertEquals(
-			"Hello dot . Are you OK? Yes!",
+			"Hello dot Are you OK? Yes!",
 			PunctuationProcessing.apply("Hello. Are you OK? Yes!", PunctuationProcessing.SOME)
 		)
 	}
@@ -30,15 +31,15 @@ class PunctuationProcessingTest {
 	@Test
 	fun someSpeaksTheSmallMarks() {
 		assertEquals(
-			"a plus + b equals = c",
+			"a plus b equals c",
 			PunctuationProcessing.apply("a+b=c", PunctuationProcessing.SOME)
 		)
 		assertEquals(
-			"100 percent % and & more",
+			"100 percent and more",
 			PunctuationProcessing.apply("100% & more", PunctuationProcessing.SOME)
 		)
 		assertEquals(
-			"a at @ b.com",
+			"a at b.com",
 			PunctuationProcessing.apply("a@b.com", PunctuationProcessing.SOME)
 		)
 	}
@@ -46,7 +47,7 @@ class PunctuationProcessingTest {
 	@Test
 	fun belowLevelIsLeftForTheEngine() {
 		assertEquals(
-			"Hello, world dot . a at @ b",
+			"Hello, world dot a at b",
 			PunctuationProcessing.apply("Hello, world. a@b", PunctuationProcessing.SOME)
 		)
 	}
@@ -58,27 +59,27 @@ class PunctuationProcessingTest {
 			PunctuationProcessing.apply("Wait, what? No!", PunctuationProcessing.MOST)
 		)
 		assertEquals(
-			"Hello, world dot .",
+			"Hello, world dot",
 			PunctuationProcessing.apply("Hello, world.", PunctuationProcessing.MOST)
 		)
 		assertEquals(
-			"left paren ( s right paren )",
+			"left paren s right paren",
 			PunctuationProcessing.apply("(s)", PunctuationProcessing.MOST)
 		)
 	}
 
 	@Test
-	fun allSpeaksThemKeepsThem() {
+	fun allSpeaksThemOnce() {
 		assertEquals(
-			"Wait comma , what question ? No bang !",
+			"Wait comma what question No bang",
 			PunctuationProcessing.apply("Wait, what? No!", PunctuationProcessing.ALL)
 		)
 		assertEquals(
-			"rock tick ' n tick ' roll",
+			"rock tick n tick roll",
 			PunctuationProcessing.apply("rock 'n' roll", PunctuationProcessing.ALL)
 		)
 		assertEquals(
-			"12 slash / 05",
+			"12 slash 05",
 			PunctuationProcessing.apply("12/05", PunctuationProcessing.ALL)
 		)
 	}
@@ -90,7 +91,7 @@ class PunctuationProcessingTest {
 			assertEquals(text, PunctuationProcessing.apply(text, PunctuationProcessing.MOST))
 			assertEquals(text, PunctuationProcessing.apply(text, PunctuationProcessing.ALL))
 		}
-		assertEquals("e.g dot .", PunctuationProcessing.apply("e.g.", PunctuationProcessing.SOME))
+		assertEquals("e.g dot", PunctuationProcessing.apply("e.g.", PunctuationProcessing.SOME))
 	}
 
 	@Test

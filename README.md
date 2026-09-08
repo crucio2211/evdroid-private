@@ -180,12 +180,12 @@ everything.
 "Process punctuation" is NVDA's symbol levels, mark for mark from its
 built-in symbols.dic: some speaks the dot and the small marks but leaves
 the comma, the bang and the question mark alone, and most still leaves
-bang, dollar, comma, question and ellipsis alone. A spoken mark keeps its
-place behind its name, so the synthesiser still pauses where it was going
-to; at none a brief pause stands where each mark stood. A mark glued
-inside a word by ' - . , or : stays put at every level -- the one
-deliberate divergence from NVDA, so don't, 3.14 and well-known survive
-where spelling them would mangle the words.
+bang, dollar, comma, question and ellipsis alone. A spoken mark replaces
+its place -- keeping it was tried, and the engine spells an isolated mark
+aloud, so every spoken mark came out twice. At none a brief pause stands
+where each mark stood. A mark glued inside a word by ' - . , or : stays
+put at every level -- the one deliberate divergence from NVDA, so don't,
+3.14 and well-known survive where spelling them would mangle the words.
 
 ## Emoji
 
