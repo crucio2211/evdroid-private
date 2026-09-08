@@ -213,9 +213,12 @@ has the English pair.
 
 The engine's own loader will not read them. `eciLoadDict` answers
 `eciDictAccessError` for every one, because it expects IBM's saved binary form.
-So the text is parsed here and the engine is taught a word at a time through
-`eciUpdateDict`. 3000 entries take about 450 ms, once, when the service starts.
-They reload only when the files change.
+So the text is parsed here into memory when the files change -- tens of
+milliseconds even for tens of thousands of entries -- and the engine is
+taught a word the first time it is spoken, a call or two per utterance
+rather than sixty thousand up front. That is what keeps a big dictionary
+like the 65,000-word root set from hanging the first utterance after it is
+picked.
 
 A picked file is copied into app storage. A content URI belongs to whichever
 app supplied it, may not be readable later, and the speech service reads it

@@ -146,6 +146,29 @@ class DictionaryTest {
 	}
 
 	@Test
+	fun parsedEntriesComeBackByLowercaseKey() {
+		val file = write("DOJ\tdee oe jeigh\nLOL\tell oe ell\nno tab here\n")
+		val entries = Dictionaries.parse(file)
+		assertEquals(2, entries.size)
+		assertEquals("DOJ", entries["doj"]?.first)
+		assertEquals("dee oe jeigh", entries["doj"]?.second)
+		assertEquals("ell oe ell", entries["lol"]?.second)
+	}
+
+	@Test
+	fun laterDuplicatesWin() {
+		val file = write("DOJ\tfirst\nDOJ\tsecond\n")
+		assertEquals("second", Dictionaries.parse(file)["doj"]?.second)
+	}
+
+	@Test
+	fun garbageLinesCountForNothing() {
+		val file = write("no tab here\nDOJ\t\n\tdee oe jeigh\n")
+		assertEquals(0, Dictionaries.count(file))
+		assertTrue(Dictionaries.parse(file).isEmpty())
+	}
+
+	@Test
 	fun forgettingPutsTheEngineBack() {		val e = open()
 		try {
 			e.teachWord(Eci.DICT_MAIN, "DOJ", "dee oe jeigh")

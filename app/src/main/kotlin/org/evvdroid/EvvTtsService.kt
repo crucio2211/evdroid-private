@@ -29,6 +29,16 @@ class EvvTtsService : TextToSpeechService() {
 
 	private var loadedDictionaries: Map<Int, String> = emptyMap()
 
+	/** Picked files as read: volume to lowercase word, key as written and
+	 *  what to say. Taught words live on the engine instance, so [taughtWords]
+	 *  starts over with every new one. */
+	private var wordMaps: Map<Int, Map<String, Pair<String, String>>> = emptyMap()
+	private val taughtWords = HashSet<Pair<Int, String>>()
+
+	/** Words as the engine meets them: letters and digits carrying their
+	 *  apostrophes and hyphens, so billets-doux looks up whole. */
+	private val WORD = Regex("""[A-Za-z0-9]+(?:['-][A-Za-z0-9]+)*""")
+
 	private var loadedRegex: RegexDictionaries.Loaded? = null
 	private var regexEnabled = false
 
@@ -160,6 +170,9 @@ class EvvTtsService : TextToSpeechService() {
 		held?.close()
 		val made = EvvEngine.open(language)
 		engine = made
+		// Taught words live on the instance, so a new one starts untaught
+		// and learns again as words come up.
+		taughtWords.clear()
 		if (made != null) applySettings(made)
 		return made
 	}
@@ -190,29 +203,58 @@ class EvvTtsService : TextToSpeechService() {
 		}
 	}
 
-	/** Teaching three thousand words costs about half a second, so it happens
-	 *  when the files change rather than whenever any setting does. */
+	/** Reads the picked files into memory when they change. Teaching tens
+	 *  of thousands of words one by one blocks the synthesis thread past
+	 *  any reasonable wait, so nothing here touches the engine: words are
+	 *  taught as they are spoken instead. */
 	private fun loadDictionaries(target: EvvEngine, s: Settings) {
 		val want = s.dictionaryPaths().filterKeys { s.useDictionary(it) }
 		if (want == loadedDictionaries) return
-		try {
-			target.forgetDictionaries()
-			for ((volume, path) in want) {
+		target.forgetDictionaries()
+		val read = LinkedHashMap<Int, Map<String, Pair<String, String>>>()
+		for ((volume, path) in want) {
+			try {
+				val file = java.io.File(path)
+				if (!file.exists()) continue
+				val entries = Dictionaries.parse(file)
+				Log.i(TAG, "volume $volume: ${entries.size} entries from ${file.name}")
+				read[volume] = entries
+			} catch (failed: Exception) {
+				// One bad volume must not take the utterance, or every
+				// utterance after it, down with it.
+				Log.e(TAG, "volume $volume not read", failed)
+			}
+		}
+		wordMaps = read
+		taughtWords.clear()
+		loadedDictionaries = want
+	}
+
+	/** Teaches the words in [text] the engine does not know yet. An
+	 *  utterance usually teaches nothing, and a new word costs one call:
+	 *  a sixty-thousand-word file slows the utterance that first needs a
+	 *  word of it, never the one that picks it. */
+	private fun teachUnknownWords(target: EvvEngine, text: String) {
+		if (wordMaps.isEmpty() || text.isEmpty()) return
+		for (raw in WORD.findAll(text)) {
+			val word = raw.value.lowercase()
+			for ((volume, entries) in wordMaps) {
+				val entry = entries[word] ?: continue
+				val key = volume to entry.first
+				if (key in taughtWords) continue
 				try {
-					val file = java.io.File(path)
-					if (!file.exists()) continue
-					val taught = Dictionaries.load(target, volume, file)
-					Log.i(TAG, "volume $volume: $taught entries from ${file.name}")
+					if (target.teachWord(volume, entry.first, entry.second) == 0) {
+						taughtWords.add(key)
+					} else {
+						// Refused once, refused always: do not ask again.
+						taughtWords.add(key)
+						Log.e(TAG, "volume $volume refused ${entry.first}")
+					}
 				} catch (failed: Exception) {
-					// One bad volume must not take the utterance, or every
-					// utterance after it, down with it.
-					Log.e(TAG, "volume $volume not loaded", failed)
+					Log.e(TAG, "volume $volume would not take ${entry.first}", failed)
+					taughtWords.add(key)
 				}
 			}
-		} finally {
-			// Recorded even half-done: retrying a poisoned file on every
-			// utterance is what turns one bad pick into lasting silence.
-			loadedDictionaries = want
 		}
 	}
 
@@ -265,6 +307,9 @@ class EvvTtsService : TextToSpeechService() {
 		// The user's own rewrites go last, closest to the engine, so what is
 		// written in the regex dictionary is what gets said.
 		val text = if (regexEnabled) RegexDictionaries.apply(loadedRegex, fixed) else fixed
+		// Words the dictionaries know are taught now, ahead of the engine
+		// meeting them below.
+		teachUnknownWords(target, text)
 		if (text.isEmpty()) {
 			callback.start(target.sampleRateHz, AudioFormat.ENCODING_PCM_16BIT, 1)
 			callback.done()

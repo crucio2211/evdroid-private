@@ -67,21 +67,20 @@ object Dictionaries {
 		return LANGUAGE_NAMES[match.groupValues[1].lowercase()]
 	}
 
-	/** Teaches the engine every entry in [file]. Answers how many went in. */
+	/** Teaches the engine every entry in [file]. Answers how many went in.
+	 *  Only for small files and tests: a big dictionary taught this way
+	 *  blocks the synthesis thread past any reasonable wait, so the service
+	 *  parses once and teaches words as they are spoken instead. */
 	fun load(engine: EvvEngine, volume: Int, file: File): Int {
 		var taught = 0
 		var refused = 0
 		try {
 			file.forEachLine(Charsets.ISO_8859_1) { line ->
-				val split = line.indexOf('\t')
-				if (split > 0) {
-					val key = line.substring(0, split).trim()
-					val say = line.substring(split + 1).trim()
-					if (isUsable(key, say)) {
-						if (engine.teachWord(volume, key, say) == 0) taught++ else refused++
-					} else {
-						refused++
-					}
+				val entry = splitEntry(line) ?: return@forEachLine
+				if (isUsable(entry.first, entry.second)) {
+					if (engine.teachWord(volume, entry.first, entry.second) == 0) taught++ else refused++
+				} else {
+					refused++
 				}
 			}
 		} catch (unreadable: Exception) {
@@ -92,10 +91,45 @@ object Dictionaries {
 		return taught
 	}
 
-	/** How many entries a file offers, for saying so on the settings screen
-	 *  without an engine to hand. */
+	/** Every usable entry in [file] by lowercase key: the key as written
+	 *  and what to say instead. Reading is fast -- tens of milliseconds
+	 *  even for tens of thousands of lines -- because nothing here touches
+	 *  the engine. A later duplicate wins, the way sequential teaching
+	 *  would leave it. */
+	fun parse(file: File): Map<String, Pair<String, String>> {
+		val out = LinkedHashMap<String, Pair<String, String>>()
+		try {
+			file.forEachLine(Charsets.ISO_8859_1) { line ->
+				val entry = splitEntry(line) ?: return@forEachLine
+				if (isUsable(entry.first, entry.second)) {
+					out[entry.first.lowercase()] = entry
+				}
+			}
+		} catch (unreadable: Exception) {
+			Log.e(TAG, "cannot read ${file.name}", unreadable)
+		}
+		return out
+	}
+
+	/** A line as a key and what to say, or null when it is no entry. */
+	private fun splitEntry(line: String): Pair<String, String>? {
+		val split = line.indexOf('\t')
+		if (split <= 0) return null
+		val key = line.substring(0, split).trim()
+		val say = line.substring(split + 1).trim()
+		if (key.isEmpty() || say.isEmpty()) return null
+		return key to say
+	}
+
+	/** How many usable entries a file offers, for saying so on the settings
+	 *  screen without an engine to hand. */
 	fun count(file: File): Int = try {
-		file.useLines(Charsets.ISO_8859_1) { lines -> lines.count { it.indexOf('\t') > 0 } }
+		var n = 0
+		file.forEachLine(Charsets.ISO_8859_1) { line ->
+			val entry = splitEntry(line) ?: return@forEachLine
+			if (isUsable(entry.first, entry.second)) n++
+		}
+		n
 	} catch (unreadable: Exception) {
 		0
 	}
