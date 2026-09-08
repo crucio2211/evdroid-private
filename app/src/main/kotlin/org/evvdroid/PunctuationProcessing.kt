@@ -1,21 +1,25 @@
 package org.evvdroid
 
 /**
- * Punctuation spoken out instead of paused at, or gone altogether.
+ * Punctuation spoken out instead of only paused at, but never taken from
+ * the synthesiser.
  *
- * These are NVDA's own symbol levels, mark for mark: the built-in
- * symbols.dic says which level speaks what, so some speaks the dot but
- * leaves the comma and the question mark to the synthesiser, and most
- * still leaves bang, dollar, comma, question and ellipsis alone. Speaking
- * a mark means writing its NVDA name in plain words for the engine to read.
+ * Levels and names are NVDA's built-in symbols.dic, mark for mark: some
+ * speaks the dot but leaves the comma, the bang and the question mark
+ * alone, and most still leaves bang, dollar, comma, question and ellipsis
+ * alone. Speaking a mark writes its NVDA name in plain words -- and keeps
+ * the mark itself behind it, so the synthesiser still sees every pause it
+ * was going to make. At none the marks become brief pauses instead of
+ * words, so the rhythm stays and nothing is spelled.
  *
  * One deliberate divergence: a mark glued inside a word by ' - . , or :
  * stays put at every level, so don't stays don't, 3.14 stays 3.14 and
  * well-known stays hyphenated. NVDA would spell those out; here
- * readability wins, and the engine's own pauses stay where they were.
+ * readability wins.
  *
- * This runs after numbers and before AntiCrash: the names it writes are
- * ordinary words, which is what every guard below wants to see.
+ * This runs after AntiCrash, so the guards see words as typed, and before
+ * TextFixes, so the kept marks still get their pauses shortened like any
+ * other mark.
  */
 object PunctuationProcessing {
 
@@ -73,10 +77,15 @@ object PunctuationProcessing {
 			if (word == null || glued(text, i, c)) {
 				out.append(c)
 			} else if (level == NONE) {
-				// Dropped: no word, no pause, nothing.
+				// A brief pause where the mark stood: the rhythm stays and
+				// nothing is spelled. Annotations are ours, added after the
+				// backquote strip, so they always survive.
+				pad(out)
+				out.append(BRIEF_PAUSE)
+				if (i + 1 >= text.length || !text[i + 1].isWhitespace()) out.append(' ')
 			} else if (word.second <= level) {
-				if (out.isEmpty() || !out.last().isWhitespace()) out.append(' ')
-				out.append(word.first)
+				pad(out)
+				out.append(word.first).append(' ').append(c)
 				if (i + 1 >= text.length || !text[i + 1].isWhitespace()) out.append(' ')
 			} else {
 				out.append(c)
@@ -84,6 +93,10 @@ object PunctuationProcessing {
 			i += if (Character.isHighSurrogate(c) && i + 1 < text.length) 2 else 1
 		}
 		return out.toString().trim()
+	}
+
+	private fun pad(out: StringBuilder) {
+		if (!out.isEmpty() && !out.last().isWhitespace()) out.append(' ')
 	}
 
 	/** Whether [c] at [at] is glued inside a word: a word character either
@@ -97,6 +110,10 @@ object PunctuationProcessing {
 	}
 
 	private val GLUE = setOf('\'', '-', '.', ',', ':')
+
+	/** The pause left where a mark stood at none: brief, like the JAWS-like
+	 *  pauses, and added after the backquote strip so it always survives. */
+	private const val BRIEF_PAUSE = "`p1"
 
 	private fun isWordChar(c: Char): Boolean =
 		c == '_' || c in 'a'..'z' || c in 'A'..'Z' || c in '0'..'9'
