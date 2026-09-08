@@ -59,7 +59,6 @@ class NumberProcessingTest {
 		assertEquals("Call 95:2 6 6.", NumberProcessing.apply("Call 95:266.", NumberProcessing.PAIRS))
 		assertEquals("Meet at 2:30.", NumberProcessing.apply("Meet at 2:30.", NumberProcessing.DIGITS))
 	}
-	}
 
 	@Test
 	fun thousandsGroupingsFollowTheMode() {
