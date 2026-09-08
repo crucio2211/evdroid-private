@@ -389,13 +389,24 @@ class SettingsModel(context: Context) {
 
 	/** Nothing here speaks by itself. Every setting is in force the moment it
 	 *  is written down, and this is how it gets heard. The sample follows a
-	 *  forced language the same way utterances do. */
+	 *  forced language the same way utterances do, and it runs the same
+	 *  rewrites TalkBack hears -- everything but the user dictionaries,
+	 *  which live on the service engine. */
 	fun say() {
 		val forced = settings.forcedLanguage.takeIf {
 			settings.forceLanguage && EvvEngine.available.contains(it)
 		}
 		ensurePreview(forced ?: EvvEngine.available.firstOrNull())
-		preview?.say(app.getString(R.string.preview_text), voice, settings.shape(voice), sampleRateHz)
+		val heard = TextPipeline.process(
+			app.getString(R.string.preview_text),
+			emoji = settings.speakEmoji,
+			numberMode = settings.numberMode.takeIf { settings.numberProcessing },
+			stripBackquotes = !settings.backquoteTags,
+			punctLevel = settings.punctLevel.takeIf { settings.punctProcessing }
+		)
+		val text = Prosody.prefix(settings.phrasePrediction) +
+			Pauses.apply(heard, settings.pauses, true)
+		preview?.say(text, voice, settings.shape(voice), sampleRateHz)
 	}
 
 	private fun adoptVoice() {

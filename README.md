@@ -90,7 +90,8 @@ Sliders for the seven voice parameters, plus voice, force language,
 sample rate (8 and 11 kHz, the two the engine actually plays), pauses,
 phrase prediction, abbreviations, backquote voice tags, emoji, numbers,
 punctuation, volume dictionaries and a regex dictionary. "Speak a sample"
-sits under the sliders.
+sits under the sliders, speaking through the same rewrites TalkBack hears
+except user dictionaries, so what it says is what the settings do.
 Nothing speaks on its own. A setting takes effect when you set it, and the
 button is how you hear it.
 

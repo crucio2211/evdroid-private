@@ -291,22 +291,18 @@ class EvvTtsService : TextToSpeechService() {
 		s?.let { target.setAbbreviations(it.abbreviations) }
 		target.setRatePercent(request.speechRate)
 		target.setPitchPercent(request.pitch)
-		// Emoji into words and numbers regrouped first, then the crash
-		// guards on words as typed, then readability fixes, then
-		// punctuation into words and kept marks, and the user's own
-		// rewrites closest to the engine. Punctuation runs after the
-		// backquote strip so its pauses always survive, and after the
-		// fixes so the letter-digit rule never walks into its `p1 and
-		// turns it into a spoken `p 1.
+		// One pipeline for TalkBack and the sample button alike; the shape of
+		// it is documented on TextPipeline.
 		val raw = request.charSequenceText?.toString().orEmpty()
-		val worded = if (s?.speakEmoji != false) EmojiProcessing.apply(raw) else raw
-		val numbered = if (s?.numberProcessing == true) NumberProcessing.apply(worded, s.numberMode) else worded
-		val guarded = AntiCrash.apply(
-			numbered,
-			stripBackquotes = s?.backquoteTags != true
+		val numberMode: Int? = if (s != null && s.numberProcessing) s.numberMode else null
+		val punctLevel: Int? = if (s != null && s.punctProcessing) s.punctLevel else null
+		val fixed = TextPipeline.process(
+			raw,
+			emoji = s?.speakEmoji != false,
+			numberMode = numberMode,
+			stripBackquotes = s?.backquoteTags != true,
+			punctLevel = punctLevel
 		)
-		val fixed = TextFixes.apply(guarded)
-		val punctuated = if (s?.punctProcessing == true) PunctuationProcessing.apply(fixed, s.punctLevel) else fixed
 		// The user's own rewrites go last, closest to the engine, so what is
 		// written in the regex dictionary is what gets said.
 		val text = if (regexEnabled) RegexDictionaries.apply(loadedRegex, fixed) else fixed
