@@ -53,6 +53,26 @@ class NumberProcessingTest {
 	}
 
 	@Test
+	fun edgePunctuationDoesNotShieldARun() {
+		assertEquals(
+			"Call 9 5 2 6 6 2 6 1.",
+			NumberProcessing.apply("Call 95266261.", NumberProcessing.QUADRUPLETS)
+		)
+		assertEquals(
+			"Room 101.",
+			NumberProcessing.apply("Room 101.", NumberProcessing.QUADRUPLETS)
+		)
+		assertEquals(
+			"Hello, 12.",
+			NumberProcessing.apply("Hello, 12.", NumberProcessing.PAIRS)
+		)
+		assertEquals(
+			"1 2 3,",
+			NumberProcessing.apply("123,", NumberProcessing.PAIRS)
+		)
+	}
+
+	@Test
 	fun letterGluedTokensAreLeftAlone() {
 		assertEquals("teamtalk5", NumberProcessing.apply("teamtalk5", NumberProcessing.DIGITS))
 		assertEquals("abc123", NumberProcessing.apply("abc123", NumberProcessing.PAIRS))

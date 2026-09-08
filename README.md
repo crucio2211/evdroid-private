@@ -170,7 +170,10 @@ the one setting with nothing to say whether something else has moved it.
 or fours, and spells out longer runs digit by digit: 12 stays twelve in
 pairs while 123 becomes 1 2 3, and digits always come apart. Decimals,
 thousands, times, dates and letter-glued tokens are not standalone and are
-left alone, and with the switch off the synthesiser decides everything.
+left alone -- but punctuation merely leaning on the edge, like the full
+stop in "call 95266261.", never shielded a run, so long numbers at
+sentence ends regroup too. With the switch off the synthesiser decides
+everything.
 
 "Process punctuation" is NVDA's symbol levels, mark for mark from its
 built-in symbols.dic: some speaks the dot and the small marks but leaves

@@ -10,10 +10,13 @@ package org.evvdroid
  * while in quadruplets it stays one number. Digits always come apart, and
  * with the switch off the synthesiser decides everything.
  *
- * Only standalone runs qualify: a run glued to letters or to number
- * punctuation is somebody else's business, so 3.14, 1,024, 2:30,
- * 2026-09-07 and teamtalk5 come through exactly as they went in, for the
- * clock, the thousands and the readability fixes to deal with.
+ * Only standalone runs qualify: a run glued to letters is somebody else's
+ * business, and a run with number punctuation inside it is a decimal, a
+ * grouped thousand, a time, a date or a range, so 3.14, 1,024, 2:30,
+ * 2026-09-07 and teamtalk5 come through exactly as they went in. But
+ * punctuation merely leaning on the edge -- the full stop ending
+ * "call 95266261." -- is not part of the number and never saved it from
+ * regrouping, which is what used to let millions through.
  *
  * This runs first of all, before AntiCrash: grouping canonicalises the
  * digits so every guard below sees one shape of them.
@@ -25,7 +28,11 @@ object NumberProcessing {
 	const val TRIPLETS = 2
 	const val QUADRUPLETS = 3
 
-	private val RUN = Regex("""(?<![\w.,:/-])\d+(?![\w.,:/-])""")
+	/** A run of digits and number punctuation, standing clear of letters:
+	 *  the edges are judged after, not here. */
+	private val CHUNK = Regex("""(?<![A-Za-z\d_.,:/-])[\d.,:/-]+(?![A-Za-z\d_.,:/-])""")
+
+	private const val SEPS = ".,:/-"
 
 	/**
 	 * [text] with every standalone digit run either left whole or spelled
@@ -39,10 +46,14 @@ object NumberProcessing {
 			QUADRUPLETS -> 4
 			else -> 1
 		}
-		return RUN.replace(text) { match ->
-			val digits = match.value
-			if (digits.length <= size) digits
-			else digits.toCharArray().joinToString(" ")
+		return CHUNK.replace(text) { match ->
+			val core = match.value.trim { it in SEPS }
+			if (core.isEmpty() || !core.all { it.isDigit() } || core.length <= size) {
+				return@replace match.value
+			}
+			val leading = match.value.takeWhile { it in SEPS }
+			val trailing = match.value.takeLastWhile { it in SEPS }
+			leading + core.toCharArray().joinToString(" ") + trailing
 		}
 	}
 }
