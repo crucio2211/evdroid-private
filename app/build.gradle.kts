@@ -126,9 +126,12 @@ android {
 
 	packaging {
 		jniLibs {
-			// A screen reader cannot wait for a library to be unpacked, and an
-			// uncompressed one is mapped straight out of the APK.
-			useLegacyPackaging = false
+			// Uncompressed libraries map straight out of the APK, so a
+			// screen reader never waits for unpacking. Compressed ones
+			// download far smaller and install fast on modern phones, at
+			// the cost of disk (APK plus extracted libraries) and a first
+			// load from extracted files. CI ships compressed.
+			useLegacyPackaging = (findProperty("evvdroid.legacyPackaging") as String?)?.toBoolean() ?: false
 		}
 	}
 
