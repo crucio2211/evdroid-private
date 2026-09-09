@@ -299,6 +299,7 @@ class EvvTtsService : TextToSpeechService() {
 		val fixed = TextPipeline.process(
 			raw,
 			emoji = s?.speakEmoji != false,
+			emojiCompress = s?.emojiCompress ?: EmojiProcessing.DEFAULT_COMPRESS,
 			numberMode = numberMode,
 			stripBackquotes = s?.backquoteTags != true,
 			punctLevel = punctLevel

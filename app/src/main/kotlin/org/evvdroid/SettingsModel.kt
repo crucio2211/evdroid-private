@@ -51,6 +51,9 @@ class SettingsModel(context: Context) {
 	var speakEmoji by mutableStateOf(settings.speakEmoji)
 		private set
 
+	var emojiCompress by mutableStateOf(settings.emojiCompress)
+		private set
+
 	var numberProcessing by mutableStateOf(settings.numberProcessing)
 		private set
 
@@ -351,6 +354,11 @@ class SettingsModel(context: Context) {
 		settings.speakEmoji = on
 	}
 
+	fun chooseEmojiCompress(threshold: Int) {
+		emojiCompress = threshold
+		settings.emojiCompress = threshold
+	}
+
 	fun chooseNumberProcessing(on: Boolean) {
 		numberProcessing = on
 		settings.numberProcessing = on
@@ -401,6 +409,7 @@ class SettingsModel(context: Context) {
 		val heard = TextPipeline.process(
 			app.getString(R.string.preview_text),
 			emoji = settings.speakEmoji,
+			emojiCompress = settings.emojiCompress,
 			numberMode = settings.numberMode.takeIf { settings.numberProcessing },
 			stripBackquotes = !settings.backquoteTags,
 			punctLevel = settings.punctLevel.takeIf { settings.punctProcessing }

@@ -25,6 +25,7 @@ class TextPipelineTest {
 			TextPipeline.process(
 				"1,000",
 				emoji = false,
+				emojiCompress = EmojiProcessing.DEFAULT_COMPRESS,
 				numberMode = null,
 				stripBackquotes = true,
 				punctLevel = null
@@ -39,6 +40,7 @@ class TextPipelineTest {
 			TextPipeline.process(
 				"Call 12345.",
 				emoji = false,
+				emojiCompress = EmojiProcessing.DEFAULT_COMPRESS,
 				numberMode = NumberProcessing.PAIRS,
 				stripBackquotes = true,
 				punctLevel = PunctuationProcessing.SOME
@@ -53,6 +55,7 @@ class TextPipelineTest {
 			TextPipeline.process(
 				"Hello!",
 				emoji = false,
+				emojiCompress = EmojiProcessing.DEFAULT_COMPRESS,
 				numberMode = null,
 				stripBackquotes = true,
 				punctLevel = PunctuationProcessing.ALL
@@ -67,6 +70,7 @@ class TextPipelineTest {
 			TextPipeline.process(
 				"Hello, world!",
 				emoji = false,
+				emojiCompress = EmojiProcessing.DEFAULT_COMPRESS,
 				numberMode = null,
 				stripBackquotes = true,
 				punctLevel = null

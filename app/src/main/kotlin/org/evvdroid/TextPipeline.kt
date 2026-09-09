@@ -20,13 +20,14 @@ object TextPipeline {
 	fun process(
 		raw: String,
 		emoji: Boolean,
+		emojiCompress: Int,
 		numberMode: Int?,
 		stripBackquotes: Boolean,
 		punctLevel: Int?
 	): String {
 		if (raw.isEmpty()) return raw
 		val stripped = NumberProcessing.stripThousandsCommas(raw)
-		val worded = if (emoji) EmojiProcessing.apply(stripped) else stripped
+		val worded = if (emoji) EmojiProcessing.apply(stripped, emojiCompress) else stripped
 		val numbered = if (numberMode != null) NumberProcessing.apply(worded, numberMode) else worded
 		val guarded = AntiCrash.apply(numbered, stripBackquotes)
 		val fixed = TextFixes.apply(guarded)

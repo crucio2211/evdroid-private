@@ -187,7 +187,9 @@ between digits pass untouched.
 ## Emoji
 
 "Speak emoji" turns every emoji into its plain-English name before anything
-else sees the text: grinning face, red heart, flag Philippines. The table
+else sees the text: grinning face, red heart, flag Philippines. A run of
+one name compresses from a chosen two to five repeats: three smiling faces
+come out as 3 smiling face. The table
 holds Unicode 16.0 plus the Emoji 17.0 additions -- there is no 18.0 yet,
 only a draft -- all five thousand of fully-qualified, minimally-qualified and unqualified sequences
 except single ASCII characters, which are ordinary text. Matching is

@@ -28,6 +28,8 @@
 	<string name="abbreviations_label">Expand abbreviations</string>
 	<string name="backquote_tags_label">Enable backquote voice tags</string>
 	<string name="emoji_speak_label">Speak emoji</string>
+	<string name="emoji_compress_label">Compress repeats from</string>
+	<string name="emoji_compress_count">%1$d or more</string>
 
 	<string name="number_processing_label">Process numbers</string>
 	<string name="number_mode_label">Numbers as</string>

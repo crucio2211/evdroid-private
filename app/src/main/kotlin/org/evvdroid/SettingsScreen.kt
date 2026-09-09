@@ -137,6 +137,18 @@ fun SettingsScreen(state: SettingsModel) {
 				checked = state.speakEmoji,
 				onChange = state::chooseSpeakEmoji
 			)
+			if (state.speakEmoji) {
+				ChoiceRow(
+					label = stringResource(R.string.emoji_compress_label),
+					options = (EmojiProcessing.MIN_COMPRESS..EmojiProcessing.MAX_COMPRESS).map {
+						stringResource(R.string.emoji_compress_count, it)
+					},
+					chosen = (state.emojiCompress - EmojiProcessing.MIN_COMPRESS).coerceIn(
+						0, EmojiProcessing.MAX_COMPRESS - EmojiProcessing.MIN_COMPRESS
+					),
+					onChoose = { state.chooseEmojiCompress(it + EmojiProcessing.MIN_COMPRESS) }
+				)
+			}
 			SwitchRow(
 				label = stringResource(R.string.number_processing_label),
 				checked = state.numberProcessing,

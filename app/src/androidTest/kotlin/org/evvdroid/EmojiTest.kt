@@ -11,7 +11,8 @@ import org.junit.runner.RunWith
  * Each check puts an emoji through and says the words that must come out.
  * Longest-first matching is the point of half of them: heart on fire must
  * win over a bare heart, a family over its first person, a keycap over its
- * digit. Modifiers standing alone say nothing and are dropped.
+ * digit. Modifiers standing alone say nothing and are dropped. Runs of one
+ * name compress past the threshold instead of repeating.
  */
 @RunWith(AndroidJUnit4::class)
 class EmojiTest {
@@ -69,5 +70,37 @@ class EmojiTest {
 		for (text in listOf("Hello world", "3.14", "Navigate up", "")) {
 			assertEquals(text, EmojiProcessing.apply(text))
 		}
+	}
+
+	@Test
+	fun runsCompressPastTheThreshold() {
+		val three = "😀😀😀"
+		assertEquals("3 grinning face", EmojiProcessing.apply(three, 3))
+		assertEquals("2 grinning face", EmojiProcessing.apply("😀😀", 2))
+		assertEquals(
+			"Hi 3 grinning face bye",
+			EmojiProcessing.apply("Hi 😀😀😀 bye", 3)
+		)
+	}
+
+	@Test
+	fun shortRunsSpeakEachOne() {
+		assertEquals(
+			"grinning face grinning face",
+			EmojiProcessing.apply("😀😀", 3)
+		)
+	}
+
+	@Test
+	fun mixedRunsDoNotCompress() {
+		assertEquals(
+			"grinning face grinning face with big eyes grinning face",
+			EmojiProcessing.apply("😀😃😀", 2)
+		)
+	}
+
+	@Test
+	fun sameNameDifferentBytesCompress() {
+		assertEquals("2 red heart", EmojiProcessing.apply("❤️❤", 2))
 	}
 }

@@ -94,6 +94,17 @@ class Settings(context: Context) {
 		get() = prefs.getBoolean(KEY_SPEAK_EMOJI, true)
 		set(value) = prefs.edit().putBoolean(KEY_SPEAK_EMOJI, value).apply()
 
+	/** How many repeats of one emoji compress into a count: 3 smiling
+	 *  faces come out as 3 smiling face. Read back coerced to the offered
+	 *  two through five. */
+	var emojiCompress: Int
+		get() = prefs.getInt(KEY_EMOJI_COMPRESS, EmojiProcessing.DEFAULT_COMPRESS)
+			.coerceIn(EmojiProcessing.MIN_COMPRESS, EmojiProcessing.MAX_COMPRESS)
+		set(value) = prefs.edit().putInt(
+			KEY_EMOJI_COMPRESS,
+			value.coerceIn(EmojiProcessing.MIN_COMPRESS, EmojiProcessing.MAX_COMPRESS)
+		).apply()
+
 	/** Whether digit runs are regrouped for reading, and how. */
 	var numberProcessing: Boolean
 		get() = prefs.getBoolean(KEY_NUMBER_PROCESSING, false)
@@ -281,6 +292,7 @@ class Settings(context: Context) {
 		const val KEY_PAUSES = "pauses"
 		const val KEY_PHRASE_PREDICTION = "phrase_prediction"
 		const val KEY_SPEAK_EMOJI = "speak_emoji"
+		const val KEY_EMOJI_COMPRESS = "emoji_compress"
 		const val KEY_NUMBER_PROCESSING = "number_processing"
 		const val KEY_NUMBER_MODE = "number_mode"
 		const val KEY_PUNCT_PROCESSING = "punct_processing"
