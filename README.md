@@ -237,7 +237,9 @@ what gets said. Picking a file turns it on.
 
 The regex row opens the entries themselves: every pattern in file
 order, one stop each, where pressing one deletes it after asking; adding,
-importing a file to replace it, and exporting a copy elsewhere.
+importing a file to replace it, and exporting a copy elsewhere. Adding
+offers a Match case switch, off by default so chatgpt fixes ChatGpt too;
+imported files keep whatever case their patterns were written in.
 
 No dictionary is shipped here. See LICENSE.
 

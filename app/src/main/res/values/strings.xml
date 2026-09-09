@@ -61,6 +61,7 @@
 	<string name="regex_export_label">Export file</string>
 	<string name="regex_pattern_hint">Pattern</string>
 	<string name="regex_replacement_hint">Replacement</string>
+	<string name="regex_match_case">Match case</string>
 	<string name="regex_save">Save</string>
 	<string name="regex_delete_title">Delete this pattern?</string>
 	<string name="regex_delete">Delete</string>

@@ -294,15 +294,16 @@ class SettingsModel(context: Context) {
 	 *
 	 * When no file has been picked yet the entry starts one, named for the
 	 * copy it is. Either way the dictionary is switched on: an entry just
-	 * written is one meant to be heard.
+	 * written is one meant to be heard. [matchCase] off stores the pattern
+	 * case-insensitively, so chatgpt fixes ChatGpt too.
 	 */
-	fun addRegexEntry(pattern: String, replacement: String): Boolean {
+	fun addRegexEntry(pattern: String, replacement: String, matchCase: Boolean = false): Boolean {
 		var file = settings.regexDictionaryFile()
 		if (file == null) {
 			val into = java.io.File(app.filesDir, "dictionaries").apply { mkdirs() }
 			file = java.io.File(into, "regex.dic")
 		}
-		if (!RegexDictionaries.appendEntry(file, pattern, replacement)) return false
+		if (!RegexDictionaries.appendEntry(file, RegexDictionaries.withCase(pattern, matchCase), replacement)) return false
 		refreshRegexName(file)
 		chooseRegexDictionaryEnabled(true)
 		refreshRegexEntries()

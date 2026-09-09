@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,6 +18,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -26,12 +28,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 
 /** The regex dictionary's entries, reached from the settings screen.
@@ -120,8 +124,8 @@ fun RegexEditorScreen(state: SettingsModel) {
 	if (adding) {
 		AddPatternDialog(
 			onDismiss = { adding = false },
-			onSave = { pattern, replacement ->
-				if (state.addRegexEntry(pattern, replacement)) {
+			onSave = { pattern, replacement, matchCase ->
+				if (state.addRegexEntry(pattern, replacement, matchCase)) {
 					adding = false
 					true
 				} else {
@@ -196,9 +200,10 @@ private fun EntryRow(text: String, deleteDescription: String, onDelete: () -> Un
 }
 
 @Composable
-private fun AddPatternDialog(onDismiss: () -> Unit, onSave: (String, String) -> Boolean) {
+private fun AddPatternDialog(onDismiss: () -> Unit, onSave: (String, String, Boolean) -> Boolean) {
 	var pattern by remember { mutableStateOf("") }
 	var replacement by remember { mutableStateOf("") }
+	var matchCase by remember { mutableStateOf(false) }
 	var failed by remember { mutableStateOf(false) }
 	AlertDialog(
 		onDismissRequest = onDismiss,
@@ -217,6 +222,11 @@ private fun AddPatternDialog(onDismiss: () -> Unit, onSave: (String, String) -> 
 					label = { Text(stringResource(R.string.regex_replacement_hint)) },
 					singleLine = true
 				)
+				DialogSwitchRow(
+					label = stringResource(R.string.regex_match_case),
+					checked = matchCase,
+					onChange = { matchCase = it }
+				)
 				if (failed) {
 					Text(
 						stringResource(R.string.regex_invalid),
@@ -226,7 +236,7 @@ private fun AddPatternDialog(onDismiss: () -> Unit, onSave: (String, String) -> 
 			}
 		},
 		confirmButton = {
-			TextButton(onClick = { if (!onSave(pattern, replacement)) failed = true }) {
+			TextButton(onClick = { if (!onSave(pattern, replacement, matchCase)) failed = true }) {
 				Text(stringResource(R.string.regex_save))
 			}
 		},
@@ -236,4 +246,29 @@ private fun AddPatternDialog(onDismiss: () -> Unit, onSave: (String, String) -> 
 			}
 		}
 	)
+}
+
+/** A switch as one stop: label, on or off, toggled in place. */
+@Composable
+private fun DialogSwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+	val on = stringResource(if (checked) R.string.switch_on else R.string.switch_off)
+	Row(
+		modifier = Modifier
+			.fillMaxWidth()
+			.clickable { onChange(!checked) }
+			.padding(vertical = 8.dp)
+			.clearAndSetSemantics {
+				contentDescription = label
+				stateDescription = on
+				role = Role.Switch
+			},
+		verticalAlignment = Alignment.CenterVertically
+	) {
+		Text(
+			text = label,
+			style = MaterialTheme.typography.bodyLarge,
+			modifier = Modifier.weight(1f)
+		)
+		Switch(checked = checked, onCheckedChange = null)
+	}
 }

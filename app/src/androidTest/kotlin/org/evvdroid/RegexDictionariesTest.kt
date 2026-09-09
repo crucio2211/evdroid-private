@@ -166,6 +166,33 @@ class RegexDictionariesTest {
 		return loaded
 	}
 
+	@Test
+	fun caseFoldingIsAnInlineFlag() {
+		assertEquals("(?i)chatgpt", RegexDictionaries.withCase("chatgpt", false))
+		assertEquals("chatgpt", RegexDictionaries.withCase("chatgpt", true))
+		assertEquals("(?i)chatgpt", RegexDictionaries.withCase("(?i)chatgpt", false))
+	}
+
+	@Test
+	fun unfoldedPatternsFixCapitalisedWords() {
+		val loaded = load(RegexDictionaries.withCase("chatgpt", false) + "\tchat jee pee tee\n")
+		assertNotNull(loaded)
+		assertEquals(
+			"I use chat jee pee tee daily",
+			RegexDictionaries.apply(loaded, "I use ChatGpt daily")
+		)
+	}
+
+	@Test
+	fun foldedPatternsKeepTheirCase() {
+		val loaded = load(RegexDictionaries.withCase("chatgpt", true) + "\tchat jee pee tee\n")
+		assertNotNull(loaded)
+		assertEquals(
+			"I use ChatGpt daily",
+			RegexDictionaries.apply(loaded, "I use ChatGpt daily")
+		)
+	}
+
 	private fun dir(): File {
 		val to = InstrumentationRegistry.getInstrumentation().targetContext
 		return File(to.cacheDir, "regex-tests").apply { mkdirs() }

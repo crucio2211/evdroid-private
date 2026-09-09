@@ -69,6 +69,15 @@ object RegexDictionaries {
 		return out
 	}
 
+	/** The pattern as stored for [matchCase]: verbatim when case matters,
+	 *  with an inline ignore-case flag otherwise, so the file stays plain
+	 *  pattern-and-replacement lines with no sidecar format. */
+	fun withCase(pattern: String, matchCase: Boolean): String {
+		val trimmed = pattern.trim()
+		if (matchCase || trimmed.startsWith("(?")) return pattern
+		return "(?i)$pattern"
+	}
+
 	/** Whether [loaded] still describes the file on disk. */
 	fun isCurrent(loaded: Loaded?): Boolean {
 		if (loaded == null) return false
