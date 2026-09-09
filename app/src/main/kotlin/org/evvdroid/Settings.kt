@@ -94,6 +94,35 @@ class Settings(context: Context) {
 		get() = prefs.getBoolean(KEY_SPEAK_EMOJI, true)
 		set(value) = prefs.edit().putBoolean(KEY_SPEAK_EMOJI, value).apply()
 
+	/** Whether digit runs are regrouped for reading, and how. */
+	var numberProcessing: Boolean
+		get() = prefs.getBoolean(KEY_NUMBER_PROCESSING, false)
+		set(value) = prefs.edit().putBoolean(KEY_NUMBER_PROCESSING, value).apply()
+
+	/** One of the NumberProcessing modes. Read back coerced, so a stored
+	 *  value from a build with more modes cannot strand the screen. */
+	var numberMode: Int
+		get() = prefs.getInt(KEY_NUMBER_MODE, NumberProcessing.DIGITS)
+			.coerceIn(NumberProcessing.DIGITS, NumberProcessing.QUADRUPLETS)
+		set(value) = prefs.edit().putInt(
+			KEY_NUMBER_MODE,
+			value.coerceIn(NumberProcessing.DIGITS, NumberProcessing.QUADRUPLETS)
+		).apply()
+
+	/** Whether punctuation marks are spoken, and how many. */
+	var punctProcessing: Boolean
+		get() = prefs.getBoolean(KEY_PUNCT_PROCESSING, false)
+		set(value) = prefs.edit().putBoolean(KEY_PUNCT_PROCESSING, value).apply()
+
+	/** One of the PunctuationProcessing levels, coerced like the number mode. */
+	var punctLevel: Int
+		get() = prefs.getInt(KEY_PUNCT_LEVEL, PunctuationProcessing.MOST)
+			.coerceIn(PunctuationProcessing.NONE, PunctuationProcessing.ALL)
+		set(value) = prefs.edit().putInt(
+			KEY_PUNCT_LEVEL,
+			value.coerceIn(PunctuationProcessing.NONE, PunctuationProcessing.ALL)
+		).apply()
+
 	/** One speed for every voice. */
 	var speed: Int
 		get() = Eci.clampVoice(Eci.VOICE_SPEED, prefs.getInt(KEY_SPEED, Eci.DEFAULT_SPEED))
@@ -252,6 +281,10 @@ class Settings(context: Context) {
 		const val KEY_PAUSES = "pauses"
 		const val KEY_PHRASE_PREDICTION = "phrase_prediction"
 		const val KEY_SPEAK_EMOJI = "speak_emoji"
+		const val KEY_NUMBER_PROCESSING = "number_processing"
+		const val KEY_NUMBER_MODE = "number_mode"
+		const val KEY_PUNCT_PROCESSING = "punct_processing"
+		const val KEY_PUNCT_LEVEL = "punct_level"
 		const val KEY_BACKQUOTE_TAGS = "backquote_tags"
 		const val KEY_REGEX_ENABLED = "regex_enabled"
 		const val KEY_REGEX_PATH = "regex_path"

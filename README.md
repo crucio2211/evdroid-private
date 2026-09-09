@@ -88,8 +88,8 @@ Launcher icon, or the gear beside the engine in the text-to-speech settings.
 
 Sliders for the seven voice parameters, plus voice, force language,
 sample rate (8 and 11 kHz, the two the engine actually plays), pauses,
-phrase prediction, abbreviations, backquote voice tags, emoji,
-volume dictionaries and a regex dictionary. "Speak a sample"
+phrase prediction, abbreviations, backquote voice tags, emoji, numbers,
+punctuation, volume dictionaries and a regex dictionary. "Speak a sample"
 sits under the sliders, speaking through the same rewrites TalkBack hears
 except user dictionaries, so what it says is what the settings do.
 Nothing speaks on its own. A setting takes effect when you set it, and the
@@ -164,6 +164,25 @@ it goes out with every utterance.
 Expand abbreviations is `eciDictionary`, which is inverted in the engine: zero
 turns it on. Off by default. It is re-sent with every utterance, since it is
 the one setting with nothing to say whether something else has moved it.
+
+## Numbers and punctuation
+
+Both follow the project's SAPI5 driver, whose tested behavior is the
+specification here rather than this text.
+
+Thousands commas go first and always, even with everything off: 1,000
+reads one thousand instead of one comma hundred, and decimals pass
+through. Then digit runs regroup -- apart, remainder-first pairs and
+triplets (12345 in pairs is 1 23 45), quadruplets whole up to four and
+apart past that -- wherever they stand.
+
+Punctuation speaks from a 288-entry symbol table of names, levels and
+preserve flags. A reached level speaks the table's own name; marks flagged
+to stay keep the synthesiser company as a brief pause instead of as
+themselves, because this engine spells an isolated mark aloud and every
+kept one came out twice. Below its level a mark stays for the engine's
+default, sentence-ending .!? stays prosody below all, and dots and commas
+between digits pass untouched.
 
 ## Emoji
 

@@ -294,10 +294,14 @@ class EvvTtsService : TextToSpeechService() {
 		// One pipeline for TalkBack and the sample button alike; the shape of
 		// it is documented on TextPipeline.
 		val raw = request.charSequenceText?.toString().orEmpty()
+		val numberMode: Int? = if (s != null && s.numberProcessing) s.numberMode else null
+		val punctLevel: Int? = if (s != null && s.punctProcessing) s.punctLevel else null
 		val fixed = TextPipeline.process(
 			raw,
 			emoji = s?.speakEmoji != false,
-			stripBackquotes = s?.backquoteTags != true
+			numberMode = numberMode,
+			stripBackquotes = s?.backquoteTags != true,
+			punctLevel = punctLevel
 		)
 		// The user's own rewrites go last, closest to the engine, so what is
 		// written in the regex dictionary is what gets said.

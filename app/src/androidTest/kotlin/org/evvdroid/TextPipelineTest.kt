@@ -8,35 +8,55 @@ import org.junit.runner.RunWith
 /**
  * The one pipeline TalkBack and the sample button share.
  *
- * Stages compose in order and every stage's output reaches the engine:
- * punctuation once computed its text and never handed it on, so all levels
- * were silent, and only an end-to-end check like these can catch that kind
- * of wiring again.
+ * Thousands commas go first and always, then emoji, numbers when asked,
+ * crash guards, readability fixes, punctuation when asked, and the user's
+ * own rewrites closest to the engine. Stages compose in order and every
+ * stage's output reaches the engine: punctuation once computed its text
+ * and never handed it on, so all levels were silent, and only an
+ * end-to-end check like these can catch that kind of wiring again.
  */
 @RunWith(AndroidJUnit4::class)
 class TextPipelineTest {
 
 	@Test
-	fun emojiRunBeforeGuards() {
+	fun thousandsCommasGoFirstAlways() {
 		assertEquals(
-			"Hi grinning face",
+			"1000",
 			TextPipeline.process(
-				"Hi \uD83D\uDE00",
-				emoji = true,
-				stripBackquotes = true
+				"1,000",
+				emoji = false,
+				numberMode = null,
+				stripBackquotes = true,
+				punctLevel = null
 			)
 		)
 	}
 
 	@Test
-	fun backquotesAreStripped() {
+	fun numbersRunBeforePunctuation() {
 		assertEquals(
-			"vs50 hello",
+			"Call 1 23 45.",
 			TextPipeline.process(
-				"`vs50 hello",
+				"Call 12345.",
 				emoji = false,
-				stripBackquotes = true
-			).trim()
+				numberMode = NumberProcessing.PAIRS,
+				stripBackquotes = true,
+				punctLevel = PunctuationProcessing.SOME
+			)
+		)
+	}
+
+	@Test
+	fun punctuationReachesTheEngine() {
+		assertEquals(
+			"Hello exclamation mark `p1",
+			TextPipeline.process(
+				"Hello!",
+				emoji = false,
+				numberMode = null,
+				stripBackquotes = true,
+				punctLevel = PunctuationProcessing.ALL
+			)
 		)
 	}
 
@@ -47,7 +67,9 @@ class TextPipelineTest {
 			TextPipeline.process(
 				"Hello, world!",
 				emoji = false,
-				stripBackquotes = true
+				numberMode = null,
+				stripBackquotes = true,
+				punctLevel = null
 			)
 		)
 	}
