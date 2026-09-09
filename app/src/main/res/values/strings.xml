@@ -66,8 +66,6 @@
 	<string name="regex_export_label">Export file</string>
 	<string name="regex_remove_all">Remove all entries</string>
 	<string name="regex_remove_all_title">Remove every pattern?</string>
-	<string name="regex_import_label">Import file</string>
-	<string name="regex_export_label">Export file</string>
 	<string name="regex_pattern_hint">Pattern</string>
 	<string name="regex_replacement_hint">Replacement</string>
 	<string name="regex_match_case">Match case</string>
