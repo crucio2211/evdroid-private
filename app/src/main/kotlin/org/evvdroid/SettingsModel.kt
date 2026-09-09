@@ -329,6 +329,27 @@ class SettingsModel(context: Context) {
 		return true
 	}
 
+	/** Swaps one editor entry for new text, where it stands. */
+	fun editRegexEntry(index: Int, pattern: String, replacement: String, matchCase: Boolean): Boolean {
+		val file = settings.regexDictionaryFile() ?: return false
+		if (!RegexDictionaries.replaceEntryAt(file, index, RegexDictionaries.withCase(pattern, matchCase), replacement)) {
+			return false
+		}
+		refreshRegexName(file)
+		refreshRegexEntries()
+		return true
+	}
+
+	/** Empties the whole regex dictionary: file gone, name cleared,
+	 *  switched off. */
+	fun clearRegexEntries() {
+		settings.regexDictionaryPath()?.let { java.io.File(it).delete() }
+		settings.setRegexDictionary(null, null)
+		chooseRegexDictionaryEnabled(false)
+		regexDictionary = app.getString(R.string.dictionary_none)
+		regexEntries = emptyList()
+	}
+
 	/** The display name with a fresh count, keeping whichever file it names. */
 	private fun refreshRegexName(file: java.io.File) {
 		val base = settings.regexDictionaryName()?.substringBefore(", ")?.takeIf { it.isNotEmpty() } ?: file.name

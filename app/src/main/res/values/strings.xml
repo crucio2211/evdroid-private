@@ -59,6 +59,13 @@
 
 	<string name="regex_editor_title">Regex entries</string>
 	<string name="regex_add_label">Add pattern</string>
+	<string name="regex_edit_label">Edit pattern</string>
+	<string name="regex_edit">Edit</string>
+	<string name="regex_entry_open">%1$s to %2$s. Activate to edit or delete.</string>
+	<string name="regex_import_label">Import file</string>
+	<string name="regex_export_label">Export file</string>
+	<string name="regex_remove_all">Remove all entries</string>
+	<string name="regex_remove_all_title">Remove every pattern?</string>
 	<string name="regex_import_label">Import file</string>
 	<string name="regex_export_label">Export file</string>
 	<string name="regex_pattern_hint">Pattern</string>

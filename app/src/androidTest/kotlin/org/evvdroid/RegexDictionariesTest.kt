@@ -153,6 +153,27 @@ class RegexDictionariesTest {
 	}
 
 	@Test
+	fun replacingKeepsItsPlace() {
+		val file = write("NVDA\ten vee dee ay\nLOL\tell oe ell\nSNES\tess en ee ess\n")
+		assertTrue(RegexDictionaries.replaceEntryAt(file, 1, "lol", "laughing out loud"))
+		val entries = RegexDictionaries.readEntries(file)
+		assertEquals(3, entries.size)
+		assertEquals("NVDA", entries[0].pattern)
+		assertEquals("lol", entries[1].pattern)
+		assertEquals("laughing out loud", entries[1].replacement)
+		assertEquals("SNES", entries[2].pattern)
+	}
+
+	@Test
+	fun replacingRefusesBadText() {
+		val file = write("NVDA\ten vee dee ay\n")
+		assertFalse(RegexDictionaries.replaceEntryAt(file, 0, "([a-z", "broken"))
+		assertFalse(RegexDictionaries.replaceEntryAt(file, 0, "   ", "blank"))
+		assertFalse(RegexDictionaries.replaceEntryAt(file, 5, "ok", "nowhere"))
+		assertEquals("NVDA", RegexDictionaries.readEntries(file)[0].pattern)
+	}
+
+	@Test
 	fun removingNothingFailsQuietly() {
 		val file = write("NVDA\ten vee dee ay\n")
 		assertFalse(RegexDictionaries.removeEntryAt(file, 3))

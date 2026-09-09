@@ -18,6 +18,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -88,7 +90,10 @@ fun RegexEditorScreen(state: SettingsModel) {
 		}
 	}
 	var adding by remember { mutableStateOf(false) }
+	var actingAt by remember { mutableStateOf<Int?>(null) }
+	var editingAt by remember { mutableStateOf<Int?>(null) }
 	var deleting by remember { mutableStateOf<RegexDictionaries.RawEntry?>(null) }
+	var clearing by remember { mutableStateOf(false) }
 	Scaffold(
 		topBar = { TopAppBar(title = { Text(stringResource(R.string.regex_editor_title)) }) }
 	) { inset ->
@@ -100,15 +105,15 @@ fun RegexEditorScreen(state: SettingsModel) {
 				.padding(bottom = 24.dp)
 		) {
 			EditorActionRow(stringResource(R.string.regex_add_label)) { adding = true }
-			state.regexEntries.forEach { entry ->
+			state.regexEntries.forEachIndexed { at, entry ->
 				EntryRow(
 					text = "${entry.pattern} → ${entry.replacement}",
-					deleteDescription = stringResource(
-						R.string.regex_entry_delete,
+					openDescription = stringResource(
+						R.string.regex_entry_open,
 						entry.pattern,
 						entry.replacement
 					),
-					onDelete = { deleting = entry }
+					onOpen = { actingAt = at }
 				)
 			}
 			EditorActionRow(stringResource(R.string.regex_import_label)) {
@@ -118,11 +123,15 @@ fun RegexEditorScreen(state: SettingsModel) {
 				EditorActionRow(stringResource(R.string.regex_export_label)) {
 					export.launch(exportName(state))
 				}
+				EditorActionRow(stringResource(R.string.regex_remove_all)) {
+					clearing = true
+				}
 			}
 		}
 	}
 	if (adding) {
 		AddPatternDialog(
+			title = stringResource(R.string.regex_add_label),
 			onDismiss = { adding = false },
 			onSave = { pattern, replacement, matchCase ->
 				if (state.addRegexEntry(pattern, replacement, matchCase)) {
@@ -130,6 +139,79 @@ fun RegexEditorScreen(state: SettingsModel) {
 					true
 				} else {
 					false
+				}
+			}
+		)
+	}
+	actingAt?.let { at ->
+		val entry = state.regexEntries.getOrNull(at)
+		if (entry != null) {
+			Dialog(
+				onDismissRequest = { actingAt = null }
+			) {
+				Surface(shape = MaterialTheme.shapes.medium) {
+					Column(modifier = Modifier.padding(vertical = 8.dp)) {
+						EditorActionRow(stringResource(R.string.regex_edit)) {
+							editingAt = at
+							actingAt = null
+						}
+						EditorActionRow(stringResource(R.string.regex_delete)) {
+							deleting = entry
+							actingAt = null
+						}
+						EditorActionRow(stringResource(R.string.cancel)) {
+							actingAt = null
+						}
+					}
+				}
+			}
+		}
+	}
+	editingAt?.let { at ->
+		val entry = state.regexEntries.getOrNull(at)
+		if (entry != null) {
+			val folded = entry.pattern.startsWith("(?i)")
+			AddPatternDialog(
+				title = stringResource(R.string.regex_edit_label),
+				initialPattern = if (folded) entry.pattern.removePrefix("(?i)") else entry.pattern,
+				initialReplacement = entry.replacement,
+				initialMatchCase = !folded,
+				onDismiss = { editingAt = null },
+				onSave = { pattern, replacement, matchCase ->
+					if (state.editRegexEntry(at, pattern, replacement, matchCase)) {
+						editingAt = null
+						true
+					} else {
+						false
+					}
+				}
+			)
+		}
+	}
+	if (clearing) {
+		AlertDialog(
+			onDismissRequest = { clearing = false },
+			title = { Text(stringResource(R.string.regex_remove_all_title)) },
+			text = {
+				Text(
+					stringResource(
+						R.string.regex_dictionary_entries,
+						state.regexDictionary.substringBefore(", ").trim(),
+						state.regexEntries.size
+					)
+				)
+			},
+			confirmButton = {
+				TextButton(onClick = {
+					state.clearRegexEntries()
+					clearing = false
+				}) {
+					Text(stringResource(R.string.regex_delete))
+				}
+			},
+			dismissButton = {
+				TextButton(onClick = { clearing = false }) {
+					Text(stringResource(R.string.cancel))
 				}
 			}
 		)
@@ -182,32 +264,39 @@ private fun EditorActionRow(label: String, onClick: () -> Unit) {
 }
 
 /** One entry as one stop: what it matches, what it says, and that pressing
- *  deletes it. */
+ *  offers editing and deleting. */
 @Composable
-private fun EntryRow(text: String, deleteDescription: String, onDelete: () -> Unit) {
+private fun EntryRow(text: String, openDescription: String, onOpen: () -> Unit) {
 	Text(
 		text = text,
 		style = MaterialTheme.typography.bodyLarge,
 		modifier = Modifier
 			.fillMaxWidth()
-			.clickable(onClick = onDelete)
+			.clickable(onClick = onOpen)
 			.padding(horizontal = 16.dp, vertical = 14.dp)
 			.clearAndSetSemantics {
-				contentDescription = deleteDescription
+				contentDescription = openDescription
 				role = Role.Button
 			}
 	)
 }
 
 @Composable
-private fun AddPatternDialog(onDismiss: () -> Unit, onSave: (String, String, Boolean) -> Boolean) {
-	var pattern by remember { mutableStateOf("") }
-	var replacement by remember { mutableStateOf("") }
-	var matchCase by remember { mutableStateOf(false) }
+private fun AddPatternDialog(
+	title: String,
+	initialPattern: String = "",
+	initialReplacement: String = "",
+	initialMatchCase: Boolean = false,
+	onDismiss: () -> Unit,
+	onSave: (String, String, Boolean) -> Boolean
+) {
+	var pattern by remember(initialPattern) { mutableStateOf(initialPattern) }
+	var replacement by remember(initialReplacement) { mutableStateOf(initialReplacement) }
+	var matchCase by remember(initialMatchCase) { mutableStateOf(initialMatchCase) }
 	var failed by remember { mutableStateOf(false) }
 	AlertDialog(
 		onDismissRequest = onDismiss,
-		title = { Text(stringResource(R.string.regex_add_label)) },
+		title = { Text(title) },
 		text = {
 			Column {
 				OutlinedTextField(

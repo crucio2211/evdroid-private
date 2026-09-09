@@ -137,22 +137,45 @@ object RegexDictionaries {
 	/** Drops the [index]-th entry as [readEntries] lists them, leaving every
 	 *  other line byte for byte as it was. Answers false when there is no
 	 *  such entry or the file cannot be rewritten. */
-	fun removeEntryAt(file: File, index: Int): Boolean {
+	fun removeEntryAt(file: File, index: Int): Boolean =
+		rewriteEntryAt(file, index, null)
+
+	/** Rewrites the [index]-th entry as [readEntries] lists it to [pattern]
+	 *  said as [replacement], keeping its place in file order. Answers
+	 *  false when there is no such entry, the replacement is not a valid
+	 *  entry, or the file cannot be rewritten. */
+	fun replaceEntryAt(file: File, index: Int, pattern: String, replacement: String): Boolean {
+		val search = pattern.trim()
+		val say = replacement.trim()
+		if (search.isEmpty() || say.isEmpty()) return false
+		try {
+			Regex(search)
+		} catch (bad: PatternSyntaxException) {
+			Log.e(TAG, "not writing bad pattern: $search", bad)
+			return false
+		}
+		return rewriteEntryAt(file, index, "$search\t$say")
+	}
+
+	/** Drops the [index]-th valid entry, or swaps in [line] for it when
+	 *  given. Everything else stays byte for byte as it was. */
+	private fun rewriteEntryAt(file: File, index: Int, line: String?): Boolean {
 		if (index < 0) return false
 		return try {
 			val kept = ArrayList<String>()
 			var seen = -1
 			var changed = false
-			for (line in file.readLines(Charsets.UTF_8)) {
-				val usable = splitLine(line)?.let { (search, _) ->
+			for (old in file.readLines(Charsets.UTF_8)) {
+				val usable = splitLine(old)?.let { (search, _) ->
 					runCatching { Regex(search); true }.getOrDefault(false)
 				} == true
 				if (usable) seen++
 				if (usable && seen == index) {
 					changed = true
+					if (line != null) kept.add(line)
 					continue
 				}
-				kept.add(line)
+				kept.add(old)
 			}
 			if (!changed) return false
 			file.writeText(kept.joinToString("\n", postfix = if (kept.isEmpty()) "" else "\n"), Charsets.UTF_8)
