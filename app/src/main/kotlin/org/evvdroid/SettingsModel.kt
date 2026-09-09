@@ -51,18 +51,6 @@ class SettingsModel(context: Context) {
 	var speakEmoji by mutableStateOf(settings.speakEmoji)
 		private set
 
-	var numberProcessing by mutableStateOf(settings.numberProcessing)
-		private set
-
-	var numberMode by mutableStateOf(settings.numberMode)
-		private set
-
-	var punctProcessing by mutableStateOf(settings.punctProcessing)
-		private set
-
-	var punctLevel by mutableStateOf(settings.punctLevel)
-		private set
-
 	var backquoteTags by mutableStateOf(settings.backquoteTags)
 		private set
 
@@ -350,26 +338,6 @@ class SettingsModel(context: Context) {
 		settings.speakEmoji = on
 	}
 
-	fun chooseNumberProcessing(on: Boolean) {
-		numberProcessing = on
-		settings.numberProcessing = on
-	}
-
-	fun chooseNumberMode(mode: Int) {
-		numberMode = mode
-		settings.numberMode = mode
-	}
-
-	fun choosePunctProcessing(on: Boolean) {
-		punctProcessing = on
-		settings.punctProcessing = on
-	}
-
-	fun choosePunctLevel(level: Int) {
-		punctLevel = level
-		settings.punctLevel = level
-	}
-
 	fun chooseBackquoteTags(on: Boolean) {
 		backquoteTags = on
 		settings.backquoteTags = on
@@ -400,9 +368,7 @@ class SettingsModel(context: Context) {
 		val heard = TextPipeline.process(
 			app.getString(R.string.preview_text),
 			emoji = settings.speakEmoji,
-			numberMode = settings.numberMode.takeIf { settings.numberProcessing },
-			stripBackquotes = !settings.backquoteTags,
-			punctLevel = settings.punctLevel.takeIf { settings.punctProcessing }
+			stripBackquotes = !settings.backquoteTags
 		)
 		val text = Prosody.prefix(settings.phrasePrediction) +
 			Pauses.apply(heard, settings.pauses, true)

@@ -29,20 +29,6 @@
 	<string name="backquote_tags_label">Enable backquote voice tags</string>
 	<string name="emoji_speak_label">Speak emoji</string>
 
-	<string name="number_processing_label">Process numbers</string>
-	<string name="number_mode_label">Numbers as</string>
-	<string name="number_digits">Digits</string>
-	<string name="number_pairs">Pairs</string>
-	<string name="number_triplets">Triplets</string>
-	<string name="number_quadruplets">Quadruplets</string>
-
-	<string name="punct_processing_label">Process punctuation</string>
-	<string name="punct_level_label">Punctuation</string>
-	<string name="punct_none">None</string>
-	<string name="punct_some">Some</string>
-	<string name="punct_most">Most</string>
-	<string name="punct_all">All</string>
-
 	<string name="dictionary_main">Main dictionary</string>
 	<string name="dictionary_root">Root dictionary</string>
 	<string name="dictionary_abbreviation">Abbreviation dictionary</string>

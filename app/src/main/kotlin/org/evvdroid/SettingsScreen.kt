@@ -137,42 +137,6 @@ fun SettingsScreen(state: SettingsModel) {
 				checked = state.speakEmoji,
 				onChange = state::chooseSpeakEmoji
 			)
-			SwitchRow(
-				label = stringResource(R.string.number_processing_label),
-				checked = state.numberProcessing,
-				onChange = state::chooseNumberProcessing
-			)
-			if (state.numberProcessing) {
-				ChoiceRow(
-					label = stringResource(R.string.number_mode_label),
-					options = listOf(
-						stringResource(R.string.number_digits),
-						stringResource(R.string.number_pairs),
-						stringResource(R.string.number_triplets),
-						stringResource(R.string.number_quadruplets)
-					),
-					chosen = state.numberMode,
-					onChoose = state::chooseNumberMode
-				)
-			}
-			SwitchRow(
-				label = stringResource(R.string.punct_processing_label),
-				checked = state.punctProcessing,
-				onChange = state::choosePunctProcessing
-			)
-			if (state.punctProcessing) {
-				ChoiceRow(
-					label = stringResource(R.string.punct_level_label),
-					options = listOf(
-						stringResource(R.string.punct_none),
-						stringResource(R.string.punct_some),
-						stringResource(R.string.punct_most),
-						stringResource(R.string.punct_all)
-					),
-					chosen = state.punctLevel,
-					onChoose = state::choosePunctLevel
-				)
-			}
 			Gap()
 		for (volume in Eci.DICT_VOLUMES) {
 			ValueRow(

@@ -88,8 +88,8 @@ Launcher icon, or the gear beside the engine in the text-to-speech settings.
 
 Sliders for the seven voice parameters, plus voice, force language,
 sample rate (8 and 11 kHz, the two the engine actually plays), pauses,
-phrase prediction, abbreviations, backquote voice tags, emoji, numbers,
-punctuation, volume dictionaries and a regex dictionary. "Speak a sample"
+phrase prediction, abbreviations, backquote voice tags, emoji,
+volume dictionaries and a regex dictionary. "Speak a sample"
 sits under the sliders, speaking through the same rewrites TalkBack hears
 except user dictionaries, so what it says is what the settings do.
 Nothing speaks on its own. A setting takes effect when you set it, and the
@@ -164,30 +164,6 @@ it goes out with every utterance.
 Expand abbreviations is `eciDictionary`, which is inverted in the engine: zero
 turns it on. Off by default. It is re-sent with every utterance, since it is
 the one setting with nothing to say whether something else has moved it.
-
-## Numbers and punctuation
-
-"Process numbers" reads standalone digit runs whole up to pairs, threes
-or fours, and spells out longer runs digit by digit: 12 stays twelve in
-pairs while 123 becomes 1 2 3, and digits always come apart. A thousands
-grouping reads its digits too, so 95,266,261 never leaks millions.
-Decimals, times, dates and letter-glued tokens are not standalone and are
-left alone -- but punctuation merely leaning on the edge, like the full
-stop in "call 95266261.", never shielded a run, so long numbers at
-sentence ends regroup too. With the switch off the synthesiser decides
-everything.
-
-"Process punctuation" is NVDA's symbol levels, mark for mark from its
-built-in symbols.dic: some speaks the dot and the small marks but leaves
-the comma, the bang and the question mark alone, and most still leaves
-bang, dollar, comma, question and ellipsis alone. A spoken mark replaces
-its place -- keeping it was tried, and the engine spells an isolated mark
-aloud, so every spoken mark came out twice. At none a brief pause stands
-where each mark stood. A dot ending the utterance always stays put, at
-every spoken level, because it is prosody rather than content. A mark
-glued inside a word by ' - . , or : stays put at every level -- the one
-deliberate divergence from NVDA, so don't, 3.14 and well-known survive
-where spelling them would mangle the words.
 
 ## Emoji
 

@@ -17,30 +17,26 @@ import org.junit.runner.RunWith
 class TextPipelineTest {
 
 	@Test
-	fun punctuationReachesTheEngine() {
+	fun emojiRunBeforeGuards() {
 		assertEquals(
-			"Hello dot Are you OK?",
+			"Hi grinning face",
 			TextPipeline.process(
-				"Hello. Are you OK?",
-				emoji = false,
-				numberMode = null,
-				stripBackquotes = true,
-				punctLevel = PunctuationProcessing.SOME
+				"Hi \uD83D\uDE00",
+				emoji = true,
+				stripBackquotes = true
 			)
 		)
 	}
 
 	@Test
-	fun numbersRunBeforePunctuation() {
+	fun backquotesAreStripped() {
 		assertEquals(
-			"Call 1 2 3, over",
+			"vs50 hello",
 			TextPipeline.process(
-				"Call 123, over.",
+				"`vs50 hello",
 				emoji = false,
-				numberMode = NumberProcessing.DIGITS,
-				stripBackquotes = true,
-				punctLevel = PunctuationProcessing.SOME
-			)
+				stripBackquotes = true
+			).trim()
 		)
 	}
 
@@ -51,9 +47,7 @@ class TextPipelineTest {
 			TextPipeline.process(
 				"Hello, world!",
 				emoji = false,
-				numberMode = null,
-				stripBackquotes = true,
-				punctLevel = null
+				stripBackquotes = true
 			)
 		)
 	}
