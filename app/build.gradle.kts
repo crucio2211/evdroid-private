@@ -69,6 +69,9 @@ android {
 		versionCode = versionCodeNumber
 		versionName = versionNameText
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+		// The UI is English-only; AndroidX libraries ship strings for a
+		// hundred locales the app never shows.
+		resConfigs("en")
 		ndk {
 			abiFilters += abis
 		}
@@ -104,6 +107,9 @@ android {
 			isMinifyEnabled = true
 			isShrinkResources = true
 			proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+			if (!(findProperty("evvdroid.keystore") as String?).isNullOrBlank()) {
+				signingConfig = signingConfigs.getByName("fixedDebug")
+			}
 		}
 		debug {
 			isJniDebuggable = true

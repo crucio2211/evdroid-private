@@ -36,7 +36,7 @@ env:
 
 jobs:
   build:
-    name: debug APK (arm64)
+    name: release APK
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -72,11 +72,11 @@ jobs:
             echo "EVVDROID_KEYSTORE=$RUNNER_TEMP/evdroid-debug.p12" >> "$GITHUB_ENV"
           fi
 
-      - name: Build the debug APK and compile the device checks
-        run: ./gradlew assembleDebug assembleDebugAndroidTest -Pevvdroid.abis="$EVVDROID_ABIS" -Pevvdroid.minify=true -Pevvdroid.legacyPackaging=true -Pevvdroid.langs="$EVVDROID_LANGS" -Pevvdroid.versionCode="$GITHUB_RUN_NUMBER" -Pevvdroid.keystore="$EVVDROID_KEYSTORE" -Pevvdroid.storePass="${{ secrets.EVVDROID_STORE_PASS }}" -Pevvdroid.keyPass="${{ secrets.EVVDROID_KEY_PASS }}" --stacktrace
+      - name: Build the release APK and compile the device checks
+        run: ./gradlew assembleRelease assembleDebugAndroidTest -Pevvdroid.abis="$EVVDROID_ABIS" -Pevvdroid.minify=true -Pevvdroid.legacyPackaging=true -Pevvdroid.rules=bytecode -Pevvdroid.langs="$EVVDROID_LANGS" -Pevvdroid.versionCode="$GITHUB_RUN_NUMBER" -Pevvdroid.keystore="$EVVDROID_KEYSTORE" -Pevvdroid.storePass="${{ secrets.EVVDROID_STORE_PASS }}" -Pevvdroid.keyPass="${{ secrets.EVVDROID_KEY_PASS }}" --stacktrace
 
       - name: Upload the APK
         uses: actions/upload-artifact@v4
         with:
-          name: evvdroid-debug
-          path: app/build/outputs/apk/debug/*.apk
+          name: evvdroid-release
+          path: app/build/outputs/apk/release/*.apk
