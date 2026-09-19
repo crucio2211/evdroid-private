@@ -51,12 +51,12 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Set up the Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Set up Gradle caching
         uses: gradle/actions/setup-gradle@v4
 
+      # No setup-android step: ubuntu-latest runners already ship the SDK
+      # (ANDROID_HOME + cmdline-tools on PATH). The v3 action breaks the
+      # build by asking sdkmanager for the long-removed 'tools' package.
       - name: Install the NDK
         run: |
           yes | sdkmanager --licenses > /dev/null
