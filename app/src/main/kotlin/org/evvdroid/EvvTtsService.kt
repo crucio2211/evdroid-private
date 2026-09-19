@@ -45,7 +45,7 @@ class EvvTtsService : TextToSpeechService() {
 	override fun onCreate() {
 		settings = Settings(this)
 		super.onCreate()
-		// The five-thousand-entry emoji table builds on first touch, which
+		// The emoji table builds on first touch, which
 		// would otherwise land on the first utterance. Warm it here, off
 		// every thread that speaks.
 		Thread({ EmojiNames.STARTERS.size }, "emoji-warmup").start()
@@ -301,6 +301,7 @@ class EvvTtsService : TextToSpeechService() {
 			emoji = s?.speakEmoji != false,
 			emojiCompress = s?.emojiCompress ?: EmojiProcessing.DEFAULT_COMPRESS,
 			numberMode = numberMode,
+			camelCase = s?.splitCamelCase != false,
 			stripBackquotes = s?.backquoteTags != true,
 			punctLevel = punctLevel
 		)
@@ -391,7 +392,8 @@ class EvvTtsService : TextToSpeechService() {
 	 * arrives where the reader actually is.
 	 *
 	 * The wait is in slices so that a stop is noticed at once rather than at
-	 * the end of it.
+	 * the end of it. The slices are short on purpose: every slice is the
+	 * longest a stop can wait unnoticed while audio is being paced.
 	 */
 	private fun hold(pace: Pace) {
 		while (!stopped) {
@@ -452,6 +454,6 @@ class EvvTtsService : TextToSpeechService() {
 		/** How much audio may sit ahead of the speech, so that the track never
 		 *  runs dry while the engine is held back. */
 		const val LEAD_MS = 300L
-		const val SLICE_MS = 50L
+		const val SLICE_MS = 20L
 	}
 }

@@ -168,6 +168,11 @@ fun SettingsScreen(state: SettingsModel) {
 				)
 			}
 			SwitchRow(
+				label = stringResource(R.string.camel_case_label),
+				checked = state.splitCamelCase,
+				onChange = state::chooseSplitCamelCase
+			)
+			SwitchRow(
 				label = stringResource(R.string.punct_processing_label),
 				checked = state.punctProcessing,
 				onChange = state::choosePunctProcessing

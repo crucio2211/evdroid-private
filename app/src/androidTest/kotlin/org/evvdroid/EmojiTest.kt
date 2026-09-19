@@ -54,6 +54,33 @@ class EmojiTest {
 	}
 
 	@Test
+	fun emoji18HasNames() {
+		assertEquals("cracking face", EmojiProcessing.apply(emoji(0x1FAEB)))
+		assertEquals("leftwards thumb sign", EmojiProcessing.apply(emoji(0x1FAF9)))
+		assertEquals(
+			"rightwards thumb sign: dark skin tone",
+			EmojiProcessing.apply(emoji(0x1FAFA, 0x1F3FF))
+		)
+		assertEquals("monarch butterfly", EmojiProcessing.apply(emoji(0x1FACC)))
+		assertEquals("pickle", EmojiProcessing.apply(emoji(0x1FADD)))
+		assertEquals("lighthouse", EmojiProcessing.apply(emoji(0x1F6D9)))
+		assertEquals("meteor", EmojiProcessing.apply(emoji(0x1FA8B)))
+		assertEquals("eraser", EmojiProcessing.apply(emoji(0x1FA8C)))
+		assertEquals("net with handle", EmojiProcessing.apply(emoji(0x1FA8D)))
+	}
+
+	@Test
+	fun emoji18Compresses() {
+		assertEquals(
+			"3 cracking face",
+			EmojiProcessing.apply(emoji(0x1FAEB, 0x1FAEB, 0x1FAEB), 3)
+		)
+	}
+
+	private fun emoji(vararg codePoints: Int): String =
+		codePoints.map { String(Character.toChars(it)) }.joinToString("")
+
+	@Test
 	fun textPresentationStaysNamed() {
 		assertEquals("copyright 2024", EmojiProcessing.apply("© 2024"))
 	}

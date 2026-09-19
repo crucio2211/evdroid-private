@@ -38,6 +38,8 @@
 	<string name="number_triplets">Triplets</string>
 	<string name="number_quadruplets">Quadruplets</string>
 
+	<string name="camel_case_label">Split camel case</string>
+
 	<string name="punct_processing_label">Process punctuation</string>
 	<string name="punct_level_label">Punctuation</string>
 	<string name="punct_none">None</string>

@@ -9,8 +9,8 @@ import org.junit.runner.RunWith
  * The one pipeline TalkBack and the sample button share.
  *
  * Thousands commas go first and always, then emoji, numbers when asked,
- * crash guards, readability fixes, punctuation when asked, and the user's
- * own rewrites closest to the engine. Stages compose in order and every
+ * camel case when asked, crash guards, readability fixes, punctuation when
+ * asked, and the user's own rewrites closest to the engine. Stages compose in order and every
  * stage's output reaches the engine: punctuation once computed its text
  * and never handed it on, so all levels were silent, and only an
  * end-to-end check like these can catch that kind of wiring again.
@@ -27,6 +27,7 @@ class TextPipelineTest {
 				emoji = false,
 				emojiCompress = EmojiProcessing.DEFAULT_COMPRESS,
 				numberMode = null,
+				camelCase = false,
 				stripBackquotes = true,
 				punctLevel = null
 			)
@@ -42,6 +43,7 @@ class TextPipelineTest {
 				emoji = false,
 				emojiCompress = EmojiProcessing.DEFAULT_COMPRESS,
 				numberMode = NumberProcessing.PAIRS,
+				camelCase = false,
 				stripBackquotes = true,
 				punctLevel = PunctuationProcessing.SOME
 			)
@@ -57,6 +59,7 @@ class TextPipelineTest {
 				emoji = false,
 				emojiCompress = EmojiProcessing.DEFAULT_COMPRESS,
 				numberMode = null,
+				camelCase = false,
 				stripBackquotes = true,
 				punctLevel = PunctuationProcessing.ALL
 			)
@@ -72,6 +75,39 @@ class TextPipelineTest {
 				emoji = false,
 				emojiCompress = EmojiProcessing.DEFAULT_COMPRESS,
 				numberMode = null,
+				camelCase = false,
+				stripBackquotes = true,
+				punctLevel = null
+			)
+		)
+	}
+
+	@Test
+	fun camelCaseSplitsBeforeGuards() {
+		assertEquals(
+			"Chat Gpt",
+			TextPipeline.process(
+				"ChatGpt",
+				emoji = false,
+				emojiCompress = EmojiProcessing.DEFAULT_COMPRESS,
+				numberMode = null,
+				camelCase = true,
+				stripBackquotes = true,
+				punctLevel = null
+			)
+		)
+	}
+
+	@Test
+	fun camelSplitMcRejoinsInGuards() {
+		assertEquals(
+			"McDonald",
+			TextPipeline.process(
+				"McDonald",
+				emoji = false,
+				emojiCompress = EmojiProcessing.DEFAULT_COMPRESS,
+				numberMode = null,
+				camelCase = true,
 				stripBackquotes = true,
 				punctLevel = null
 			)

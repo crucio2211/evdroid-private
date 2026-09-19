@@ -120,6 +120,12 @@ class Settings(context: Context) {
 			value.coerceIn(NumberProcessing.DIGITS, NumberProcessing.QUADRUPLETS)
 		).apply()
 
+	/** Whether camel-case words are split where the case turns, so ChatGpt
+	 *  reads as Chat Gpt. On: identifiers and brand names come out as words. */
+	var splitCamelCase: Boolean
+		get() = prefs.getBoolean(KEY_SPLIT_CAMEL_CASE, true)
+		set(value) = prefs.edit().putBoolean(KEY_SPLIT_CAMEL_CASE, value).apply()
+
 	/** Whether punctuation marks are spoken, and how many. */
 	var punctProcessing: Boolean
 		get() = prefs.getBoolean(KEY_PUNCT_PROCESSING, false)
@@ -295,6 +301,7 @@ class Settings(context: Context) {
 		const val KEY_EMOJI_COMPRESS = "emoji_compress"
 		const val KEY_NUMBER_PROCESSING = "number_processing"
 		const val KEY_NUMBER_MODE = "number_mode"
+		const val KEY_SPLIT_CAMEL_CASE = "split_camel_case"
 		const val KEY_PUNCT_PROCESSING = "punct_processing"
 		const val KEY_PUNCT_LEVEL = "punct_level"
 		const val KEY_BACKQUOTE_TAGS = "backquote_tags"

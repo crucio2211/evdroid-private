@@ -90,7 +90,7 @@ Launcher icon, or the gear beside the engine in the text-to-speech settings.
 Sliders for the seven voice parameters, plus voice, force language,
 sample rate (8 and 11 kHz, the two the engine actually plays), pauses,
 phrase prediction, abbreviations, backquote voice tags, emoji, numbers,
-punctuation, volume dictionaries and a regex dictionary. "Speak a sample"
+camel case, punctuation, volume dictionaries and a regex dictionary. "Speak a sample"
 sits under the sliders, speaking through the same rewrites TalkBack hears
 except user dictionaries, so what it says is what the settings do.
 Nothing speaks on its own. A setting takes effect when you set it, and the
@@ -190,9 +190,9 @@ between digits pass untouched.
 "Speak emoji" turns every emoji into its plain-English name before anything
 else sees the text: grinning face, red heart, flag Philippines. A run of
 one name compresses from a chosen two to five repeats: three smiling faces
-come out as 3 smiling face. The table
-holds Unicode 16.0 plus the Emoji 17.0 additions -- there is no 18.0 yet,
-only a draft -- all five thousand of fully-qualified, minimally-qualified and unqualified sequences
+come out as 3 smiling face. The table holds Unicode 16.0 plus the Emoji
+17.0 and 18.0 additions -- 5235 fully-qualified, minimally-qualified and
+unqualified sequences
 except single ASCII characters, which are ordinary text. Matching is
 longest-first, so a family wins over its first person and a keycap over its
 digit; modifiers standing alone are dropped.

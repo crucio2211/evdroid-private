@@ -4,12 +4,12 @@ package org.evvdroid
  * Every emoji to the words that say it.
  *
  * Generated from https://unicode.org/Public/emoji/16.0/emoji-test.txt plus
- * the 17.0 additions from the draft file: fully-qualified,
+ * the 17.0 and 18.0 additions: fully-qualified,
  * minimally-qualified and unqualified sequences, except single ASCII
  * characters, which are ordinary text on their own. Regenerate with this
  * script when a new emoji version lands.
  *
- * 5216 entries in chunks: one map literal this size would overflow the
+ * 5235 entries in chunks: one map literal this size would overflow the
  * sixty-four kilobytes a single JVM method may hold, so the table is built
  * in parts. Matching is longest-first through [matchAt], so a family wins
  * over its first person and a keycap over its digit.
@@ -5274,6 +5274,25 @@ object EmojiNames {
 		"🫶" to "heart hands",
 		"🫷" to "leftwards pushing hand",
 		"🫸" to "rightwards pushing hand",
+		"🫫" to "cracking face",
+		"🫹" to "leftwards thumb sign",
+		"🫹🏻" to "leftwards thumb sign: light skin tone",
+		"🫹🏼" to "leftwards thumb sign: medium-light skin tone",
+		"🫹🏽" to "leftwards thumb sign: medium skin tone",
+		"🫹🏾" to "leftwards thumb sign: medium-dark skin tone",
+		"🫹🏿" to "leftwards thumb sign: dark skin tone",
+		"🫺" to "rightwards thumb sign",
+		"🫺🏻" to "rightwards thumb sign: light skin tone",
+		"🫺🏼" to "rightwards thumb sign: medium-light skin tone",
+		"🫺🏽" to "rightwards thumb sign: medium skin tone",
+		"🫺🏾" to "rightwards thumb sign: medium-dark skin tone",
+		"🫺🏿" to "rightwards thumb sign: dark skin tone",
+		"🫌" to "monarch butterfly",
+		"🫝" to "pickle",
+		"🛙" to "lighthouse",
+		"🪋" to "meteor",
+		"🪌" to "eraser",
+		"🪍" to "net with handle",
 	)
 
 	/** The name for exactly [text], or null when it is not one entry. */

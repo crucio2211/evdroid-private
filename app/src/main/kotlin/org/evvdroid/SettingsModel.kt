@@ -60,6 +60,9 @@ class SettingsModel(context: Context) {
 	var numberMode by mutableStateOf(settings.numberMode)
 		private set
 
+	var splitCamelCase by mutableStateOf(settings.splitCamelCase)
+		private set
+
 	var punctProcessing by mutableStateOf(settings.punctProcessing)
 		private set
 
@@ -390,6 +393,11 @@ class SettingsModel(context: Context) {
 		settings.numberMode = mode
 	}
 
+	fun chooseSplitCamelCase(on: Boolean) {
+		splitCamelCase = on
+		settings.splitCamelCase = on
+	}
+
 	fun choosePunctProcessing(on: Boolean) {
 		punctProcessing = on
 		settings.punctProcessing = on
@@ -432,6 +440,7 @@ class SettingsModel(context: Context) {
 			emoji = settings.speakEmoji,
 			emojiCompress = settings.emojiCompress,
 			numberMode = settings.numberMode.takeIf { settings.numberProcessing },
+			camelCase = settings.splitCamelCase,
 			stripBackquotes = !settings.backquoteTags,
 			punctLevel = settings.punctLevel.takeIf { settings.punctProcessing }
 		)
