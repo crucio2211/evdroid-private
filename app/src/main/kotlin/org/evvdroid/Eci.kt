@@ -33,10 +33,6 @@ object Eci {
 	 *  travels in the language word, not in a setting of its own. */
 	const val UNICODE_CODE_SET = 0x800
 
-	/** The one linked language that takes Japanese-encoded bytes rather than
-	 *  the Western set. */
-	const val JAPANESE_FAMILY = 0x00080000
-
 	const val NUM_VOICE_PARAMS = 8
 
 	/** The volumes a dictionary set holds. The fourth, the extended main
@@ -113,6 +109,11 @@ object Eci {
 	val PRESET_NAMES = arrayOf(
 		"Reed", "Shelley", "Bobby", "Rocko", "Glen", "Sandy", "Grandma", "Grandpa"
 	)
+
+	/** The two languages that do not read the Windows Western byte set.
+	 *  [EngineText] says what each of them takes instead. */
+	const val JAPANESE = 0x00080000
+	const val POLISH = 0x00110000
 
 	/** A language word is the family in the top half, the code set in the third
 	 *  byte and the dialect in the bottom one. */

@@ -293,7 +293,6 @@ adb -s SERIAL shell getprop ro.product.cpu.abilist
 
 ```
 native/openevv          the engine, a submodule, untouched
-native/patches          fixes to the engine, applied at build time
 native/android.mk       two make targets openevv has no reason to carry
 native/build-native.sh  cross-compiles the engine, links libevvjni.so
 native/tools            drives openevv's own test gate over adb
@@ -311,39 +310,12 @@ files named `lib*.so`, and openevv's own library records a soname of
 
 ## Engine patches
 
-`native/patches` holds fixes to openevv itself. These are engine bugs, not
-Android changes. The submodule stays as upstream left it and the build applies
-any patch not already applied, so `git status` inside `native/openevv` shows
-modified files after a build. That is these and nothing else. A patch whose
-fix lands upstream is deleted; the adjacent-stores fix went that way when the
-engine started resolving proper containment first.
-
-`0002-arm32-frame-alignment.patch`. The backtracking stack puts a frame
-wherever the machine's frame sizes land it, and one of those sizes is
-deliberately odd, so a `delta_frame` often sits on a two-byte boundary while
-its declared fields claim four. x86 and ARM64 just do the unaligned access. On
-ARM32 the compiler may move two adjacent fields with one `LDM` or `STM`, and
-those fault off a word boundary, which is a `SIGBUS` on the first rule the
-engine runs. The struct is marked packed, which only states what was already
-true since every offset is written out. A static assertion holds the size and
-offsets so a real layout change stops the build.
-
-Both verified with openevv's own gate, `test/matrix.sh check enus`: 98 cases,
-comparing sample hashes and reported answers against baselines recorded on x86.
-
-| build | before | after |
-| --- | --- | --- |
-| x86, mingw | none moved | none moved |
-| aarch64, Pixel 9a | 98 of 98 moved | none moved |
-| armv7a, Pixel Watch 4 | crashed on the first utterance | none moved |
+A fix to openevv that upstream has not taken yet goes in `native/patches` and is applied at build time. There are
+none, so the submodule builds as upstream left it. The frame-alignment fix went that way with the rest when both
+landed upstream, after the adjacent-stores one before it.
 
 `native/tools/probe-on-device.sh` makes the two device rows possible. It stands
 in for openevv's probe so the gate drives a build over adb unchanged.
-
-Both are open upstream:
-[#20](https://github.com/Mudb0y/openevv/pull/20) and
-[#21](https://github.com/Mudb0y/openevv/pull/21). If they land, these files go
-away.
 
 ## Licence
 
