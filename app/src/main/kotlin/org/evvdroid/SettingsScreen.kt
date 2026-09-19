@@ -335,21 +335,6 @@ private fun SliderRow(
 				}
 			}
 	) {
-	val spoken = stringResource(R.string.percent_spoken, percent)
-	Column(
-		modifier = Modifier
-			.fillMaxWidth()
-			.padding(horizontal = 16.dp, vertical = 8.dp)
-			.clearAndSetSemantics {
-				contentDescription = label
-				stateDescription = spoken
-				progressBarRangeInfo = ProgressBarRangeInfo(percent.toFloat(), 0f..100f, 99)
-				setProgress { want ->
-					onPercent(want.roundToInt())
-					true
-				}
-			}
-	) {
 		Text(
 			text = stringResource(
 				R.string.labelled_value,
