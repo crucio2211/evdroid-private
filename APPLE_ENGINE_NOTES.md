@@ -118,6 +118,32 @@ byte offsets and do not apply to ELF `.so` layout, and no pack exists for
 it — so a native `.so` patch is not portable. Cubic upsample + DSP above
 is the closest achievable output stage.
 
+Force-patch attempt (mapped Oct 2026, NOT applied): extracted
+`p16all.pth` (29 entries) from the NVDA addon and decoded ENU.p16s1
+(21 runs). s1 vs s0 differ in exactly one run — the 4096-byte appended
+presence tail. The shared anchor at `enu.syn:1296561` replaces
+`8b 85 36 0a` (x86 `mov eax,[ebp+...]`) with `b8 06000000` (`mov eax,6`)
++ `90` nop: a Windows-x86 code patch. Apple `.so` are ARM64 ELF converted
+from Apple dylibs — no corresponding offsets, opcodes, or tables exist,
+so writing these bytes would corrupt the libs. Not applied; cubic + DSP
+stands. If Apple-side 16 kHz voice data ever surfaces, it plugs into
+`native/fetch-apple-libs.sh`.
+
+## Crash hardening
+
+- `proguard-rules.pro` keeps `VvttsCore` natives (+`KonaVoice`): release
+  builds minify, and R8 would otherwise rename the methods
+  `libvvtts_core.so` looks up by name.
+- `AppleEngine.ensureHandle` catches `Throwable` (a broken native arrives
+  as `Error`, not `Exception`) and `EvvEngine.open` guards the Apple
+  branch, so engine failure degrades to "no engine" instead of killing
+  the settings screen or service.
+- If the launcher still crashes, capture it with:
+  `adb logcat -d | Select-String "evvdroid|VvttsCore|AndroidRuntime"` and
+  paste the `FATAL EXCEPTION` + `signal` lines — a native `SIGSEGV`
+  inside `libeci.so` needs the crashing address/symbol, Java-side needs
+  the stack.
+
 ## Language names (fixed)
 
 `Eci.displayName` no longer relies on `java.util.Locale` with ISO-3 codes,

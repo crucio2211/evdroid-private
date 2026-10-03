@@ -284,7 +284,10 @@ class AppleEngine private constructor(val language: Int) {
         VvttsCore.setParam(h, Eci.PARAM_INPUT_TYPE, 1)
         true
       }
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
+      // Throwable, not Exception: a missing/renamed native (R8) or a
+      // failed load arrives as Error, and must degrade to "no engine"
+      // rather than killing the caller (settings screen included).
       Log.e(TAG, "Apple engine init failed", e)
       false
     }

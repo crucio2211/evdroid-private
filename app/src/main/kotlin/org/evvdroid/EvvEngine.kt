@@ -72,7 +72,9 @@ class EvvEngine private constructor(
 		 *  or one of AppleEngine.availableDialects (apple mode). */
 		fun open(language: Int): EvvEngine? {
 			if (isApple) {
-				val a = AppleEngine.open(language)
+				val a = runCatching { AppleEngine.open(language) }
+					.onFailure { Log.e(TAG, "Apple engine open failed", it) }
+					.getOrNull()
 				if (a == null) {
 					Log.e(TAG, "no Apple engine instance for language 0x%08x".format(language))
 					return null
