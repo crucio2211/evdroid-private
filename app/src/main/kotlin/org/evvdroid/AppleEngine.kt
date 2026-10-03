@@ -191,11 +191,47 @@ class AppleEngine private constructor(val language: Int) {
     private val AIR = shelfCoeffs(5.0, 7000.0)
     private const val RAMP_N = 32 // 2 ms at 16 kHz
 
-    /** Cubic (Catmull-Rom) resample, mono int16. Replaces the earlier
-     *  linear interpolation, which sounded dull on the 11025 to 16000 path:
-     *  linear keeps only straight lines between samples and aliases the top
-     *  end, cubic follows the curve. Same signature as before. */
-    fun resampleLinear(pcm: ShortArray, fromRate: Int, toRate: Int): ShortArray {
+    /**
+     * Bandlimited windowed-sinc resample, mono int16. Replaces the earlier
+     * linear/cubic interpolation: those keep straight lines/curves between
+     * samples and leave imaging aliases above the source Nyquist, which the
+     * presence/air shelves then boost as harsh garbage. Sinc suppresses the
+     * images, so the shelves shape only real content. Same signature as the
+     * old linear version, so call sites are unchanged.
+     *
+     * 32 taps, Hann window, 256 fractional phases precomputed per rate pair
+     * and cached; rows normalized to unity DC gain. Cutoff follows the
+     * conversion direction (full source band up, anti-alias down).
+     */
+    private const val SINC_TAPS = 32
+    private const val SINC_PHASES = 256
+    private val sincTables = HashMap<Pair<Int, Int>, Array<DoubleArray>>()
+
+    private fun sincTable(fromRate: Int, toRate: Int): Array<DoubleArray> {
+      synchronized(sincTables) {
+        sincTables[fromRate to toRate]?.let { return it }
+      }
+      val fc = (0.5 * toRate.toDouble() / fromRate.toDouble()).coerceAtMost(0.5)
+      val half = SINC_TAPS / 2
+      val table = Array(SINC_PHASES) { p ->
+        val frac = p.toDouble() / SINC_PHASES.toDouble()
+        val row = DoubleArray(SINC_TAPS) { k ->
+          val u = (k - half).toDouble() - frac
+          val s = if (u == 0.0) 1.0 else sin(PI * fc * u) / (PI * fc * u)
+          val w = 0.5 * (1.0 + cos(2.0 * PI * u / SINC_TAPS.toDouble()))
+          s * w
+        }
+        val sum = row.sum()
+        if (sum != 0.0) for (k in row.indices) row[k] /= sum
+        row
+      }
+      synchronized(sincTables) { sincTables[fromRate to toRate] = table }
+      return table
+    }
+
+    /** Cubic (Catmull-Rom) resample, mono int16. Kept for the 8 kHz path
+     *  where aliasing matters less; 16 kHz uses [resampleLinear] (sinc). */
+    fun resampleCubic(pcm: ShortArray, fromRate: Int, toRate: Int): ShortArray {
       if (fromRate == toRate || pcm.isEmpty()) return pcm
       if (pcm.size == 1) return ShortArray(((1L * toRate) / fromRate).toInt().coerceAtLeast(1)) { pcm[0] }
       val outLen = ((pcm.size.toLong() * toRate) / fromRate).toInt().coerceAtLeast(1)
@@ -211,6 +247,31 @@ class AppleEngine private constructor(val language: Int) {
         val v = 0.5 * ((2.0 * p1) + (-p0 + p2) * t +
           (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t2 +
           (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t3)
+        out[j] = v.toInt().coerceIn(-32768, 32767).toShort()
+      }
+      return out
+    }
+
+    /** Sinc resample entry point (kept the old name for call sites). */
+    fun resampleLinear(pcm: ShortArray, fromRate: Int, toRate: Int): ShortArray {
+      if (fromRate == toRate || pcm.isEmpty()) return pcm
+      if (pcm.size == 1) return ShortArray(((1L * toRate) / fromRate).toInt().coerceAtLeast(1)) { pcm[0] }
+      val table = sincTable(fromRate, toRate)
+      val half = SINC_TAPS / 2
+      val r = fromRate.toDouble() / toRate.toDouble()
+      val outLen = ((pcm.size.toLong() * toRate) / fromRate).toInt().coerceAtLeast(1)
+      val out = ShortArray(outLen)
+      val n = pcm.size
+      for (j in 0 until outLen) {
+        val pos = j * r
+        val i0 = pos.toInt()
+        val phase = (((pos - i0) * SINC_PHASES).toInt()).coerceIn(0, SINC_PHASES - 1)
+        val row = table[phase]
+        var v = 0.0
+        for (k in 0 until SINC_TAPS) {
+          val idx = (i0 + k - half).coerceIn(0, n - 1)
+          v += pcm[idx].toDouble() * row[k]
+        }
         out[j] = v.toInt().coerceIn(-32768, 32767).toShort()
       }
       return out
@@ -508,7 +569,7 @@ class AppleEngine private constructor(val language: Int) {
       renderedRate == NATIVE_22K -> dsp16k(resampleLinear(native, NATIVE_22K, OUTPUT_16K), presenceS1)
       renderedRate == OUTPUT_8K -> native
       sampleRateHz == OUTPUT_16K -> dsp16k(resampleLinear(native, NATIVE_RATE, OUTPUT_16K), presenceS1)
-      sampleRateHz == OUTPUT_8K -> resampleLinear(native, NATIVE_RATE, OUTPUT_8K)
+      sampleRateHz == OUTPUT_8K -> resampleCubic(native, NATIVE_RATE, OUTPUT_8K)
       else -> native
     }
     val bytes = ByteArray(outPcm.size * 2)

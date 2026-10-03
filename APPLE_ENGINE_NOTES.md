@@ -103,9 +103,13 @@ Ported (`AppleEngine` companion):
   of upsampling 11 kHz. 8 kHz renders natively with an 11 kHz fallback.
   Refusal/empty/crash restores index 1 — 11 kHz can never break.
 
-- `resampleLinear`: 11025 -> 16000 cubic (Catmull-Rom) interpolation
-  (linear sounded dull/aliased) + `dsp16k` below; 11025 -> 8000 likewise.
-  (Kept the old function name so call sites are unchanged.)
+- `resampleLinear`: 11025 -> 16000 bandlimited windowed-sinc (32 taps,
+  Hann, 256 phases, cached per rate pair, unity-gain rows) — replaces
+  linear/cubic, whose imaging aliases above 5.5 kHz the shelves then
+  boosted as harshness. 22050 -> 16000 likewise; 8 kHz downsample stays
+  cubic (aliasing matters less there). Klatt-hook native render was
+  ruled out: the published ECI header carries no Klatt structs (Apple
+  extension, undocumented layout) — blind structs would corrupt audio.
 - `dsp16k`: presence s1 +9 dB @ 3 kHz + air +5 dB @ 7 kHz (RBJ high-shelf,
   S=1, fs=16000 — same formulae as `_ibmeci._shelf_coeffs`), 32-sample
   (2 ms) utterance-start ramp, int16 clamp. s1 because presence-contour
