@@ -244,6 +244,16 @@ fun SettingsScreen(state: SettingsModel) {
 					onChange = state::choosePresenceContour
 				)
 			}
+			if (state.renderInfo.isNotEmpty()) {
+				Text(
+					text = stringResource(R.string.render_info, state.renderInfo),
+					style = MaterialTheme.typography.bodySmall,
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(horizontal = 16.dp, vertical = 8.dp),
+					textAlign = androidx.compose.ui.text.style.TextAlign.Center
+				)
+			}
 			Gap()
 			Text(
 				text = stringResource(

@@ -83,6 +83,20 @@ class AppleEngine private constructor(val language: Int) {
    *  render, no resampling at all. */
   private var native16k = false
 
+  /** Proof that this engine data renders native 16 kHz. Survives session
+   *  reopens (property of the voice data, not the session); the live
+   *  `native16k` flag tracks only the current session's format state.
+   *  (Kept for the on-device indicator; discovery itself is lazy.) */
+  private var probed16k = false
+
+  /** Rate discovery already ran on this session (16k format and/or 22k
+   *  probe). Speak-time only, so 11k/8k users never pay probe synths. */
+  private var rateProbed = false
+
+  /** Human-readable active render path for the on-device indicator. */
+  var lastRender = "native 11 kHz"
+    private set
+
   private external fun nativeNewAudioFormat(sessionHandle: Long, rateHz: Int): Int
 
   /** Replace the dictionary set (called with the flattened word maps). */
@@ -380,16 +394,12 @@ class AppleEngine private constructor(val language: Int) {
         // tags are interpreted instead of spoken (openevv enables the same
         // PARAM_INPUT_TYPE on its path; Apple defaults it off).
         VvttsCore.setParam(h, Eci.PARAM_INPUT_TYPE, 1)
-        if (rateBridgeLoaded && probe16k(ctx)) {
-          native16k = true
-          native22k = false
-        } else {
-          // Guarantee a clean 11 kHz session: the format attempt may have
-          // left state behind even when it failed validation.
-          if (!reopenClean(ctx)) return false
-          native16k = false
-          native22k = probe22k(ctx.cacheDir)
-        }
+        // Rate discovery is lazy (first 16 kHz utterance): 11k/8k users
+        // never pay probe synths. See speak().
+        native16k = false
+        native22k = false
+        probed16k = false
+        rateProbed = false
         true
       }
     } catch (e: Throwable) {
@@ -402,13 +412,14 @@ class AppleEngine private constructor(val language: Int) {
   }
 
   /** Closes the current session and opens a fresh 11 kHz one. Used after
-   *  a failed format experiment so normal output can never inherit
-   *  half-applied state. */
+   *  a failed format experiment and when leaving 16 kHz output, so normal
+   *  output can never inherit half-applied state. Proof flags survive:
+   *  they describe the voice data, not the session. */
   private fun reopenClean(ctx: Context): Boolean {
     if (handle != 0L) VvttsCore.shutdown(handle)
     handle = 0L
     native16k = false
-    native22k = false
+    rateProbed = false
     return try {
       val info = ctx.applicationInfo
       val libDir = File(info.nativeLibraryDir)
@@ -616,9 +627,35 @@ class AppleEngine private constructor(val language: Int) {
       return false
     }
     val charsetId = if (language == 0x60000) VvttsCore.CHARSET_GBK else VvttsCore.CHARSET_1252
+    // 16 kHz output is native-proven render or honest 11 kHz — never an
+    // upsample. A stale 16 kHz format session serving other rates would
+    // play slow ("lumulubog"), so leaving 16 kHz reopens fresh. Discovery
+    // runs once per session, on the first 16 kHz utterance only.
+    val ctx0 = appContext ?: return false
+    val want16 = sampleRateHz == OUTPUT_16K
+    if (!want16 && native16k) {
+      if (!reopenClean(ctx0)) return false
+    }
+    if (want16 && !native16k && !rateProbed) {
+      rateProbed = true
+      if (rateBridgeLoaded && probe16k(ctx0)) {
+        probed16k = true
+        native16k = true
+      } else {
+        // The format attempt may have left state behind: reopen clean
+        // before the 22k probe and normal output.
+        if (!reopenClean(ctx0)) return false
+        native22k = probe22k(ctx0.cacheDir)
+      }
+    }
+    if (want16 && !native16k && !native22k) {
+      // No proof: report and render honest 11 kHz for this utterance.
+      sampleRateHz = NATIVE_RATE
+      lastRender = "native 11 kHz (16k unproven)"
+    }
     // Native render rate: a proven 16 kHz format session renders 16 kHz
     // untouched; else 22050 when the probe proved it (16 kHz output only),
-    // native 8000 for 8 kHz output, else 11025. Upsampling stays last.
+    // native 8000 for 8 kHz output, else 11025.
     val renderIdx = when {
       native16k -> -1
       sampleRateHz == OUTPUT_16K && native22k -> 2
@@ -645,15 +682,21 @@ class AppleEngine private constructor(val language: Int) {
     if (aborted) return false
     // Output stage: native 16 kHz renders go straight to DSP (no
     // resampling at all); 22k renders downsample (real content) + DSP;
-    // 8k native passes through; 11k renders upsample only at 16k.
+    // 8k native passes through; everything else is honest native render
+    // at the reported rate. There is deliberately no upsample-to-16k.
     val outPcm: ShortArray = when {
       native16k && sampleRateHz == OUTPUT_16K -> dsp16k(native, presenceS1)
+        .also { lastRender = "native 16 kHz" }
       native16k -> resampleLinear(native, OUTPUT_16K, sampleRateHz)
+        .also { lastRender = "native 16 kHz downsampled" }
       renderedRate == NATIVE_22K -> dsp16k(resampleLinear(native, NATIVE_22K, OUTPUT_16K), presenceS1)
+        .also { lastRender = "native 22 kHz downsampled" }
       renderedRate == OUTPUT_8K -> native
-      sampleRateHz == OUTPUT_16K -> dsp16k(resampleLinear(native, NATIVE_RATE, OUTPUT_16K), presenceS1)
+        .also { lastRender = "native 8 kHz" }
       sampleRateHz == OUTPUT_8K -> resampleCubic(native, NATIVE_RATE, OUTPUT_8K)
+        .also { lastRender = "native 11 kHz downsampled" }
       else -> native
+        .also { if (!lastRender.startsWith("native 11")) lastRender = "native 11 kHz" }
     }
     val bytes = ByteArray(outPcm.size * 2)
     for (i in outPcm.indices) {

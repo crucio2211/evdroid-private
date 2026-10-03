@@ -97,6 +97,19 @@ pack, so there is nothing to binary-patch.
 
 Ported (`AppleEngine` companion):
 
+- Upsampling to 16 kHz was REMOVED entirely (it could play a stale
+  16 kHz-format session slow, and could never create real content).
+  16 kHz output is proven-native render or honest 11025 within the same
+  utterance (`sampleRateHz` mirrors the effective rate, so the framework
+  always opens the track at the true rate). Sinc/cubic remain only for
+  DOWNsampling (22k->16k, 16k->11k/8k, 11k->8k).
+- Leaving 16 kHz output reopens a fresh 11 kHz session (`reopenClean`),
+  so a format can never leak into other rates. Rate discovery is lazy
+  (first 16 kHz utterance per session); 11k/8k users pay no probe synths.
+- On-device indicator: settings shows "Output: native 16 kHz" (or
+  "native 22 kHz downsampled", "native 11 kHz (16k unproven)", ...) after
+  the first sample is spoken — no logcat needed to see which path won.
+
 - Native-22k probe (`probe22k`): at session open, one ASCII word is
   synthesized at rate index 1 and 2; only a ~2x PCM length ratio trusts
   22050. Then 16 kHz output downsamples genuine content (cubic) instead

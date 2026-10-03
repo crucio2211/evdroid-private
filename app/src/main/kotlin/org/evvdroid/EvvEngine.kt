@@ -249,7 +249,14 @@ class EvvEngine private constructor(
 	 *  the voice, so that an utterance carries its own and nothing is left to
 	 *  be refused. */
 	fun speak(text: String): Boolean = synchronized(guard) {
-		apple?.let { return it.speak(text) }
+		apple?.let {
+			val ok = it.speak(text)
+			// The Apple backend resolves the effective output rate per
+			// utterance (native-or-honest fallback); mirror it so the
+			// framework opens the track at the true rate.
+			sampleRateHz = it.sampleRateHz
+			return ok
+		}
 		if (closed) return false
 		val ask = if (wantSpeed >= 0 && wantPitch >= 0) Prosody.voice(wantSpeed, wantPitch) else ""
 		return EvvNative.speak(handle, EngineText.encode(language, ask + text))
@@ -266,6 +273,12 @@ class EvvEngine private constructor(
 	fun stop() = synchronized(guard) {
 		apple?.let { it.stop(); return }
 		if (!closed) EvvNative.stop(handle)
+	}
+
+	/** What the last utterance actually rendered as (Apple path), e.g.
+	 *  "native 16 kHz". Empty on the openevv path. */
+	fun renderInfo(): String = synchronized(guard) {
+		apple?.lastRender ?: ""
 	}
 
 	fun close() = synchronized(guard) {

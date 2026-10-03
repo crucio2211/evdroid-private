@@ -58,6 +58,9 @@ class EvvPreview(private val language: Int) {
 	 *  opened, which is the first thing the thread does. */
 	fun presetShape(index: Int): Map<Int, Int> = engine?.presetShape(index) ?: emptyMap()
 
+	/** What the engine last rendered as (Apple path render info, else ""). */
+	fun renderInfo(): String = engine?.renderInfo() ?: ""
+
 	fun open(then: (() -> Unit)? = null) {
 		work.post {
 			if (engine == null) engine = EvvEngine.open(language)
@@ -66,8 +69,8 @@ class EvvPreview(private val language: Int) {
 	}
 
 	/** Says [text] in [voice] with [shape] on it, stopping whatever was being
-	 *  said. */
-	fun say(text: String, voice: Int, shape: Map<Int, Int>, rateHz: Int, presenceS1: Boolean = true) {
+	 *  said. [onSpoken] hears the actual render path once synthesis starts. */
+	fun say(text: String, voice: Int, shape: Map<Int, Int>, rateHz: Int, presenceS1: Boolean = true, onSpoken: ((String) -> Unit)? = null) {
 		// Whatever is being said stops first, and the turn this utterance
 		// belongs to is taken after that -- stopping is what moves the count
 		// on, so reading it first would leave this utterance holding a number
@@ -83,6 +86,10 @@ class EvvPreview(private val language: Int) {
 			if (!e.speak(text)) {
 				Log.e(TAG, "the engine refused the sample")
 				return@post
+			}
+			onSpoken?.let { done ->
+				val info = e.renderInfo()
+				Handler(android.os.Looper.getMainLooper()).post { done(info) }
 			}
 			play(e, mine)
 		}
