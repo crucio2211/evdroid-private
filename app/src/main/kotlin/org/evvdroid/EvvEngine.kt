@@ -239,6 +239,11 @@ class EvvEngine private constructor(
 		apple?.setSubstitutions(map)
 	}
 
+	/** Choose the Apple 16 kHz presence variant (no-op on openevv). */
+	fun setPresenceContour(on: Boolean) = synchronized(guard) {
+		apple?.setPresenceContour(on)
+	}
+
 	/** Queues [text] and starts the engine. The samples come out of [read].
 	 *  The rate and pitch asked for go in front of the words rather than into
 	 *  the voice, so that an utterance carries its own and nothing is left to

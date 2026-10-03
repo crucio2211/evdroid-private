@@ -64,9 +64,18 @@ class AppleEngine private constructor(val language: Int) {
    *  is what makes user dictionaries work on the Apple path. */
   private var substitutions: Map<String, String> = emptyMap()
 
+  /** Presence contour variant for 16 kHz output (NVDA tune Presence16k).
+   *  True is s1 (+9 dB), false is s0 (+1.5 dB). Unused below 16 kHz. */
+  private var presenceS1 = true
+
   /** Replace the dictionary set (called with the flattened word maps). */
   fun setSubstitutions(map: Map<String, String>) = synchronized(guard) {
     if (!closed) substitutions = map
+  }
+
+  /** Choose the 16 kHz presence variant. */
+  fun setPresenceContour(on: Boolean) = synchronized(guard) {
+    presenceS1 = on
   }
 
   companion object {
@@ -167,6 +176,7 @@ class AppleEngine private constructor(val language: Int) {
     private fun Double.pow(e: Double): Double = Math.pow(this, e)
 
     private val PRES_S1 = shelfCoeffs(9.0, 3000.0)
+    private val PRES_S0 = shelfCoeffs(1.5, 3000.0)
     private val AIR = shelfCoeffs(5.0, 7000.0)
     private const val RAMP_N = 32 // 2 ms at 16 kHz
 
@@ -195,10 +205,13 @@ class AppleEngine private constructor(val language: Int) {
       return out
     }
 
-    /** Presence + air + ramp + clamp over 16 kHz mono int16. */
-    fun dsp16k(pcm: ShortArray): ShortArray {
+    /** Presence + air + ramp + clamp over 16 kHz mono int16. s1 is the
+     *  full +9 dB presence contour, s0 the gentle +1.5 dB remap; air runs
+     *  in both, same as the tune. */
+    fun dsp16k(pcm: ShortArray, s1: Boolean = true): ShortArray {
       if (pcm.isEmpty()) return pcm
-      val (b0, b1, b2, a1, a2) = PRES_S1.let {
+      val pres = if (s1) PRES_S1 else PRES_S0
+      val (b0, b1, b2, a1, a2) = pres.let {
         listOf(it[0], it[1], it[2], it[3], it[4])
       }
       val (c0, c1, c2, a3, a4) = AIR.let {
@@ -428,7 +441,7 @@ class AppleEngine private constructor(val language: Int) {
     // Output stage: native 11025 always; 16k upsamples (cubic) + presence/air
     // DSP (ported from the IBMTTS-16k-tune NVDA driver), 8k downsamples.
     val outPcm: ShortArray = when (sampleRateHz) {
-      OUTPUT_16K -> dsp16k(resampleLinear(native, NATIVE_RATE, OUTPUT_16K))
+      OUTPUT_16K -> dsp16k(resampleLinear(native, NATIVE_RATE, OUTPUT_16K), presenceS1)
       OUTPUT_8K -> resampleLinear(native, NATIVE_RATE, OUTPUT_8K)
       else -> native
     }

@@ -182,6 +182,7 @@ class EvvTtsService : TextToSpeechService() {
 		val s = settings ?: return
 		target.setSampleRate(s.sampleRateHz)
 		target.setAbbreviations(s.abbreviations)
+		target.setPresenceContour(s.presenceContour)
 		loadDictionaries(target, s)
 		loadRegexDictionary(s)
 		// A voice is written, so the engine can refuse it while it is speaking.

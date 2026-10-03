@@ -107,6 +107,11 @@ Ported (`AppleEngine` companion):
 - Settings offers 8000/11025/16000 on the Apple path only
   (`SettingsModel.RATES`); `Eci.coerceSampleRate` keeps 16000 stored, and
   the openevv path safely falls back to 11025 for it.
+- Presence contour toggle (same as the NVDA tune's Presence16k, default
+  on): s1 is the full +9 dB presence + air above, s0 the gentle +1.5 dB
+  remap (`Settings.presenceContour` -> `AppleEngine.setPresenceContour`,
+  preview included). If 16 kHz sounds harsh on the phone speaker, switch
+  it off before judging the resampler.
 
 Pick "16000" in voice settings for the tuned output. Default stays 11025.
 
