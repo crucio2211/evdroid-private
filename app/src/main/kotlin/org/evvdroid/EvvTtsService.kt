@@ -231,6 +231,17 @@ class EvvTtsService : TextToSpeechService() {
 		wordMaps = read
 		taughtWords.clear()
 		loadedDictionaries = want
+		// Apple path has no eci dict loader: hand the words over for inline
+		// substitution instead (all volumes flattened, main first wins).
+		if (EvvEngine.isApple) {
+			val flat = LinkedHashMap<String, String>()
+			for (volume in Eci.DICT_VOLUMES) {
+				for ((word, entry) in read[volume].orEmpty()) {
+					flat.putIfAbsent(word.lowercase(), entry.second)
+				}
+			}
+			target.setAppleDictionaries(flat)
+		}
 	}
 
 	/** Teaches the words in [text] the engine does not know yet. An
@@ -238,6 +249,9 @@ class EvvTtsService : TextToSpeechService() {
 	 *  a sixty-thousand-word file slows the utterance that first needs a
 	 *  word of it, never the one that picks it. */
 	private fun teachUnknownWords(target: EvvEngine, text: String) {
+		// Apple path substitutes from the pushed map inside speak(); there
+		// is nothing to teach per word.
+		if (EvvEngine.isApple) return
 		if (wordMaps.isEmpty() || text.isEmpty()) return
 		for (raw in WORD.findAll(text)) {
 			val word = raw.value.lowercase()

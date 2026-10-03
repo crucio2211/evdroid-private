@@ -58,6 +58,17 @@ class AppleEngine private constructor(val language: Int) {
   private var currentApplePreset = 1
   private var currentShape: Map<Int, Int> = emptyMap()
 
+  /** Flattened volume dictionaries (lowercased word to say-text), pushed by
+   *  the service when picked files change. Applied as inline word
+   *  substitution in speak(): vvtts_core exposes no eci dict APIs, so this
+   *  is what makes user dictionaries work on the Apple path. */
+  private var substitutions: Map<String, String> = emptyMap()
+
+  /** Replace the dictionary set (called with the flattened word maps). */
+  fun setSubstitutions(map: Map<String, String>) = synchronized(guard) {
+    if (!closed) substitutions = map
+  }
+
   companion object {
     private const val TAG = "evvdroid-apple"
     const val NATIVE_RATE = 11025
@@ -68,15 +79,20 @@ class AppleEngine private constructor(val language: Int) {
     val SUPPORTED_RATES = listOf(OUTPUT_8K, NATIVE_RATE, OUTPUT_16K)
 
     /**
-     * openevv backtick annotations the service prepends to every piece
-     * (Prosody `pp0/`pp1 + `vsN/`vbN, Pauses `pN). The Apple bridge never
-     * enables annotation input mode and uses different `v* meanings
-     * (`vb = breathiness, not pitch), so anything left here is spoken
-     * aloud as "back quote pee pee ...". Stripped before encoding; rate and
-     * pitch already travel via setVoiceParam in speak(). User backquoteTags
-     * are openevv-syntax and unsupported on this path.
+     * Service-added annotations that must NOT reach the Apple engine.
+     * `pp0/`pp1 (openevv phrase prediction) has no Apple equivalent, and
+     * `vbN here carries openevv pitch while Apple reads `vb as breathiness,
+     * so leftovers would mistune the voice — pitch already travels via
+     * setVoiceParam in speak(). Everything else passes through: `vsN speed
+     * and `pN pauses match Apple syntax, and user content (phoneme brackets
+     * like `[Ekspoz1e], Apple `vN/`vv voice tags) is for the engine to
+     * interpret, which is what makes dictionary phonemes work again.
      */
-    private val ANNOTATION = Regex("`[A-Za-z]+[0-9]*")
+    private val ANNOTATION = Regex("`(pp[01]|vb[0-9]+)")
+
+    /** Whole-word matcher for dictionary substitution (same shape as the
+     *  service WORD: letters/digits carrying apostrophes and hyphens). */
+    private val WORD = Regex("[A-Za-z0-9]+(?:['-][A-Za-z0-9]+)*")
 
     @Volatile
     private var appContext: Context? = null
@@ -262,6 +278,10 @@ class AppleEngine private constructor(val language: Int) {
         false
       } else {
         handle = h
+        // Annotation input on: `p pauses, `vs speed and user phoneme/voice
+        // tags are interpreted instead of spoken (openevv enables the same
+        // PARAM_INPUT_TYPE on its path; Apple defaults it off).
+        VvttsCore.setParam(h, Eci.PARAM_INPUT_TYPE, 1)
         true
       }
     } catch (e: Exception) {
@@ -348,9 +368,12 @@ class AppleEngine private constructor(val language: Int) {
 
   fun teachWord(@Suppress("UNUSED_PARAMETER") volume: Int, @Suppress("UNUSED_PARAMETER") key: String, @Suppress("UNUSED_PARAMETER") say: String): Int = 0
 
-  fun lookUpWord(@Suppress("UNUSED_PARAMETER") volume: Int, @Suppress("UNUSED_PARAMETER") key: String): String? = null
+  fun lookUpWord(@Suppress("UNUSED_PARAMETER") volume: Int, key: String): String? = synchronized(guard) {
+    substitutions[key.lowercase()]
+  }
 
-  fun forgetDictionaries() {
+  fun forgetDictionaries() = synchronized(guard) {
+    substitutions = emptyMap()
   }
 
   fun speak(text: String): Boolean = synchronized(guard) {
@@ -358,9 +381,18 @@ class AppleEngine private constructor(val language: Int) {
     aborted = false
     readPos = 0
     pcmBytes = ByteArray(0)
-    // Strip openevv backtick annotations (Prosody `pp/`vs/`vb, Pauses `p):
-    // never enabled on this path, so leftovers would be spoken literally.
-    val clean = ANNOTATION.replace(text, "")
+    // Volume dictionaries have no eci loader here, so their words are
+    // rewritten inline (respelling or `[...] phonemes pass straight to an
+    // annotations-on engine). Whole words only, case-insensitive.
+    val subs = substitutions
+    val rewritten = if (subs.isEmpty()) text else WORD.replace(text) { m ->
+      subs[m.value.lowercase()] ?: m.value
+    }
+    // Strip only the incompatible service annotations (`pp phrase switch,
+    // `vb carrying openevv pitch). `vs speed, `p pauses and user backtick
+    // content stay for the engine to interpret.
+    VvttsCore.setParam(handle, Eci.PARAM_INPUT_TYPE, 1)
+    val clean = ANNOTATION.replace(rewritten, "")
     if (clean.isBlank()) return false
     // Rate/pitch travel with the utterance (same contract as EvvEngine).
     VvttsCore.setVoiceParam(handle, 0, Eci.VOICE_SPEED, wantSpeed.coerceIn(0, 250))

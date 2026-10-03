@@ -65,11 +65,26 @@ GitHub (personal):
 
 The service prepends openevv backtick annotations to every piece
 (`Prosody.prefix` `pp0/`pp1, `Prosody.voice` `vsN/`vbN, `Pauses` `pN).
-`AppleEngine.speak()` strips all `` `[A-Za-z]+[0-9]* `` before encoding:
-annotations were never enabled on this path and `vb means breathiness
-here (not pitch), so leftovers were spoken as "back quote pee pee ...".
-Rate/pitch travel via `setVoiceParam` instead. User `backquoteTags` are
-openevv-syntax and unsupported on the Apple path.
+`AppleEngine` strips only the incompatible two — `pp` (no Apple
+equivalent) and `vb` (carries openevv pitch here, breathiness on Apple;
+pitch travels via `setVoiceParam` instead). `vs speed and `p pauses
+match Apple syntax and pass through, as does all other user backtick
+content (`` `[...] `` phonemes, Apple `vN/`vv voice tags): annotation
+input (`PARAM_INPUT_TYPE=1`, which Apple defaults off) is enabled per
+session and re-asserted per utterance, so the engine interprets them
+instead of speaking "back quote ...".
+
+## Dictionaries on the Apple path
+
+`vvtts_core` exposes no `eciLoadDict`/`eciUpdateDict`, so volume
+dictionaries cannot be taught to the engine. Instead the service pushes
+the parsed word maps (`EvvTtsService.loadDictionaries` flattens
+main/root/abbreviation, main wins) via
+`EvvEngine.setAppleDictionaries` and `AppleEngine.speak()` rewrites
+whole words inline before synthesis — respellings and `` `[...] ``
+phoneme says alike. Regex dictionaries already rewrite text upstream
+and keep working. Per-word teaching is skipped there; `lookUpWord`
+answers from the pushed map (used by tests).
 
 ## 16 kHz output (ported from IBMTTS-16k-tune)
 
@@ -119,9 +134,10 @@ then hex. TTS matching (`localeOf`) is unchanged.
 - Voice names differ: evvdroid offers Reed/Shelley/Bobby/Rocko/Glen/Sandy/
   Grandma/Grandpa; Apple has Reed/Shelley/Sandy/Rocko/Flo/Grandma/Grandpa/Eddy.
   Mapping: Bobby->Eddy, Glen->Flo (*gender flips, no exact equivalent*).
-- Volume dictionaries (`eciLoadDict`/`eciUpdateDict`) are no-ops on this path;
-  `vvtts_core` exposes no dict APIs. Regex dictionary, emoji, numbers,
-  punctuation, pauses still work (Kotlin-side).
+- Volume dictionaries work by inline word substitution (see above), not the
+  engine loader; regex dictionary, emoji, numbers, punctuation still work
+  (Kotlin-side). Pauses use the engine's native `p marks; `pp phrase
+  prediction is stripped (no Apple equivalent, engine default applies).
 - Stop is best-effort: `nativeStop` is a no-op upstream (calling `eciStop`
   crashes); interruption lands on piece boundaries (`TextPieces.split`).
 - `eciDelete` is never called (upstream crash); sessions live for the process.

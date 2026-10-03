@@ -231,6 +231,12 @@ class EvvEngine private constructor(
 		if (!closed) EvvNative.forgetDictionaries(handle)
 	}
 
+	/** Push flattened volume dictionaries to the Apple backend (inline word
+	 *  substitution there; no-op on the openevv path). */
+	fun setAppleDictionaries(map: Map<String, String>) = synchronized(guard) {
+		apple?.setSubstitutions(map)
+	}
+
 	/** Queues [text] and starts the engine. The samples come out of [read].
 	 *  The rate and pitch asked for go in front of the words rather than into
 	 *  the voice, so that an utterance carries its own and nothing is left to
