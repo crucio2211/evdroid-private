@@ -181,6 +181,11 @@ Element-by-element map (`.syn` patch -> Apple `.so`):
   paste the `FATAL EXCEPTION` + `signal` lines — a native `SIGSEGV`
   inside `libeci.so` needs the crashing address/symbol, Java-side needs
   the stack.
+- No PC needed anymore: the settings app records Java crashes itself
+  (`CrashLog`, `filesDir/crash-last.log`) and shows the report in plain
+  text on the next launch instead of dying again. Read or copy it back.
+  A crash with NO new report is native (handler never fires) — that
+  absence is the diagnosis.
 
 ## Language names (fixed)
 
