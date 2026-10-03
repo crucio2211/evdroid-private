@@ -134,6 +134,17 @@ so writing these bytes would corrupt the libs. Not applied; cubic + DSP
 stands. If Apple-side 16 kHz voice data ever surfaces, it plugs into
 `native/fetch-apple-libs.sh`.
 
+Element-by-element map (`.syn` patch -> Apple `.so`):
+
+| .syn element | Apple `.so` analog? | Evidence |
+|---|---|---|
+| Header rate field `11 2b`->`80 3e` (11025->16000 u16, e.g. `enu.syn:89792`) | None — `11 2b` occurs 5-13x per lib, all inside ELF metadata (`.dynsym`, `.gnu.hash`, `.rela.dyn`) or coincidental ARM64 bytes; no single voice-descriptor field | section-mapped byte scan of `libenu.so` |
+| Anchor `8b85360a`->`b8060000`+`90` (x86 `mov eax,6` rate selector, all 13 voices) | None — ARM64 has no x86 stub; no common stub pattern across the 14 voice libs | per-lib scan, format mismatch |
+| Header/metadata runs (`.xflt` ptr, sizes, checksums) | None — `.syn` container format; Apple uses Mach-O sections (`.m2e_data` etc.) | ELF section parse |
+| Appended 4096/8192-byte retuned Klatt tables | None — Apple voice-data format undocumented; no transplant target | format mismatch |
+| s1 presence stage (flag + 5 coeff floats) | Ported as output DSP instead (same curve family, see 16 kHz section) | blob float decode |
+| Output DSP (+9/+1.5 dB @3 kHz, +5 dB @7 kHz, ramp, clamp) | Ported exactly (`AppleEngine.dsp16k`, verified vs `eloq61_sapi5.c:1094-1125`) | line-by-line match |
+
 ## Crash hardening
 
 - `proguard-rules.pro` keeps `VvttsCore` natives (+`KonaVoice`): release
