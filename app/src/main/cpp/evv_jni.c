@@ -192,6 +192,13 @@ JNIEXPORT jlong JNICALL Java_org_evvdroid_EvvNative_create(JNIEnv* env, jclass c
 	instance* in;
 	(void)env;
 	(void)cls;
+	/* Synthesize high rates natively instead of upsampling 11 kHz. The
+	 * engine holds 11 kHz output up through a converter unless EVV_UPSAMPLE
+	 * is "none", in which case rates above it are synthesized outright with
+	 * resonator tables built for the rate (klatt_buildRateTables, verified
+	 * entry by entry against IBM's own). Read once per process, so this runs
+	 * before the first engine exists. 8k and 11k are untouched either way. */
+	setenv("EVV_UPSAMPLE", "none", 1);
 	in = (instance*)calloc(1, sizeof *in);
 	if (in == NULL)
 		return 0;

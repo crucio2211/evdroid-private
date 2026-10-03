@@ -88,7 +88,7 @@ constantly.
 Launcher icon, or the gear beside the engine in the text-to-speech settings.
 
 Sliders for the seven voice parameters, plus voice, force language,
-sample rate (8 and 11 kHz natively, 16 kHz taken from the 11 kHz voice), pauses,
+sample rate (8, 11 and 16 kHz, all synthesized natively), pauses,
 phrase prediction, abbreviations, backquote voice tags, emoji, numbers,
 camel case, punctuation, volume dictionaries and a regex dictionary. "Speak a sample"
 sits under the sliders, speaking through the same rewrites TalkBack hears

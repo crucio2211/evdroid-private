@@ -86,10 +86,9 @@ object Eci {
 		return Math.round(percent.coerceIn(0, PERCENT_MAX) * top / 100.0).toInt()
 	}
 
-	/** The rates the app offers, in hertz. The engine knows more codes than
-	 *  these (22050, 32000 and up), but only 8k and 11k are synthesized
-	 *  natively; 16k is taken from the 11k voice and upsampled, measured
-	 *  within a couple of decibels of it across the speech band.
+	/** The rates the app offers, in hertz. 8k and 11k use IBM's own tables;
+	 *  16k is synthesized natively with resonator tables built for the rate
+	 *  (the bridge sets EVV_UPSAMPLE=none, so nothing is upsampled).
 	 *
 	 *  The engine's own numbering is NOT positional -- 16000 is code 3, not
 	 *  2 -- so [RATE_CODES] maps explicitly and must stay explicit. Appending
