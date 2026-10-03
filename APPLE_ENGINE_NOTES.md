@@ -82,7 +82,9 @@ pack, so there is nothing to binary-patch.
 
 Ported (`AppleEngine` companion):
 
-- `resampleLinear`: 11025 -> 16000 linear interpolation (8000 likewise).
+- `resampleLinear`: 11025 -> 16000 cubic (Catmull-Rom) interpolation
+  (linear sounded dull/aliased) + `dsp16k` below; 11025 -> 8000 likewise.
+  (Kept the old function name so call sites are unchanged.)
 - `dsp16k`: presence s1 +9 dB @ 3 kHz + air +5 dB @ 7 kHz (RBJ high-shelf,
   S=1, fs=16000 — same formulae as `_ibmeci._shelf_coeffs`), 32-sample
   (2 ms) utterance-start ramp, int16 clamp. s1 because presence-contour
@@ -92,6 +94,24 @@ Ported (`AppleEngine` companion):
   the openevv path safely falls back to 11025 for it.
 
 Pick "16000" in voice settings for the tuned output. Default stays 11025.
+
+Native-render note (investigated Oct 2026): `libeci.so` strings show no
+16 kHz/22.05 kHz support, only `setEngineSampleRate` driven by the voice
+data; the Klatt vocoder in these Mach-O->ELF blobs is fixed-rate and
+`SetParam(5,2)` is refused upstream. The P16D blobs target Windows `.syn`
+byte offsets and do not apply to ELF `.so` layout, and no pack exists for
+it — so a native `.so` patch is not portable. Cubic upsample + DSP above
+is the closest achievable output stage.
+
+## Language names (fixed)
+
+`Eci.displayName` no longer relies on `java.util.Locale` with ISO-3 codes,
+which read raw codes ("cmn") or nothing for Chinese/Japanese in the
+Force-language dropdown. `Eci.DISPLAY_NAMES` hardcodes all 21 languages
+("Chinese (Simplified)", "Japanese", ...); unknown ids fall back to Locale
+then hex. TTS matching (`localeOf`) is unchanged.
+
+## Known gaps vs openevv build
 
 ## Known gaps vs openevv build
 

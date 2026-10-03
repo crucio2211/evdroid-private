@@ -154,17 +154,26 @@ class AppleEngine private constructor(val language: Int) {
     private val AIR = shelfCoeffs(5.0, 7000.0)
     private const val RAMP_N = 32 // 2 ms at 16 kHz
 
-    /** Linear-interpolation resample, mono int16. */
+    /** Cubic (Catmull-Rom) resample, mono int16. Replaces the earlier
+     *  linear interpolation, which sounded dull on the 11025 to 16000 path:
+     *  linear keeps only straight lines between samples and aliases the top
+     *  end, cubic follows the curve. Same signature as before. */
     fun resampleLinear(pcm: ShortArray, fromRate: Int, toRate: Int): ShortArray {
       if (fromRate == toRate || pcm.isEmpty()) return pcm
+      if (pcm.size == 1) return ShortArray(((1L * toRate) / fromRate).toInt().coerceAtLeast(1)) { pcm[0] }
       val outLen = ((pcm.size.toLong() * toRate) / fromRate).toInt().coerceAtLeast(1)
       val out = ShortArray(outLen)
+      fun at(i: Int): Double = pcm[i.coerceIn(0, pcm.size - 1)].toDouble()
       for (j in 0 until outLen) {
         val pos = (j.toLong() * fromRate).toDouble() / toRate.toDouble()
-        val i0 = pos.toInt().coerceIn(0, pcm.size - 1)
-        val i1 = (i0 + 1).coerceIn(0, pcm.size - 1)
-        val frac = (pos - i0).coerceIn(0.0, 1.0)
-        val v = pcm[i0].toDouble() * (1.0 - frac) + pcm[i1].toDouble() * frac
+        val i1 = pos.toInt().coerceIn(0, pcm.size - 1)
+        val t = (pos - i1).coerceIn(0.0, 1.0)
+        val p0 = at(i1 - 1); val p1 = at(i1); val p2 = at(i1 + 1); val p3 = at(i1 + 2)
+        val t2 = t * t
+        val t3 = t2 * t
+        val v = 0.5 * ((2.0 * p1) + (-p0 + p2) * t +
+          (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t2 +
+          (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t3)
         out[j] = v.toInt().coerceIn(-32768, 32767).toShort()
       }
       return out
@@ -381,8 +390,8 @@ class AppleEngine private constructor(val language: Int) {
       VvttsCore.synth(handle, language, encoded, charsetId, outFile.absolutePath)
         ?: return false
     if (aborted) return false
-    // Output stage: native 11025 always; 16k upsamples + presence/air DSP
-    // (ported from the IBMTTS-16k-tune NVDA driver), 8k downsamples.
+    // Output stage: native 11025 always; 16k upsamples (cubic) + presence/air
+    // DSP (ported from the IBMTTS-16k-tune NVDA driver), 8k downsamples.
     val outPcm: ShortArray = when (sampleRateHz) {
       OUTPUT_16K -> dsp16k(resampleLinear(native, NATIVE_RATE, OUTPUT_16K))
       OUTPUT_8K -> resampleLinear(native, NATIVE_RATE, OUTPUT_8K)

@@ -155,7 +155,36 @@ object Eci {
 	fun localeOf(language: Int): Triple<String, String, String>? =
 		LOCALES[baseLanguage(language)]
 
+	/** Human-readable names for the Force-language dropdown. Hardcoded
+	 *  English (the UI is English-only) so a screen reader always hears a
+	 *  real name: java.util.Locale with these ISO-3 codes reads raw codes
+	 *  ("cmn", "yue") or nothing for Chinese/Japanese. */
+	private val DISPLAY_NAMES = mapOf(
+		0x00010000 to "English (United States)",
+		0x00010001 to "English (United Kingdom)",
+		0x00020000 to "Spanish (Spain)",
+		0x00020001 to "Spanish (Mexico)",
+		0x00030000 to "French (France)",
+		0x00030001 to "French (Canada)",
+		0x00040000 to "German (Germany)",
+		0x00050000 to "Italian (Italy)",
+		0x00060000 to "Chinese (Simplified)",
+		0x00060001 to "Chinese (Traditional)",
+		0x00070000 to "Portuguese (Brazil)",
+		0x00080000 to "Japanese",
+		0x00090000 to "Finnish",
+		0x000a0000 to "Korean",
+		0x000b0000 to "Cantonese (China)",
+		0x000b0001 to "Cantonese (Hong Kong)",
+		0x000c0000 to "Dutch (Netherlands)",
+		0x000d0000 to "Norwegian (Norway)",
+		0x000e0000 to "Swedish (Sweden)",
+		0x000f0000 to "Danish (Denmark)",
+		0x00110000 to "Polish (Poland)"
+	)
+
 	fun displayName(language: Int): String {
+		DISPLAY_NAMES[baseLanguage(language)]?.let { return it }
 		val loc = localeOf(language) ?: return "0x%08x".format(language)
 		return java.util.Locale(loc.first, loc.second).getDisplayName(java.util.Locale.getDefault())
 	}
