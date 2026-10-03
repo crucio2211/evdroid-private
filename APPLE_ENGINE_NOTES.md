@@ -61,6 +61,38 @@ GitHub (personal):
   zh-CN, zh-TW, pt-BR, ja-JP, fi-FI, ko-KR (all `Eci.localeOf`-compatible).
 - Sample rate is fixed at 11025 Hz.
 
+## Backquote annotations (fixed)
+
+The service prepends openevv backtick annotations to every piece
+(`Prosody.prefix` `pp0/`pp1, `Prosody.voice` `vsN/`vbN, `Pauses` `pN).
+`AppleEngine.speak()` strips all `` `[A-Za-z]+[0-9]* `` before encoding:
+annotations were never enabled on this path and `vb means breathiness
+here (not pitch), so leftovers were spoken as "back quote pee pee ...".
+Rate/pitch travel via `setVoiceParam` instead. User `backquoteTags` are
+openevv-syntax and unsupported on the Apple path.
+
+## 16 kHz output (ported from IBMTTS-16k-tune)
+
+The NVDA patch has two halves: (1) binary `.syn` module patches so the
+Windows engine renders 16 kHz natively, and (2) an output DSP stage
+(RBJ presence + air shelves + anti-click ramp + clamp) with a 16 kHz
+player. Only (2) ports: the Apple engine renders 11025 Hz fixed
+(`SetParam(5,1)`; 22050 is refused), and its `.so` layout has no patch
+pack, so there is nothing to binary-patch.
+
+Ported (`AppleEngine` companion):
+
+- `resampleLinear`: 11025 -> 16000 linear interpolation (8000 likewise).
+- `dsp16k`: presence s1 +9 dB @ 3 kHz + air +5 dB @ 7 kHz (RBJ high-shelf,
+  S=1, fs=16000 — same formulae as `_ibmeci._shelf_coeffs`), 32-sample
+  (2 ms) utterance-start ramp, int16 clamp. s1 because presence-contour
+  defaults on in the NVDA tune; 8/11 kHz stay bit-transparent like NVDA.
+- Settings offers 8000/11025/16000 on the Apple path only
+  (`SettingsModel.RATES`); `Eci.coerceSampleRate` keeps 16000 stored, and
+  the openevv path safely falls back to 11025 for it.
+
+Pick "16000" in voice settings for the tuned output. Default stays 11025.
+
 ## Known gaps vs openevv build
 
 - arm64-v8a only. No armeabi-v7a (watches) or x86_64 (emulator).

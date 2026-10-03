@@ -8,6 +8,10 @@ import java.io.File
 import java.io.FileWriter
 import java.nio.charset.Charset
 import java.nio.charset.CodingErrorAction
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 /**
  * Apple-Eloquence backend for evvdroid (personal-build / full-swap mode).
@@ -19,7 +23,9 @@ import java.nio.charset.CodingErrorAction
  *
  * Public API mirrors EvvEngine so EvvTtsService / EvvPreview keep working:
  *  - speak(text) blocks, synthesizes to PCM, then read() drains it.
- *  - Sample rate is fixed at 11025 Hz (Apple engine only supports 8k/11.025k).
+ *  - Native synth is always 11025 Hz (Apple engine only supports 8k/11.025k).
+ *  - Output rate is 8000 / 11025 / 16000 (see setSampleRate). 16000 upsamples
+ *    the native PCM and runs the ported 16 kHz presence+air DSP below.
  *  - Dictionaries are no-ops: vvtts_core exposes no eci dict APIs. The Kotlin
  *    text pipeline (regex, emoji, numbers) still runs in the service.
  *
@@ -35,7 +41,7 @@ class AppleEngine private constructor(val language: Int) {
   @Volatile
   private var closed = false
 
-  var sampleRateHz: Int = SAMPLE_RATE
+  var sampleRateHz: Int = NATIVE_RATE
     private set
 
   private var handle: Long = 0L
@@ -54,7 +60,23 @@ class AppleEngine private constructor(val language: Int) {
 
   companion object {
     private const val TAG = "evvdroid-apple"
-    const val SAMPLE_RATE = 11025
+    const val NATIVE_RATE = 11025
+    const val OUTPUT_16K = 16000
+    const val OUTPUT_8K = 8000
+
+    /** Output rates offered on the Apple path (native + resampled). */
+    val SUPPORTED_RATES = listOf(OUTPUT_8K, NATIVE_RATE, OUTPUT_16K)
+
+    /**
+     * openevv backtick annotations the service prepends to every piece
+     * (Prosody `pp0/`pp1 + `vsN/`vbN, Pauses `pN). The Apple bridge never
+     * enables annotation input mode and uses different `v* meanings
+     * (`vb = breathiness, not pitch), so anything left here is spoken
+     * aloud as "back quote pee pee ...". Stripped before encoding; rate and
+     * pitch already travel via setVoiceParam in speak(). User backquoteTags
+     * are openevv-syntax and unsupported on this path.
+     */
+    private val ANNOTATION = Regex("`[A-Za-z]+[0-9]*")
 
     @Volatile
     private var appContext: Context? = null
@@ -100,6 +122,80 @@ class AppleEngine private constructor(val language: Int) {
       5 -> 3 // Sandy -> Sandy
       6 -> 6 // Grandma -> Grandma
       else -> 7 // Grandpa -> Grandpa
+    }
+
+    // ---- 16 kHz presence + air DSP -------------------------------------
+    // Port of the IBMTTS-16k-tune NVDA output stage (synthDrivers/_ibmeci.py
+    // dsp_process, itself mirroring the ETI-Eloquence SAPI5 engine): RBJ
+    // high-shelf presence +9 dB (s1 contour) at 3 kHz plus air +5 dB at
+    // 7 kHz, 2 ms utterance-start anti-click ramp, int16 clamp. fs = 16 kHz.
+    // 8/11 kHz outputs stay bit-transparent (no DSP), same as NVDA.
+
+    private fun shelfCoeffs(gdb: Double, f0: Double, fs: Double = 16000.0): DoubleArray {
+      val a = 10.0.pow(gdb / 40.0)
+      val w0 = 2.0 * PI * f0 / fs
+      val c = cos(w0)
+      val s = sin(w0)
+      val alpha = s * sqrt(2.0) / 2.0
+      val sqA = sqrt(a)
+      val a0 = (a + 1.0) - (a - 1.0) * c + 2.0 * sqA * alpha
+      return doubleArrayOf(
+        a * ((a + 1.0) + (a - 1.0) * c + 2.0 * sqA * alpha) / a0,
+        -2.0 * a * ((a - 1.0) + (a + 1.0) * c) / a0,
+        a * ((a + 1.0) + (a - 1.0) * c - 2.0 * sqA * alpha) / a0,
+        2.0 * ((a - 1.0) - (a + 1.0) * c) / a0,
+        ((a + 1.0) - (a - 1.0) * c - 2.0 * sqA * alpha) / a0
+      )
+    }
+
+    private fun Double.pow(e: Double): Double = Math.pow(this, e)
+
+    private val PRES_S1 = shelfCoeffs(9.0, 3000.0)
+    private val AIR = shelfCoeffs(5.0, 7000.0)
+    private const val RAMP_N = 32 // 2 ms at 16 kHz
+
+    /** Linear-interpolation resample, mono int16. */
+    fun resampleLinear(pcm: ShortArray, fromRate: Int, toRate: Int): ShortArray {
+      if (fromRate == toRate || pcm.isEmpty()) return pcm
+      val outLen = ((pcm.size.toLong() * toRate) / fromRate).toInt().coerceAtLeast(1)
+      val out = ShortArray(outLen)
+      for (j in 0 until outLen) {
+        val pos = (j.toLong() * fromRate).toDouble() / toRate.toDouble()
+        val i0 = pos.toInt().coerceIn(0, pcm.size - 1)
+        val i1 = (i0 + 1).coerceIn(0, pcm.size - 1)
+        val frac = (pos - i0).coerceIn(0.0, 1.0)
+        val v = pcm[i0].toDouble() * (1.0 - frac) + pcm[i1].toDouble() * frac
+        out[j] = v.toInt().coerceIn(-32768, 32767).toShort()
+      }
+      return out
+    }
+
+    /** Presence + air + ramp + clamp over 16 kHz mono int16. */
+    fun dsp16k(pcm: ShortArray): ShortArray {
+      if (pcm.isEmpty()) return pcm
+      val (b0, b1, b2, a1, a2) = PRES_S1.let {
+        listOf(it[0], it[1], it[2], it[3], it[4])
+      }
+      val (c0, c1, c2, a3, a4) = AIR.let {
+        listOf(it[0], it[1], it[2], it[3], it[4])
+      }
+      var x1 = 0.0; var x2 = 0.0; var y1 = 0.0; var y2 = 0.0
+      var x3 = 0.0; var x4 = 0.0; var y3 = 0.0; var y4 = 0.0
+      var ramp = 0
+      val out = ShortArray(pcm.size)
+      for (i in pcm.indices) {
+        var x = pcm[i].toDouble()
+        if (ramp < RAMP_N) {
+          ramp += 1
+          x *= ramp.toDouble() / (RAMP_N + 1).toDouble()
+        }
+        val y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2
+        x2 = x1; x1 = x; y2 = y1; y1 = y
+        val z = c0 * y + c1 * x3 + c2 * x4 - a3 * y3 - a4 * y4
+        x4 = x3; x3 = y; y4 = y3; y3 = z
+        out[i] = z.toInt().coerceIn(-32768, 32767).toShort()
+      }
+      return out
     }
   }
 
@@ -174,14 +270,15 @@ class AppleEngine private constructor(val language: Int) {
   }
 
   fun setSampleRate(hz: Int) = synchronized(guard) {
-    // Apple engine only plays 8000 / 11025; evvdroid UI offers exactly those two.
-    // Keep 11025 always: resampling buys nothing and 8000 sounds worse.
-    if (hz == 8000) Log.w(TAG, "8000 Hz requested; staying at 11025 Hz (Apple engine)")
-    sampleRateHz = SAMPLE_RATE
+    sampleRateHz = when (hz) {
+      OUTPUT_8K -> OUTPUT_8K
+      OUTPUT_16K -> OUTPUT_16K
+      else -> NATIVE_RATE
+    }
   }
 
   fun setAnnotations(@Suppress("UNUSED_PARAMETER") on: Boolean) {
-    // Apple engine annotations differ; TextPipeline backquote stripping already ran.
+    // Annotations stay off on this path; speak() strips openevv backticks.
   }
 
   fun setAbbreviations(@Suppress("UNUSED_PARAMETER") on: Boolean) {
@@ -252,6 +349,10 @@ class AppleEngine private constructor(val language: Int) {
     aborted = false
     readPos = 0
     pcmBytes = ByteArray(0)
+    // Strip openevv backtick annotations (Prosody `pp/`vs/`vb, Pauses `p):
+    // never enabled on this path, so leftovers would be spoken literally.
+    val clean = ANNOTATION.replace(text, "")
+    if (clean.isBlank()) return false
     // Rate/pitch travel with the utterance (same contract as EvvEngine).
     VvttsCore.setVoiceParam(handle, 0, Eci.VOICE_SPEED, wantSpeed.coerceIn(0, 250))
     VvttsCore.setVoiceParam(handle, 0, Eci.VOICE_PITCH_BASELINE, wantPitch.coerceIn(0, 250))
@@ -265,7 +366,7 @@ class AppleEngine private constructor(val language: Int) {
       val bb = cs.newEncoder()
         .onMalformedInput(CodingErrorAction.REPLACE)
         .onUnmappableCharacter(CodingErrorAction.REPLACE)
-        .encode(java.nio.CharBuffer.wrap(text))
+        .encode(java.nio.CharBuffer.wrap(clean))
       val b = ByteArray(bb.remaining())
       bb.get(b)
       b
@@ -276,12 +377,20 @@ class AppleEngine private constructor(val language: Int) {
     val charsetId = if (language == 0x60000) VvttsCore.CHARSET_GBK else VvttsCore.CHARSET_1252
     val ctx = appContext ?: return false
     val outFile = File(ctx.cacheDir, "core_pcm_out")
-    val pcm: ShortArray = VvttsCore.synth(handle, language, encoded, charsetId, outFile.absolutePath)
-      ?: return false
+    val native: ShortArray =
+      VvttsCore.synth(handle, language, encoded, charsetId, outFile.absolutePath)
+        ?: return false
     if (aborted) return false
-    val bytes = ByteArray(pcm.size * 2)
-    for (i in pcm.indices) {
-      val v = pcm[i].toInt()
+    // Output stage: native 11025 always; 16k upsamples + presence/air DSP
+    // (ported from the IBMTTS-16k-tune NVDA driver), 8k downsamples.
+    val outPcm: ShortArray = when (sampleRateHz) {
+      OUTPUT_16K -> dsp16k(resampleLinear(native, NATIVE_RATE, OUTPUT_16K))
+      OUTPUT_8K -> resampleLinear(native, NATIVE_RATE, OUTPUT_8K)
+      else -> native
+    }
+    val bytes = ByteArray(outPcm.size * 2)
+    for (i in outPcm.indices) {
+      val v = outPcm[i].toInt()
       bytes[i * 2] = (v and 0xFF).toByte()
       bytes[i * 2 + 1] = ((v shr 8) and 0xFF).toByte()
     }

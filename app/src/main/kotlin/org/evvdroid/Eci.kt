@@ -92,9 +92,14 @@ object Eci {
 	 *  not listed here at all. */
 	val SAMPLE_RATES = intArrayOf(8000, 11025)
 
-	/** [hz] as one of [SAMPLE_RATES]. Anything else -- including a rate a
-	 *  previous build stored -- comes back as the default. */
-	fun coerceSampleRate(hz: Int): Int = if (hz == SAMPLE_RATES[0]) SAMPLE_RATES[0] else SAMPLE_RATES[1]
+	/** [hz] as one of the rates this build can store. 16000 is Apple-path
+	 *  only (upsampled + DSP); the openevv path falls back to 11025 for it
+	 *  in sampleRateIndex below, so it can never wrong-foot that engine. */
+	fun coerceSampleRate(hz: Int): Int = when (hz) {
+		SAMPLE_RATES[0] -> SAMPLE_RATES[0]
+		16000 -> 16000
+		else -> SAMPLE_RATES[1]
+	}
 
 	fun sampleRateHz(index: Int): Int =
 		SAMPLE_RATES.getOrElse(index) { SAMPLE_RATES[1] }
