@@ -45,13 +45,13 @@ class SettingsActivity : ComponentActivity() {
 	 *  paste it back so the crash can be fixed. */
 	private fun showCrashReport(report: String) {
 		val pad = (16 * resources.displayMetrics.density).toInt()
-		val text = TextView(this).apply {
-			text = report.ifEmpty { "The settings screen crashed." }
-			textIsSelectable = true
+		val reportView = TextView(this).apply {
+			setText(report.ifEmpty { "The settings screen crashed." })
+			setTextIsSelectable(true)
 			setPadding(pad, pad, pad, pad)
 		}
-		val retry = Button(this).apply {
-			text = "Clear report and retry"
+		val retryButton = Button(this).apply {
+			setText("Clear report and retry")
 			setOnClickListener {
 				CrashLog.clear(this@SettingsActivity)
 				recreate()
@@ -60,14 +60,14 @@ class SettingsActivity : ComponentActivity() {
 		val box = LinearLayout(this).apply {
 			orientation = LinearLayout.VERTICAL
 			addView(
-				retry,
+				retryButton,
 				ViewGroup.LayoutParams(
 					ViewGroup.LayoutParams.MATCH_PARENT,
 					ViewGroup.LayoutParams.WRAP_CONTENT
 				)
 			)
 			addView(
-				ScrollView(this@SettingsActivity).apply { addView(text) },
+				ScrollView(this@SettingsActivity).apply { addView(reportView) },
 				ViewGroup.LayoutParams(
 					ViewGroup.LayoutParams.MATCH_PARENT,
 					ViewGroup.LayoutParams.MATCH_PARENT
