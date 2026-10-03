@@ -115,10 +115,12 @@ class EvvPreview(private val language: Int) {
 		track = t
 		t.play()
 		val buffer = ByteArray(CHUNK)
+		val gain = AudioGain.gainFor(e.sampleRateHz)
 		var written = 0L
 		while (mine == generation) {
 			val n = e.read(buffer)
 			if (n <= 0) break
+			AudioGain.apply(buffer, n, gain)
 			var at = 0
 			while (at < n && mine == generation) {
 				val wrote = t.write(buffer, at, n - at)

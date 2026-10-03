@@ -358,9 +358,11 @@ class EvvTtsService : TextToSpeechService() {
 	private fun pump(target: EvvEngine, callback: SynthesisCallback, pace: Pace, opening: Opening): Boolean {
 		val size = callback.maxBufferSize.coerceIn(MIN_CHUNK, MAX_CHUNK)
 		val buffer = ByteArray(size)
+		val gain = AudioGain.gainFor(target.sampleRateHz)
 		while (!stopped) {
 			val n = target.read(buffer)
 			if (n <= 0) break
+			AudioGain.apply(buffer, n, gain)
 			if (!opening.open()) {
 				target.stop()
 				return false
