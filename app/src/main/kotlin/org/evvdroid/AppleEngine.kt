@@ -68,10 +68,6 @@ class AppleEngine private constructor(val language: Int) {
    *  is what makes user dictionaries work on the Apple path. */
   private var substitutions: Map<String, String> = emptyMap()
 
-  /** Presence contour variant for 16 kHz output (NVDA tune Presence16k).
-   *  True is s1 (+9 dB), false is s0 (+1.5 dB). Unused below 16 kHz. */
-  private var presenceS1 = true
-
   /** True when this session proved it renders native 22050 Hz (rate index
    *  2): the probe below synthesizes one calibration word at both rates
    *  and only trusts a ~2x PCM length ratio. Then 16 kHz output downsamples
@@ -104,11 +100,6 @@ class AppleEngine private constructor(val language: Int) {
     if (!closed) substitutions = map
   }
 
-  /** Choose the 16 kHz presence variant. */
-  fun setPresenceContour(on: Boolean) = synchronized(guard) {
-    presenceS1 = on
-  }
-
   companion object {
     private const val TAG = "evvdroid-apple"
     const val NATIVE_RATE = 11025
@@ -134,6 +125,33 @@ class AppleEngine private constructor(val language: Int) {
     /** Whole-word matcher for dictionary substitution (same shape as the
      *  service WORD: letters/digits carrying apostrophes and hyphens). */
     private val WORD = Regex("[A-Za-z0-9]+(?:['-][A-Za-z0-9]+)*")
+
+    /** Sibilant-rich ASCII calibration sentence (all our charsets are
+     *  ASCII-safe). Long enough that length ratios are stable, sibilant
+     *  enough that true high-rate renders show real energy above 5.5 kHz. */
+    private val CAL_TEXT = "She sells six thick socks.".toByteArray(Charsets.US_ASCII)
+
+    /**
+     * Fraction of energy above ~5.8 kHz (1-pole highpass). An 11 kHz
+     * render holds nothing up there but filter skirt (<0.01); a true
+     * high-rate render of sibilants holds clearly more. Second witness
+     * beside the length ratio, so a weird-length utterance alone can
+     * never validate a rate.
+     */
+    private fun hfFraction(pcm: ShortArray, rate: Int): Double {
+      if (pcm.size < 1000) return 0.0
+      val a = Math.exp(-2.0 * PI * 5800.0 / rate.toDouble())
+      var y = 0.0
+      var eHf = 0.0
+      var eTot = 0.0
+      for (i in pcm.indices) {
+        val x = pcm[i].toDouble()
+        y = a * (y + x - (if (i > 0) pcm[i - 1].toDouble() else 0.0))
+        eTot += x * x
+        if (i >= 100) eHf += y * y
+      }
+      return if (eTot <= 0.0) 0.0 else (eHf / eTot).coerceIn(0.0, 1.0)
+    }
 
     @Volatile
     private var appContext: Context? = null
@@ -176,8 +194,7 @@ class AppleEngine private constructor(val language: Int) {
     }
 
     /** evvdroid preset 0-7 -> Apple preset 1-8. See class doc for mismatches. */
-    fun applePresetFor(evvPreset: Int): Int = when (evvPreset.coerceIn(0, 7)) {
-      0 -> 1 // Reed -> Reed
+    fun applePresetFor(evvPreset: Int): Int = when (evvPreset.coerceIn(0, 7)) {      0 -> 1 // Reed -> Reed
       1 -> 2 // Shelley -> Shelley
       2 -> 8 // Bobby -> Eddy
       3 -> 4 // Rocko -> Rocko
@@ -187,44 +204,14 @@ class AppleEngine private constructor(val language: Int) {
       else -> 7 // Grandpa -> Grandpa
     }
 
-    // ---- 16 kHz presence + air DSP -------------------------------------
-    // Port of the IBMTTS-16k-tune NVDA output stage (synthDrivers/_ibmeci.py
-    // dsp_process, itself mirroring the ETI-Eloquence SAPI5 engine): RBJ
-    // high-shelf presence +9 dB (s1 contour) at 3 kHz plus air +5 dB at
-    // 7 kHz, 2 ms utterance-start anti-click ramp, int16 clamp. fs = 16 kHz.
-    // 8/11 kHz outputs stay bit-transparent (no DSP), same as NVDA.
-
-    private fun shelfCoeffs(gdb: Double, f0: Double, fs: Double = 16000.0): DoubleArray {
-      val a = 10.0.pow(gdb / 40.0)
-      val w0 = 2.0 * PI * f0 / fs
-      val c = cos(w0)
-      val s = sin(w0)
-      val alpha = s * sqrt(2.0) / 2.0
-      val sqA = sqrt(a)
-      val a0 = (a + 1.0) - (a - 1.0) * c + 2.0 * sqA * alpha
-      return doubleArrayOf(
-        a * ((a + 1.0) + (a - 1.0) * c + 2.0 * sqA * alpha) / a0,
-        -2.0 * a * ((a - 1.0) + (a + 1.0) * c) / a0,
-        a * ((a + 1.0) + (a - 1.0) * c - 2.0 * sqA * alpha) / a0,
-        2.0 * ((a - 1.0) - (a + 1.0) * c) / a0,
-        ((a + 1.0) - (a - 1.0) * c - 2.0 * sqA * alpha) / a0
-      )
-    }
-
-    private fun Double.pow(e: Double): Double = Math.pow(this, e)
-
-    private val PRES_S1 = shelfCoeffs(9.0, 3000.0)
-    private val PRES_S0 = shelfCoeffs(1.5, 3000.0)
-    private val AIR = shelfCoeffs(5.0, 7000.0)
-    private const val RAMP_N = 32 // 2 ms at 16 kHz
+    // ---- Resampling (downsampling only) --------------------------------
+    // Pure-native policy: 16 kHz output is proven-native render or honest
+    // 11 kHz — never upsampled. Sinc/cubic below exist solely for
+    // DOWNsampling genuine content (22k->16k, 16k->11k/8k, 11k->8k).
 
     /**
-     * Bandlimited windowed-sinc resample, mono int16. Replaces the earlier
-     * linear/cubic interpolation: those keep straight lines/curves between
-     * samples and leave imaging aliases above the source Nyquist, which the
-     * presence/air shelves then boost as harsh garbage. Sinc suppresses the
-     * images, so the shelves shape only real content. Same signature as the
-     * old linear version, so call sites are unchanged.
+     * Bandlimited windowed-sinc resample, mono int16. Bandlimited so no
+     * imaging aliases are created in the target band.
      *
      * 32 taps, Hann window, 256 fractional phases precomputed per rate pair
      * and cached; rows normalized to unity DC gain. Cutoff follows the
@@ -256,8 +243,7 @@ class AppleEngine private constructor(val language: Int) {
       return table
     }
 
-    /** Cubic (Catmull-Rom) resample, mono int16. Kept for the 8 kHz path
-     *  where aliasing matters less; 16 kHz uses [resampleLinear] (sinc). */
+    /** Cubic (Catmull-Rom) resample, mono int16. Downsampling only. */
     fun resampleCubic(pcm: ShortArray, fromRate: Int, toRate: Int): ShortArray {
       if (fromRate == toRate || pcm.isEmpty()) return pcm
       if (pcm.size == 1) return ShortArray(((1L * toRate) / fromRate).toInt().coerceAtLeast(1)) { pcm[0] }
@@ -300,37 +286,6 @@ class AppleEngine private constructor(val language: Int) {
           v += pcm[idx].toDouble() * row[k]
         }
         out[j] = v.toInt().coerceIn(-32768, 32767).toShort()
-      }
-      return out
-    }
-
-    /** Presence + air + ramp + clamp over 16 kHz mono int16. s1 is the
-     *  full +9 dB presence contour, s0 the gentle +1.5 dB remap; air runs
-     *  in both, same as the tune. */
-    fun dsp16k(pcm: ShortArray, s1: Boolean = true): ShortArray {
-      if (pcm.isEmpty()) return pcm
-      val pres = if (s1) PRES_S1 else PRES_S0
-      val (b0, b1, b2, a1, a2) = pres.let {
-        listOf(it[0], it[1], it[2], it[3], it[4])
-      }
-      val (c0, c1, c2, a3, a4) = AIR.let {
-        listOf(it[0], it[1], it[2], it[3], it[4])
-      }
-      var x1 = 0.0; var x2 = 0.0; var y1 = 0.0; var y2 = 0.0
-      var x3 = 0.0; var x4 = 0.0; var y3 = 0.0; var y4 = 0.0
-      var ramp = 0
-      val out = ShortArray(pcm.size)
-      for (i in pcm.indices) {
-        var x = pcm[i].toDouble()
-        if (ramp < RAMP_N) {
-          ramp += 1
-          x *= ramp.toDouble() / (RAMP_N + 1).toDouble()
-        }
-        val y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2
-        x2 = x1; x1 = x; y2 = y1; y1 = y
-        val z = c0 * y + c1 * x3 + c2 * x4 - a3 * y3 - a4 * y4
-        x4 = x3; x3 = y; y4 = y3; y3 = z
-        out[i] = z.toInt().coerceIn(-32768, 32767).toShort()
       }
       return out
     }
@@ -437,30 +392,36 @@ class AppleEngine private constructor(val language: Int) {
 
   /**
    * Tests whether eciNewAudioFormat2 really switches this session to native
-   * 16000 Hz render. Baseline synth at 11 kHz, request the 16 kHz format,
-   * synth again: only a ~1.45x PCM length ratio trusts it. Anything else —
-   * refusal, empty output, exception — answers false and the caller reopens
-   * clean, so this can never break 11 kHz.
+   * 16000 Hz render. Warmup synth (discarded), baseline synth, request the
+   * 16 kHz format, synth again: trusts only a tight ~1.45x length ratio on
+   * long-enough audio PLUS real energy above 5.5 kHz in the candidate.
+   * Anything else — refusal, short/empty output, exception — answers false
+   * and the caller reopens clean, so this can never break 11 kHz.
    */
   private fun probe16k(ctx: Context): Boolean {
     val h = handle
     if (h == 0L) return false
     return try {
-      val cal = "test".toByteArray(Charsets.US_ASCII)
       val charsetId = if (language == 0x60000) VvttsCore.CHARSET_GBK else VvttsCore.CHARSET_1252
       val out = File(ctx.cacheDir, "core_probe_out").absolutePath
-      val base = VvttsCore.synth(h, language, cal, charsetId, out)
-      if (base == null || base.isEmpty()) return false
+      VvttsCore.synth(h, language, CAL_TEXT, charsetId, out) // warmup, discarded
+      val base = VvttsCore.synth(h, language, CAL_TEXT, charsetId, out)
+      if (base == null || base.size < 12000) return false
       val ret = nativeNewAudioFormat(h, OUTPUT_16K)
       if (ret < 0) {
         Log.i(TAG, "16k format refused for 0x%08x (ret=%d)".format(language, ret))
         return false
       }
-      val hi = VvttsCore.synth(h, language, cal, charsetId, out)
-      val ratio = if (hi != null && hi.isNotEmpty()) hi.size.toDouble() / base.size.toDouble() else -1.0
-      val ok = ratio in 1.3..1.6
-      Log.i(TAG, "16k probe 0x%08x: %s (11k=%d 16k=%d)".format(
-        language, if (ok) "NATIVE" else "unproven", base.size, hi?.size ?: -1))
+      val hi = VvttsCore.synth(h, language, CAL_TEXT, charsetId, out)
+      if (hi == null || hi.size < 15000) {
+        Log.i(TAG, "16k probe 0x%08x: short output (%d)".format(language, hi?.size ?: -1))
+        return false
+      }
+      val ratio = hi.size.toDouble() / base.size.toDouble()
+      val hf = hfFraction(hi, OUTPUT_16K)
+      val ok = ratio in 1.38..1.53 && hf > 0.01
+      Log.i(TAG, "16k probe 0x%08x: %s (11k=%d 16k=%d ratio=%.3f hf=%.4f)".format(
+        language, if (ok) "NATIVE" else "unproven", base.size, hi.size, ratio, hf))
       ok
     } catch (t: Throwable) {
       Log.w(TAG, "16k probe failed", t)
@@ -470,29 +431,32 @@ class AppleEngine private constructor(val language: Int) {
 
   /**
    * Tests whether this session really renders 22050 Hz (ECI rate index 2).
-   * Upstream claims Apple refuses it; instead of trusting that, synthesize
-   * one ASCII calibration word at both rates and trust only a ~2x PCM
-   * length ratio. Refusal, empty output, a crash — anything but proof —
-   * restores index 1 and answers false, so this can never break 11 kHz.
+   * Same hardening as [probe16k]: warmup, long calibration, minimums,
+   * tight ~2x window, high-band witness. Restores index 1 on anything
+   * but proof.
    */
   private fun probe22k(cacheDir: File): Boolean {
     val h = handle
     if (h == 0L) return false
     return try {
-      val cal = "test".toByteArray(Charsets.US_ASCII)
       val charsetId = if (language == 0x60000) VvttsCore.CHARSET_GBK else VvttsCore.CHARSET_1252
       val out = File(cacheDir, "core_probe_out").absolutePath
       VvttsCore.setParam(h, Eci.PARAM_SAMPLE_RATE, 1)
-      val pcm11 = VvttsCore.synth(h, language, cal, charsetId, out)
+      VvttsCore.synth(h, language, CAL_TEXT, charsetId, out) // warmup, discarded
+      val pcm11 = VvttsCore.synth(h, language, CAL_TEXT, charsetId, out)
+      if (pcm11 == null || pcm11.size < 12000) return false
       VvttsCore.setParam(h, Eci.PARAM_SAMPLE_RATE, 2)
-      val pcm22 = VvttsCore.synth(h, language, cal, charsetId, out)
-      val ratio = if (pcm11 != null && pcm11.isNotEmpty() && pcm22 != null && pcm22.isNotEmpty()) {
-        pcm22.size.toDouble() / pcm11.size.toDouble()
-      } else -1.0
-      val ok = ratio in 1.7..2.3
+      val pcm22 = VvttsCore.synth(h, language, CAL_TEXT, charsetId, out)
+      if (pcm22 == null || pcm22.size < 20000) {
+        VvttsCore.setParam(h, Eci.PARAM_SAMPLE_RATE, 1)
+        return false
+      }
+      val ratio = pcm22.size.toDouble() / pcm11.size.toDouble()
+      val hf = hfFraction(pcm22, NATIVE_22K)
+      val ok = ratio in 1.9..2.1 && hf > 0.01
       if (!ok) VvttsCore.setParam(h, Eci.PARAM_SAMPLE_RATE, 1)
-      Log.i(TAG, "22k probe 0x%08x: %s (11k=%d 22k=%d)".format(
-        language, if (ok) "NATIVE" else "unavailable", pcm11?.size ?: -1, pcm22?.size ?: -1))
+      Log.i(TAG, "22k probe 0x%08x: %s (11k=%d 22k=%d ratio=%.3f hf=%.4f)".format(
+        language, if (ok) "NATIVE" else "unavailable", pcm11.size, pcm22.size, ratio, hf))
       ok
     } catch (t: Throwable) {
       runCatching { VvttsCore.setParam(handle, Eci.PARAM_SAMPLE_RATE, 1) }
@@ -680,16 +644,16 @@ class AppleEngine private constructor(val language: Int) {
     }
     val native = pcm ?: return false
     if (aborted) return false
-    // Output stage: native 16 kHz renders go straight to DSP (no
-    // resampling at all); 22k renders downsample (real content) + DSP;
-    // 8k native passes through; everything else is honest native render
-    // at the reported rate. There is deliberately no upsample-to-16k.
+    // Output stage, pure native: proven 16 kHz renders pass through
+    // untouched; 22k renders downsample (real content); 8k native passes
+    // through; everything else is honest native render at the reported
+    // rate. No EQ, no upsampling — bit-transparent by policy.
     val outPcm: ShortArray = when {
-      native16k && sampleRateHz == OUTPUT_16K -> dsp16k(native, presenceS1)
+      native16k && sampleRateHz == OUTPUT_16K -> native
         .also { lastRender = "native 16 kHz" }
       native16k -> resampleLinear(native, OUTPUT_16K, sampleRateHz)
         .also { lastRender = "native 16 kHz downsampled" }
-      renderedRate == NATIVE_22K -> dsp16k(resampleLinear(native, NATIVE_22K, OUTPUT_16K), presenceS1)
+      renderedRate == NATIVE_22K -> resampleLinear(native, NATIVE_22K, OUTPUT_16K)
         .also { lastRender = "native 22 kHz downsampled" }
       renderedRate == OUTPUT_8K -> native
         .also { lastRender = "native 8 kHz" }

@@ -61,13 +61,6 @@ class Settings(context: Context) {
 		get() = Eci.coerceSampleRate(prefs.getInt(KEY_SAMPLE_RATE, DEFAULT_SAMPLE_RATE))
 		set(value) = prefs.edit().putInt(KEY_SAMPLE_RATE, Eci.coerceSampleRate(value)).apply()
 
-	/** 16 kHz presence contour (s1) on the Apple path: +9 dB presence plus
-	 *  air. Off is the s0 remap: gentle +1.5 dB. Same toggle as the NVDA
-	 *  16k-tune (Presence16k, default on). Unused on the openevv path. */
-	var presenceContour: Boolean
-		get() = prefs.getBoolean(KEY_PRESENCE16K, true)
-		set(value) = prefs.edit().putBoolean(KEY_PRESENCE16K, value).apply()
-
 	/** The abbreviation dictionary. Off by default: it expands what it takes
 	 *  for an abbreviation whether that was wanted or not. */
 	var abbreviations: Boolean
@@ -300,7 +293,6 @@ class Settings(context: Context) {
 		const val KEY_FORCED_LANGUAGE = "forced_language"
 		const val DEFAULT_FORCED_LANGUAGE = 0x00010000
 		const val KEY_SAMPLE_RATE = "sample_rate_hz"
-		const val KEY_PRESENCE16K = "presence_16k"
 		const val KEY_ABBREVIATIONS = "abbreviations"
 		const val KEY_SPEED = "speed"
 		const val KEY_PAUSES = "pauses"

@@ -237,13 +237,6 @@ fun SettingsScreen(state: SettingsModel) {
 				chosen = SettingsModel.RATES.indexOf(state.sampleRateHz).coerceAtLeast(0),
 				onChoose = { state.chooseSampleRate(SettingsModel.RATES[it]) }
 			)
-			if (SettingsModel.RATES.contains(16000)) {
-				SwitchRow(
-					label = stringResource(R.string.presence_contour_label),
-					checked = state.presenceContour,
-					onChange = state::choosePresenceContour
-				)
-			}
 			if (state.renderInfo.isNotEmpty()) {
 				Text(
 					text = stringResource(R.string.render_info, state.renderInfo),

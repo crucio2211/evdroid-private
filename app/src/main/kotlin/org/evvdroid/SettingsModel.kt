@@ -42,9 +42,6 @@ class SettingsModel(context: Context) {
 	var sampleRateHz by mutableStateOf(settings.sampleRateHz)
 		private set
 
-	var presenceContour by mutableStateOf(settings.presenceContour)
-		private set
-
 	/** What the engine last rendered as ("native 16 kHz", ...). Empty until
 	 *  the first sample is spoken. */
 	var renderInfo by mutableStateOf("")
@@ -442,11 +439,6 @@ class SettingsModel(context: Context) {
 		settings.sampleRateHz = hz
 	}
 
-	fun choosePresenceContour(on: Boolean) {
-		presenceContour = on
-		settings.presenceContour = on
-	}
-
 	// ---- hearing it ------------------------------------------------------
 
 	/** Nothing here speaks by itself. Every setting is in force the moment it
@@ -470,7 +462,7 @@ class SettingsModel(context: Context) {
 		)
 		val text = Prosody.prefix(settings.phrasePrediction) +
 			Pauses.apply(heard, settings.pauses, true)
-		preview?.say(text, voice, settings.shape(voice), sampleRateHz, settings.presenceContour) {
+		preview?.say(text, voice, settings.shape(voice), sampleRateHz) {
 			renderInfo = it
 		}
 	}
