@@ -75,8 +75,15 @@ class AppleEngine private constructor(val language: Int) {
   /** True when this session proved it renders native 22050 Hz (rate index
    *  2): the probe below synthesizes one calibration word at both rates
    *  and only trusts a ~2x PCM length ratio. Then 16 kHz output downsamples
-   *  real content instead of upsampling 11 kHz. */
+   *  genuine content instead of upsampling 11 kHz. */
   private var native22k = false
+
+  /** True when eciNewAudioFormat2 accepted a 16000 Hz format on this
+   *  session (validated by calibration ratio ~1.45x): pure native 16 kHz
+   *  render, no resampling at all. */
+  private var native16k = false
+
+  private external fun nativeNewAudioFormat(sessionHandle: Long, rateHz: Int): Int
 
   /** Replace the dictionary set (called with the flattened word maps). */
   fun setSubstitutions(map: Map<String, String>) = synchronized(guard) {
@@ -116,6 +123,12 @@ class AppleEngine private constructor(val language: Int) {
 
     @Volatile
     private var appContext: Context? = null
+
+    /** Micro-JNI rate bridge (libevvrate.so, apple builds only). Absence
+     *  degrades to the upsample path; never fatal. */
+    val rateBridgeLoaded: Boolean by lazy {
+      runCatching { System.loadLibrary("evvrate"); true }.getOrDefault(false)
+    }
 
     fun init(context: Context) {
       appContext = context.applicationContext
@@ -367,7 +380,16 @@ class AppleEngine private constructor(val language: Int) {
         // tags are interpreted instead of spoken (openevv enables the same
         // PARAM_INPUT_TYPE on its path; Apple defaults it off).
         VvttsCore.setParam(h, Eci.PARAM_INPUT_TYPE, 1)
-        native22k = probe22k(ctx.cacheDir)
+        if (rateBridgeLoaded && probe16k(ctx)) {
+          native16k = true
+          native22k = false
+        } else {
+          // Guarantee a clean 11 kHz session: the format attempt may have
+          // left state behind even when it failed validation.
+          if (!reopenClean(ctx)) return false
+          native16k = false
+          native22k = probe22k(ctx.cacheDir)
+        }
         true
       }
     } catch (e: Throwable) {
@@ -375,6 +397,62 @@ class AppleEngine private constructor(val language: Int) {
       // failed load arrives as Error, and must degrade to "no engine"
       // rather than killing the caller (settings screen included).
       Log.e(TAG, "Apple engine init failed", e)
+      false
+    }
+  }
+
+  /** Closes the current session and opens a fresh 11 kHz one. Used after
+   *  a failed format experiment so normal output can never inherit
+   *  half-applied state. */
+  private fun reopenClean(ctx: Context): Boolean {
+    if (handle != 0L) VvttsCore.shutdown(handle)
+    handle = 0L
+    native16k = false
+    native22k = false
+    return try {
+      val info = ctx.applicationInfo
+      val libDir = File(info.nativeLibraryDir)
+      val cfgDir = File(ctx.filesDir, "eloquence")
+      val h = VvttsCore.openEngine(cfgDir.absolutePath, libDir.absolutePath, language)
+      if (h == 0L) return false
+      handle = h
+      VvttsCore.setParam(h, Eci.PARAM_INPUT_TYPE, 1)
+      true
+    } catch (t: Throwable) {
+      Log.e(TAG, "reopen failed", t)
+      false
+    }
+  }
+
+  /**
+   * Tests whether eciNewAudioFormat2 really switches this session to native
+   * 16000 Hz render. Baseline synth at 11 kHz, request the 16 kHz format,
+   * synth again: only a ~1.45x PCM length ratio trusts it. Anything else —
+   * refusal, empty output, exception — answers false and the caller reopens
+   * clean, so this can never break 11 kHz.
+   */
+  private fun probe16k(ctx: Context): Boolean {
+    val h = handle
+    if (h == 0L) return false
+    return try {
+      val cal = "test".toByteArray(Charsets.US_ASCII)
+      val charsetId = if (language == 0x60000) VvttsCore.CHARSET_GBK else VvttsCore.CHARSET_1252
+      val out = File(ctx.cacheDir, "core_probe_out").absolutePath
+      val base = VvttsCore.synth(h, language, cal, charsetId, out)
+      if (base == null || base.isEmpty()) return false
+      val ret = nativeNewAudioFormat(h, OUTPUT_16K)
+      if (ret < 0) {
+        Log.i(TAG, "16k format refused for 0x%08x (ret=%d)".format(language, ret))
+        return false
+      }
+      val hi = VvttsCore.synth(h, language, cal, charsetId, out)
+      val ratio = if (hi != null && hi.isNotEmpty()) hi.size.toDouble() / base.size.toDouble() else -1.0
+      val ok = ratio in 1.3..1.6
+      Log.i(TAG, "16k probe 0x%08x: %s (11k=%d 16k=%d)".format(
+        language, if (ok) "NATIVE" else "unproven", base.size, hi?.size ?: -1))
+      ok
+    } catch (t: Throwable) {
+      Log.w(TAG, "16k probe failed", t)
       false
     }
   }
@@ -538,19 +616,21 @@ class AppleEngine private constructor(val language: Int) {
       return false
     }
     val charsetId = if (language == 0x60000) VvttsCore.CHARSET_GBK else VvttsCore.CHARSET_1252
-    // Native render rate: 22050 when the probe proved it (16 kHz output
-    // only — genuine content downsampled, never upsampled), native 8000
-    // for 8 kHz output, else 11025. Upsampling stays as the last resort.
+    // Native render rate: a proven 16 kHz format session renders 16 kHz
+    // untouched; else 22050 when the probe proved it (16 kHz output only),
+    // native 8000 for 8 kHz output, else 11025. Upsampling stays last.
     val renderIdx = when {
+      native16k -> -1
       sampleRateHz == OUTPUT_16K && native22k -> 2
       sampleRateHz == OUTPUT_8K -> 0
       else -> 1
     }
-    VvttsCore.setParam(handle, Eci.PARAM_SAMPLE_RATE, renderIdx)
+    if (renderIdx >= 0) VvttsCore.setParam(handle, Eci.PARAM_SAMPLE_RATE, renderIdx)
     val ctx = appContext ?: return false
     val outFile = File(ctx.cacheDir, "core_pcm_out")
     var pcm = VvttsCore.synth(handle, language, encoded, charsetId, outFile.absolutePath)
     var renderedRate = when (renderIdx) {
+      -1 -> OUTPUT_16K
       2 -> NATIVE_22K
       0 -> OUTPUT_8K
       else -> NATIVE_RATE
@@ -563,9 +643,12 @@ class AppleEngine private constructor(val language: Int) {
     }
     val native = pcm ?: return false
     if (aborted) return false
-    // Output stage: 22k renders downsample (real content) + presence/air
-    // DSP; 8k native passes through; 11k renders upsample only at 16k.
+    // Output stage: native 16 kHz renders go straight to DSP (no
+    // resampling at all); 22k renders downsample (real content) + DSP;
+    // 8k native passes through; 11k renders upsample only at 16k.
     val outPcm: ShortArray = when {
+      native16k && sampleRateHz == OUTPUT_16K -> dsp16k(native, presenceS1)
+      native16k -> resampleLinear(native, OUTPUT_16K, sampleRateHz)
       renderedRate == NATIVE_22K -> dsp16k(resampleLinear(native, NATIVE_22K, OUTPUT_16K), presenceS1)
       renderedRate == OUTPUT_8K -> native
       sampleRateHz == OUTPUT_16K -> dsp16k(resampleLinear(native, NATIVE_RATE, OUTPUT_16K), presenceS1)

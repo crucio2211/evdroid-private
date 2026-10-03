@@ -83,6 +83,26 @@ val fetchAppleLibs by tasks.registering(Exec::class) {
 	environment("OUT", nativeOut.get().asFile.absolutePath)
 }
 
+// Apple-engine micro-JNI rate bridge (16 kHz format experiment).
+// Compiled from C, not downloaded: native/build-apple-rate.sh.
+val buildAppleRate by tasks.registering(Exec::class) {
+	group = "build"
+	description = "Compiles the Apple-engine rate bridge (evv_rate.c) for arm64."
+	onlyIf { appleEngine }
+	val script = rootProject.layout.projectDirectory.file("native/build-apple-rate.sh")
+	inputs.file(script)
+	inputs.file(layout.projectDirectory.file("src/main/cpp/evv_rate.c"))
+	outputs.dir(nativeOut)
+	val shell = if (OperatingSystem.current().isWindows) {
+		val git = System.getenv("PROGRAMFILES")?.let { file("$it/Git/bin/bash.exe") }
+		if (git != null && git.exists()) git.absolutePath else "bash"
+	} else {
+		"bash"
+	}
+	commandLine(shell, script.asFile.absolutePath)
+	environment("OUT", nativeOut.get().asFile.absolutePath)
+}
+
 android {
 	namespace = "org.evvdroid"
 	compileSdk = 36
@@ -193,7 +213,7 @@ android {
 }
 
 tasks.named("preBuild") {
-	if (appleEngine) dependsOn(fetchAppleLibs) else dependsOn(buildNative)
+	if (appleEngine) dependsOn(fetchAppleLibs, buildAppleRate) else dependsOn(buildNative)
 }
 
 dependencies {

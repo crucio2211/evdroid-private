@@ -102,6 +102,18 @@ Ported (`AppleEngine` companion):
   22050. Then 16 kHz output downsamples genuine content (cubic) instead
   of upsampling 11 kHz. 8 kHz renders natively with an 11 kHz fallback.
   Refusal/empty/crash restores index 1 — 11 kHz can never break.
+- Native-16k format experiment (`probe16k`, `libevvrate.so`): disassembly
+  of `libeci.so` shows `SynthThread::setEngineSampleRate` explicitly
+  branching on 16000/11025/8000, and `SynthThread::newAudioFormat`
+  reading the requested rate at `ECIaudioFormat+8` — so a 16 kHz output
+  format is a first-class citizen, not a hack. `evv_rate.c` (compiled in
+  CI by `native/build-apple-rate.sh`) calls the exported
+  `eciNewAudioFormat2` with a zeroed format carrying only rate=16000 at
+  +8; calibration trusts only a ~1.45x PCM ratio, else the session is
+  reopened clean and the 22k/11k paths take over. Proven 16 kHz renders
+  go straight to DSP with no resampling at all. (Also proven dangerous
+  to skip: `vvtts_voice.c`'s `eci+224` is `ECIstate*`, not `SynthThread*`,
+  on Apple libeci — Guangrong offsets do not transfer.)
 
 - `resampleLinear`: 11025 -> 16000 bandlimited windowed-sinc (32 taps,
   Hann, 256 phases, cached per rate pair, unity-gain rows) — replaces
