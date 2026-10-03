@@ -97,6 +97,12 @@ pack, so there is nothing to binary-patch.
 
 Ported (`AppleEngine` companion):
 
+- Native-22k probe (`probe22k`): at session open, one ASCII word is
+  synthesized at rate index 1 and 2; only a ~2x PCM length ratio trusts
+  22050. Then 16 kHz output downsamples genuine content (cubic) instead
+  of upsampling 11 kHz. 8 kHz renders natively with an 11 kHz fallback.
+  Refusal/empty/crash restores index 1 — 11 kHz can never break.
+
 - `resampleLinear`: 11025 -> 16000 cubic (Catmull-Rom) interpolation
   (linear sounded dull/aliased) + `dsp16k` below; 11025 -> 8000 likewise.
   (Kept the old function name so call sites are unchanged.)

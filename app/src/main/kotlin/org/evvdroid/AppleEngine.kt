@@ -23,7 +23,11 @@ import kotlin.math.sqrt
  *
  * Public API mirrors EvvEngine so EvvTtsService / EvvPreview keep working:
  *  - speak(text) blocks, synthesizes to PCM, then read() drains it.
- *  - Native synth is always 11025 Hz (Apple engine only supports 8k/11.025k).
+ *  - Native synth is 11025 Hz normally; a self-validating probe at session
+ *    open tests ECI rate index 2, and when the engine truly renders 22050
+ *    (PCM length ~2x), 16 kHz output downsamples genuine content instead
+ *    of upsampling. 8 kHz renders natively when accepted. Anything but
+ *    proof falls back to 11025, so this can never break normal output.
  *  - Output rate is 8000 / 11025 / 16000 (see setSampleRate). 16000 upsamples
  *    the native PCM and runs the ported 16 kHz presence+air DSP below.
  *  - Dictionaries are no-ops: vvtts_core exposes no eci dict APIs. The Kotlin
@@ -68,6 +72,12 @@ class AppleEngine private constructor(val language: Int) {
    *  True is s1 (+9 dB), false is s0 (+1.5 dB). Unused below 16 kHz. */
   private var presenceS1 = true
 
+  /** True when this session proved it renders native 22050 Hz (rate index
+   *  2): the probe below synthesizes one calibration word at both rates
+   *  and only trusts a ~2x PCM length ratio. Then 16 kHz output downsamples
+   *  real content instead of upsampling 11 kHz. */
+  private var native22k = false
+
   /** Replace the dictionary set (called with the flattened word maps). */
   fun setSubstitutions(map: Map<String, String>) = synchronized(guard) {
     if (!closed) substitutions = map
@@ -81,6 +91,7 @@ class AppleEngine private constructor(val language: Int) {
   companion object {
     private const val TAG = "evvdroid-apple"
     const val NATIVE_RATE = 11025
+    const val NATIVE_22K = 22050
     const val OUTPUT_16K = 16000
     const val OUTPUT_8K = 8000
 
@@ -295,6 +306,7 @@ class AppleEngine private constructor(val language: Int) {
         // tags are interpreted instead of spoken (openevv enables the same
         // PARAM_INPUT_TYPE on its path; Apple defaults it off).
         VvttsCore.setParam(h, Eci.PARAM_INPUT_TYPE, 1)
+        native22k = probe22k(ctx.cacheDir)
         true
       }
     } catch (e: Throwable) {
@@ -302,6 +314,39 @@ class AppleEngine private constructor(val language: Int) {
       // failed load arrives as Error, and must degrade to "no engine"
       // rather than killing the caller (settings screen included).
       Log.e(TAG, "Apple engine init failed", e)
+      false
+    }
+  }
+
+  /**
+   * Tests whether this session really renders 22050 Hz (ECI rate index 2).
+   * Upstream claims Apple refuses it; instead of trusting that, synthesize
+   * one ASCII calibration word at both rates and trust only a ~2x PCM
+   * length ratio. Refusal, empty output, a crash — anything but proof —
+   * restores index 1 and answers false, so this can never break 11 kHz.
+   */
+  private fun probe22k(cacheDir: File): Boolean {
+    val h = handle
+    if (h == 0L) return false
+    return try {
+      val cal = "test".toByteArray(Charsets.US_ASCII)
+      val charsetId = if (language == 0x60000) VvttsCore.CHARSET_GBK else VvttsCore.CHARSET_1252
+      val out = File(cacheDir, "core_probe_out").absolutePath
+      VvttsCore.setParam(h, Eci.PARAM_SAMPLE_RATE, 1)
+      val pcm11 = VvttsCore.synth(h, language, cal, charsetId, out)
+      VvttsCore.setParam(h, Eci.PARAM_SAMPLE_RATE, 2)
+      val pcm22 = VvttsCore.synth(h, language, cal, charsetId, out)
+      val ratio = if (pcm11 != null && pcm11.isNotEmpty() && pcm22 != null && pcm22.isNotEmpty()) {
+        pcm22.size.toDouble() / pcm11.size.toDouble()
+      } else -1.0
+      val ok = ratio in 1.7..2.3
+      if (!ok) VvttsCore.setParam(h, Eci.PARAM_SAMPLE_RATE, 1)
+      Log.i(TAG, "22k probe 0x%08x: %s (11k=%d 22k=%d)".format(
+        language, if (ok) "NATIVE" else "unavailable", pcm11?.size ?: -1, pcm22?.size ?: -1))
+      ok
+    } catch (t: Throwable) {
+      runCatching { VvttsCore.setParam(handle, Eci.PARAM_SAMPLE_RATE, 1) }
+      Log.w(TAG, "22k probe failed, staying at 11025", t)
       false
     }
   }
@@ -432,17 +477,38 @@ class AppleEngine private constructor(val language: Int) {
       return false
     }
     val charsetId = if (language == 0x60000) VvttsCore.CHARSET_GBK else VvttsCore.CHARSET_1252
+    // Native render rate: 22050 when the probe proved it (16 kHz output
+    // only — genuine content downsampled, never upsampled), native 8000
+    // for 8 kHz output, else 11025. Upsampling stays as the last resort.
+    val renderIdx = when {
+      sampleRateHz == OUTPUT_16K && native22k -> 2
+      sampleRateHz == OUTPUT_8K -> 0
+      else -> 1
+    }
+    VvttsCore.setParam(handle, Eci.PARAM_SAMPLE_RATE, renderIdx)
     val ctx = appContext ?: return false
     val outFile = File(ctx.cacheDir, "core_pcm_out")
-    val native: ShortArray =
-      VvttsCore.synth(handle, language, encoded, charsetId, outFile.absolutePath)
-        ?: return false
+    var pcm = VvttsCore.synth(handle, language, encoded, charsetId, outFile.absolutePath)
+    var renderedRate = when (renderIdx) {
+      2 -> NATIVE_22K
+      0 -> OUTPUT_8K
+      else -> NATIVE_RATE
+    }
+    if (pcm == null && renderIdx == 0) {
+      Log.w(TAG, "native 8k refused, falling back to 11025 render")
+      VvttsCore.setParam(handle, Eci.PARAM_SAMPLE_RATE, 1)
+      pcm = VvttsCore.synth(handle, language, encoded, charsetId, outFile.absolutePath)
+      renderedRate = NATIVE_RATE
+    }
+    val native = pcm ?: return false
     if (aborted) return false
-    // Output stage: native 11025 always; 16k upsamples (cubic) + presence/air
-    // DSP (ported from the IBMTTS-16k-tune NVDA driver), 8k downsamples.
-    val outPcm: ShortArray = when (sampleRateHz) {
-      OUTPUT_16K -> dsp16k(resampleLinear(native, NATIVE_RATE, OUTPUT_16K), presenceS1)
-      OUTPUT_8K -> resampleLinear(native, NATIVE_RATE, OUTPUT_8K)
+    // Output stage: 22k renders downsample (real content) + presence/air
+    // DSP; 8k native passes through; 11k renders upsample only at 16k.
+    val outPcm: ShortArray = when {
+      renderedRate == NATIVE_22K -> dsp16k(resampleLinear(native, NATIVE_22K, OUTPUT_16K), presenceS1)
+      renderedRate == OUTPUT_8K -> native
+      sampleRateHz == OUTPUT_16K -> dsp16k(resampleLinear(native, NATIVE_RATE, OUTPUT_16K), presenceS1)
+      sampleRateHz == OUTPUT_8K -> resampleLinear(native, NATIVE_RATE, OUTPUT_8K)
       else -> native
     }
     val bytes = ByteArray(outPcm.size * 2)
