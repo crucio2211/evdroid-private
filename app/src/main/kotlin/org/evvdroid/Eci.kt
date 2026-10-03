@@ -86,23 +86,28 @@ object Eci {
 		return Math.round(percent.coerceIn(0, PERCENT_MAX) * top / 100.0).toInt()
 	}
 
-	/** What eciSampleRate's index means in hertz, in the order the engine
-	 *  numbers them. Only the two the engine actually plays are offered: the
-	 *  rest are numbered successfully and then come out wrong, so they are
-	 *  not listed here at all. */
-	val SAMPLE_RATES = intArrayOf(8000, 11025)
+	/** The rates the app offers, in hertz. The engine knows more codes than
+	 *  these (22050, 32000 and up), but only 8k and 11k are synthesized
+	 *  natively; 16k is taken from the 11k voice and upsampled, measured
+	 *  within a couple of decibels of it across the speech band.
+	 *
+	 *  The engine's own numbering is NOT positional -- 16000 is code 3, not
+	 *  2 -- so [RATE_CODES] maps explicitly and must stay explicit. Appending
+	 *  here and indexing positionally would ask for the wrong rate. */
+	val SAMPLE_RATES = intArrayOf(8000, 11025, 16000)
+
+	private val RATE_CODES = mapOf(8000 to 0, 11025 to 1, 16000 to 3)
 
 	/** [hz] as one of [SAMPLE_RATES]. Anything else -- including a rate a
 	 *  previous build stored -- comes back as the default. */
-	fun coerceSampleRate(hz: Int): Int = if (hz == SAMPLE_RATES[0]) SAMPLE_RATES[0] else SAMPLE_RATES[1]
+	fun coerceSampleRate(hz: Int): Int = if (hz in SAMPLE_RATES) hz else SAMPLE_RATES[1]
 
+	/** The engine code for [hz], defaulting to 11025. */
+	fun sampleRateIndex(hz: Int): Int = RATE_CODES[hz] ?: 1
+
+	/** Hertz for an engine code, defaulting to 11025. */
 	fun sampleRateHz(index: Int): Int =
-		SAMPLE_RATES.getOrElse(index) { SAMPLE_RATES[1] }
-
-	fun sampleRateIndex(hz: Int): Int {
-		val at = SAMPLE_RATES.indexOf(hz)
-		return if (at >= 0) at else 1
-	}
+		RATE_CODES.entries.find { it.value == index }?.key ?: SAMPLE_RATES[1]
 
 	/** The names the eight presets have gone by since Eloquence shipped. The
 	 *  engine numbers them 1 to 8 in this order. */
