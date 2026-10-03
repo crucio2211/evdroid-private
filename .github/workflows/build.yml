@@ -87,6 +87,7 @@ jobs:
         with:
           name: evvdroid-release
           path: app/build/outputs/apk/release/*.apk
+          retention-days: 14
 
   build-apple:
     name: apple-engine APK (personal)
@@ -132,3 +133,4 @@ jobs:
         with:
           name: evvdroid-apple-release
           path: app/build/outputs/apk/release/*.apk
+          retention-days: 14
