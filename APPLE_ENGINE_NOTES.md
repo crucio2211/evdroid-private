@@ -127,6 +127,10 @@ Ported (`AppleEngine` companion):
   go straight to DSP with no resampling at all. (Also proven dangerous
   to skip: `vvtts_voice.c`'s `eci+224` is `ECIstate*`, not `SynthThread*`,
   on Apple libeci — Guangrong offsets do not transfer.)
+- NDK is optional for Apple builds: with one, `build-apple-rate.sh`
+  compiles `evv_rate.c` fresh; without one it copies the checked-in
+  `native/prebuilt-rate/arm64-v8a/libevvrate.so` (our own 4 KB bridge).
+  Small local setups (JDK + SDK only, no NDK) can build.
 
 - `resampleLinear`: 11025 -> 16000 bandlimited windowed-sinc (32 taps,
   Hann, 256 phases, cached per rate pair, unity-gain rows) — replaces

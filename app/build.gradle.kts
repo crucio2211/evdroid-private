@@ -92,6 +92,7 @@ val buildAppleRate by tasks.registering(Exec::class) {
 	val script = rootProject.layout.projectDirectory.file("native/build-apple-rate.sh")
 	inputs.file(script)
 	inputs.file(layout.projectDirectory.file("src/main/cpp/evv_rate.c"))
+	inputs.file(rootProject.layout.projectDirectory.file("native/prebuilt-rate/arm64-v8a/libevvrate.so"))
 	outputs.dir(nativeOut)
 	val shell = if (OperatingSystem.current().isWindows) {
 		val git = System.getenv("PROGRAMFILES")?.let { file("$it/Git/bin/bash.exe") }
