@@ -93,6 +93,15 @@ class AppleEngine private constructor(val language: Int) {
   var lastRender = "native 11 kHz"
     private set
 
+  /** Per-probe one-liners (return codes, ratios, HF witnesses) for the
+   *  on-device indicator — no logcat needed to see why 16 kHz won or lost. */
+  @Volatile
+  var probe16kSummary = ""
+    private set
+  @Volatile
+  var probe22kSummary = ""
+    private set
+
   private external fun nativeNewAudioFormat(sessionHandle: Long, rateHz: Int): Int
 
   /** Replace the dictionary set (called with the flattened word maps). */
@@ -406,24 +415,32 @@ class AppleEngine private constructor(val language: Int) {
       val out = File(ctx.cacheDir, "core_probe_out").absolutePath
       VvttsCore.synth(h, language, CAL_TEXT, charsetId, out) // warmup, discarded
       val base = VvttsCore.synth(h, language, CAL_TEXT, charsetId, out)
-      if (base == null || base.size < 12000) return false
+      if (base == null || base.size < 12000) {
+        probe16kSummary = "fmt16k: empty baseline"
+        return false
+      }
       val ret = nativeNewAudioFormat(h, OUTPUT_16K)
       if (ret < 0) {
+        probe16kSummary = "fmt16k: refused (ret=%d)".format(ret)
         Log.i(TAG, "16k format refused for 0x%08x (ret=%d)".format(language, ret))
         return false
       }
       val hi = VvttsCore.synth(h, language, CAL_TEXT, charsetId, out)
       if (hi == null || hi.size < 15000) {
+        probe16kSummary = "fmt16k: short output (%d)".format(hi?.size ?: -1)
         Log.i(TAG, "16k probe 0x%08x: short output (%d)".format(language, hi?.size ?: -1))
         return false
       }
       val ratio = hi.size.toDouble() / base.size.toDouble()
       val hf = hfFraction(hi, OUTPUT_16K)
       val ok = ratio in 1.38..1.53 && hf > 0.01
+      probe16kSummary = "fmt16k: ret=%d ratio=%.3f hf=%.4f %s".format(
+        ret, ratio, hf, if (ok) "NATIVE" else "unproven")
       Log.i(TAG, "16k probe 0x%08x: %s (11k=%d 16k=%d ratio=%.3f hf=%.4f)".format(
         language, if (ok) "NATIVE" else "unproven", base.size, hi.size, ratio, hf))
       ok
     } catch (t: Throwable) {
+      probe16kSummary = "fmt16k: exception"
       Log.w(TAG, "16k probe failed", t)
       false
     }
@@ -444,10 +461,14 @@ class AppleEngine private constructor(val language: Int) {
       VvttsCore.setParam(h, Eci.PARAM_SAMPLE_RATE, 1)
       VvttsCore.synth(h, language, CAL_TEXT, charsetId, out) // warmup, discarded
       val pcm11 = VvttsCore.synth(h, language, CAL_TEXT, charsetId, out)
-      if (pcm11 == null || pcm11.size < 12000) return false
+      if (pcm11 == null || pcm11.size < 12000) {
+        probe22kSummary = "idx2: empty baseline"
+        return false
+      }
       VvttsCore.setParam(h, Eci.PARAM_SAMPLE_RATE, 2)
       val pcm22 = VvttsCore.synth(h, language, CAL_TEXT, charsetId, out)
       if (pcm22 == null || pcm22.size < 20000) {
+        probe22kSummary = "idx2: short output (%d)".format(pcm22?.size ?: -1)
         VvttsCore.setParam(h, Eci.PARAM_SAMPLE_RATE, 1)
         return false
       }
@@ -455,10 +476,13 @@ class AppleEngine private constructor(val language: Int) {
       val hf = hfFraction(pcm22, NATIVE_22K)
       val ok = ratio in 1.9..2.1 && hf > 0.01
       if (!ok) VvttsCore.setParam(h, Eci.PARAM_SAMPLE_RATE, 1)
+      probe22kSummary = "idx2: ratio=%.3f hf=%.4f %s".format(
+        ratio, hf, if (ok) "NATIVE" else "unavailable")
       Log.i(TAG, "22k probe 0x%08x: %s (11k=%d 22k=%d ratio=%.3f hf=%.4f)".format(
         language, if (ok) "NATIVE" else "unavailable", pcm11.size, pcm22.size, ratio, hf))
       ok
     } catch (t: Throwable) {
+      probe22kSummary = "idx2: exception"
       runCatching { VvttsCore.setParam(handle, Eci.PARAM_SAMPLE_RATE, 1) }
       Log.w(TAG, "22k probe failed, staying at 11025", t)
       false

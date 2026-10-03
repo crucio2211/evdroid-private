@@ -271,9 +271,13 @@ class EvvEngine private constructor(
 	}
 
 	/** What the last utterance actually rendered as (Apple path), e.g.
-	 *  "native 16 kHz". Empty on the openevv path. */
+	 *  "native 16 kHz", plus the probe one-liners behind it. Empty on the
+	 *  openevv path. */
 	fun renderInfo(): String = synchronized(guard) {
-		apple?.lastRender ?: ""
+		val a = apple ?: return ""
+		val probes = listOf(a.probe16kSummary, a.probe22kSummary)
+			.filter { it.isNotEmpty() }.joinToString("; ")
+		return if (probes.isEmpty()) a.lastRender else "${a.lastRender} (${probes})"
 	}
 
 	fun close() = synchronized(guard) {

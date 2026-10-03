@@ -106,9 +106,14 @@ Ported (`AppleEngine` companion):
 - Leaving 16 kHz output reopens a fresh 11 kHz session (`reopenClean`),
   so a format can never leak into other rates. Rate discovery is lazy
   (first 16 kHz utterance per session); 11k/8k users pay no probe synths.
-- On-device indicator: settings shows "Output: native 16 kHz" (or
-  "native 22 kHz downsampled", "native 11 kHz (16k unproven)", ...) after
-  the first sample is spoken — no logcat needed to see which path won.
+- On-device probe report: the settings "Output:" line now carries the
+  probe one-liners (`fmt16k: ret=.. ratio=.. hf=..`, `idx2: ...`), so a
+  lost 16 kHz is diagnosable without logcat.
+- Versus the `Apple-Eloquence-ELF` fork's "16000 Hz (ECI test)" mode
+  (trust `eciSetParam(5,2)` return >= 0): a bare acceptance is NOT
+  trusted here, because an accepted-but-unrendered switch reports 16 kHz
+  over 11 kHz PCM — chipmunk. Only PCM proof (length ratio + HF energy)
+  engages a native path.
 
 - Native-22k probe (`probe22k`): at session open, one ASCII word is
   synthesized at rate index 1 and 2; only a ~2x PCM length ratio trusts
