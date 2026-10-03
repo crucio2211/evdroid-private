@@ -43,6 +43,7 @@ class EvvTtsService : TextToSpeechService() {
 	private var regexEnabled = false
 
 	override fun onCreate() {
+		EvvEngine.init(this)
 		settings = Settings(this)
 		super.onCreate()
 		// The emoji table builds on first touch, which

@@ -1,5 +1,6 @@
 package org.evvdroid
 
+import android.content.Context
 import android.util.Log
 
 /**
@@ -7,8 +8,17 @@ import android.util.Log
  *
  * Everything but [stop] is called from the synthesis thread. [stop] comes from
  * whichever thread asked, which the native side is written for.
+ *
+ * Apple-engine mode (BuildConfig.APPLE_ENGINE, -Pevvdroid.engine=apple):
+ * delegates to [AppleEngine] which uses the prebuilt Apple-derived libs.
+ * Otherwise uses openevv via [EvvNative]. Public API is unchanged so
+ * EvvTtsService / EvvPreview / SettingsModel keep working.
  */
-class EvvEngine private constructor(private var handle: Long, val language: Int) {
+class EvvEngine private constructor(
+  private var handle: Long,
+  val language: Int,
+  private var apple: AppleEngine?
+) {
 
 	private val guard = Any()
 
@@ -33,19 +43,44 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 	companion object {
 		private const val TAG = "evvdroid"
 
+		fun init(context: Context) {
+			AppleEngine.init(context)
+		}
+
+		val isApple: Boolean get() = BuildConfig.APPLE_ENGINE
+
 		val available: IntArray by lazy {
-			if (!EvvNative.loaded) IntArray(0) else runCatching { EvvNative.languages() }
-				.onFailure { Log.e(TAG, "cannot ask for languages", it) }
-				.getOrDefault(IntArray(0))
+			if (isApple) {
+				AppleEngine.availableDialects
+			} else {
+				if (!EvvNative.loaded) IntArray(0) else runCatching { EvvNative.languages() }
+					.onFailure { Log.e(TAG, "cannot ask for languages", it) }
+					.getOrDefault(IntArray(0))
+			}
 		}
 
 		val version: String by lazy {
-			if (!EvvNative.loaded) "" else runCatching { EvvNative.version() }.getOrDefault("")
+			if (isApple) {
+				AppleEngine.VERSION
+			} else {
+				if (!EvvNative.loaded) "" else runCatching { EvvNative.version() }.getOrDefault("")
+			}
 		}
 
 		/** Makes an instance speaking [language], which is one of the words
-		 *  eciGetAvailableLanguages answered with and nothing else. */
+		 *  eciGetAvailableLanguages answered with and nothing else (openevv),
+		 *  or one of AppleEngine.availableDialects (apple mode). */
 		fun open(language: Int): EvvEngine? {
+			if (isApple) {
+				val a = AppleEngine.open(language)
+				if (a == null) {
+					Log.e(TAG, "no Apple engine instance for language 0x%08x".format(language))
+					return null
+				}
+				return EvvEngine(0L, language, a).apply {
+					sampleRateHz = a.sampleRateHz
+				}
+			}
 			if (!EvvNative.loaded) {
 				Log.e(TAG, "the native library did not load", EvvNative.loadError)
 				return null
@@ -55,11 +90,12 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 				Log.e(TAG, "no engine instance for language 0x%08x".format(language))
 				return null
 			}
-		return EvvEngine(handle, language).apply { configure() }
+		return EvvEngine(handle, language, null).apply { configure() }
 	}
 }
 
 	private fun configure() {
+		apple?.let { return }
 		EvvNative.setParam(handle, Eci.PARAM_LANGUAGE_DIALECT, language)
 		EvvNative.setParam(handle, Eci.PARAM_SYNTH_MODE, 0)
 		EvvNative.setParam(handle, Eci.PARAM_REAL_WORLD_UNITS, 0)
@@ -72,6 +108,7 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 	}
 
 	fun setSampleRate(hz: Int) = synchronized(guard) {
+		apple?.let { it.setSampleRate(hz); sampleRateHz = it.sampleRateHz; return }
 		if (closed) return
 		val index = Eci.sampleRateIndex(hz)
 		EvvNative.setParam(handle, Eci.PARAM_SAMPLE_RATE, index)
@@ -79,6 +116,7 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 	}
 
 	fun setAnnotations(on: Boolean) = synchronized(guard) {
+		apple?.let { it.setAnnotations(on); return }
 		if (!closed) EvvNative.setParam(handle, Eci.PARAM_INPUT_TYPE, if (on) 1 else 0)
 	}
 
@@ -86,6 +124,7 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 	 *  Nought turns it on: that is the engine's own sense of the setting and
 	 *  not a mistake here. */
 	fun setAbbreviations(on: Boolean) = synchronized(guard) {
+		apple?.let { it.setAbbreviations(on); return }
 		if (!closed) EvvNative.setParam(handle, Eci.PARAM_DICTIONARY, if (on) 0 else 1)
 	}
 
@@ -93,6 +132,7 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 	 *  the voice being spoken in. This is what the settings screen shows, so a
 	 *  slider starts at the voice's own number rather than at one of ours. */
 	fun presetShape(index: Int): Map<Int, Int> = synchronized(guard) {
+		apple?.let { return it.presetShape(index) }
 		if (closed) return emptyMap()
 		val preset = (index + Eci.FIRST_PRESET).coerceIn(Eci.FIRST_PRESET, Eci.LAST_PRESET)
 		val out = LinkedHashMap<Int, Int>()
@@ -113,6 +153,7 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 	 * nobody has chosen otherwise.
 	 */
 	fun applyVoice(index: Int, shape: Map<Int, Int> = emptyMap()): Boolean = synchronized(guard) {
+		apple?.let { return it.applyVoice(index, shape) }
 		if (closed) return false
 		val preset = (index + Eci.FIRST_PRESET).coerceIn(Eci.FIRST_PRESET, Eci.LAST_PRESET)
 		// A voice is written rather than annotated, so it can be refused: the
@@ -149,6 +190,7 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 	 *  it, so 100% changes nothing. Neither is written: [speak] sends both in
 	 *  front of the words, for the reason [Prosody] gives. */
 	fun setRatePercent(percent: Int) = synchronized(guard) {
+		apple?.let { it.setRatePercent(percent); return }
 		if (closed || baseSpeed < 0) return
 		// Not baseSpeed * percent. The engine's speed scale is nothing like
 		// linear in how fast it speaks, so SpeechRate does the conversion.
@@ -156,30 +198,36 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 	}
 
 	fun setPitchPercent(percent: Int) = synchronized(guard) {
+		apple?.let { it.setPitchPercent(percent); return }
 		if (closed || basePitch < 0) return
 		wantPitch = (basePitch.toLong() * percent / 100).toInt().coerceIn(0, Eci.PERCENT_MAX)
 	}
 
 	fun getVoiceParam(param: Int): Int = synchronized(guard) {
+		apple?.let { return it.getVoiceParam(param) }
 		if (closed) -1 else EvvNative.getVoiceParam(handle, Eci.VOICE_CURRENT, param)
 	}
 
 	/** Hands a file to the engine's own dictionary loader. Nought is success. */
 	fun loadDictionary(volume: Int, path: String): Int = synchronized(guard) {
+		apple?.let { return it.loadDictionary(volume, path) }
 		if (closed) -1 else EvvNative.loadDictionary(handle, volume, path)
 	}
 
 	fun teachWord(volume: Int, key: String, say: String): Int = synchronized(guard) {
+		apple?.let { return it.teachWord(volume, key, say) }
 		if (closed) -1 else EvvNative.teachWord(
 			handle, volume, EngineText.encode(language, key), EngineText.encode(language, say)
 		)
 	}
 
 	fun lookUpWord(volume: Int, key: String): String? = synchronized(guard) {
+		apple?.let { return it.lookUpWord(volume, key) }
 		if (closed) null else EvvNative.lookUpWord(handle, volume, EngineText.encode(language, key))
 	}
 
 	fun forgetDictionaries() = synchronized(guard) {
+		apple?.let { it.forgetDictionaries(); return }
 		if (!closed) EvvNative.forgetDictionaries(handle)
 	}
 
@@ -188,6 +236,7 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 	 *  the voice, so that an utterance carries its own and nothing is left to
 	 *  be refused. */
 	fun speak(text: String): Boolean = synchronized(guard) {
+		apple?.let { return it.speak(text) }
 		if (closed) return false
 		val ask = if (wantSpeed >= 0 && wantPitch >= 0) Prosody.voice(wantSpeed, wantPitch) else ""
 		return EvvNative.speak(handle, EngineText.encode(language, ask + text))
@@ -196,15 +245,18 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 	/** Bytes of PCM, blocking until there are some. 0 ends the utterance and
 	 *  -1 says it was stopped. */
 	fun read(into: ByteArray): Int {
+		apple?.let { return it.read(into) }
 		if (closed) return -1
 		return EvvNative.read(handle, into)
 	}
 
 	fun stop() = synchronized(guard) {
+		apple?.let { it.stop(); return }
 		if (!closed) EvvNative.stop(handle)
 	}
 
 	fun close() = synchronized(guard) {
+		apple?.let { it.close(); closed = true; return }
 		if (closed) return
 		closed = true
 		EvvNative.destroy(handle)

@@ -10,6 +10,10 @@ val abis = (findProperty("evvdroid.abis") as String? ?: "arm64-v8a,armeabi-v7a,x
 	.split(",").map { it.trim() }.filter { it.isNotEmpty() }
 val rulesForm = findProperty("evvdroid.rules") as String? ?: "c"
 val languages = findProperty("evvdroid.langs") as String? ?: "lang/enus"
+// Apple-engine full-swap mode: -Pevvdroid.engine=apple uses prebuilt
+// Apple-derived libs (downloaded at build time, never committed) instead of
+// compiling openevv. See APPLE_ENGINE_NOTES.md. Personal builds only.
+val appleEngine = (findProperty("evvdroid.engine") as String? ?: "openevv") == "apple"
 // CI passes its run number so every build installs as an update over the
 // last: same versionCode twice and Android may keep the old APK in place.
 val versionCodeNumber = (findProperty("evvdroid.versionCode") as String?)?.toIntOrNull() ?: 1
@@ -22,6 +26,7 @@ val nativeOut = layout.buildDirectory.dir("native/jniLibs")
 val buildNative by tasks.registering(Exec::class) {
 	group = "build"
 	description = "Cross-compiles the openevv engine and the JNI bridge for each ABI."
+	onlyIf { !appleEngine }
 	val engine = rootProject.layout.projectDirectory.dir("native/openevv")
 	val script = rootProject.layout.projectDirectory.file("native/build-native.sh")
 	// Deliberately not the engine's own sources. The script patches them, so a
@@ -59,6 +64,25 @@ val buildNative by tasks.registering(Exec::class) {
 	}
 }
 
+// Apple-engine mode: download prebuilt Apple-derived libs at build time.
+// Never committed (personal builds only). See APPLE_ENGINE_NOTES.md.
+val fetchAppleLibs by tasks.registering(Exec::class) {
+	group = "build"
+	description = "Downloads prebuilt Apple Eloquence libs for -Pevvdroid.engine=apple."
+	onlyIf { appleEngine }
+	val script = rootProject.layout.projectDirectory.file("native/fetch-apple-libs.sh")
+	inputs.file(script)
+	outputs.dir(nativeOut)
+	val shell = if (OperatingSystem.current().isWindows) {
+		val git = System.getenv("PROGRAMFILES")?.let { file("$it/Git/bin/bash.exe") }
+		if (git != null && git.exists()) git.absolutePath else "bash"
+	} else {
+		"bash"
+	}
+	commandLine(shell, script.asFile.absolutePath)
+	environment("OUT", nativeOut.get().asFile.absolutePath)
+}
+
 android {
 	namespace = "org.evvdroid"
 	compileSdk = 36
@@ -71,6 +95,7 @@ android {
 		versionCode = versionCodeNumber
 		versionName = versionNameText
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+		buildConfigField("boolean", "APPLE_ENGINE", appleEngine.toString())
 		// The UI is English-only; AndroidX libraries ship strings for a
 		// hundred locales the app never shows.
 		resConfigs("en")
@@ -168,7 +193,7 @@ android {
 }
 
 tasks.named("preBuild") {
-	dependsOn(buildNative)
+	if (appleEngine) dependsOn(fetchAppleLibs) else dependsOn(buildNative)
 }
 
 dependencies {

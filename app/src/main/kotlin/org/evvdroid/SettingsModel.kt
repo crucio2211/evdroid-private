@@ -98,6 +98,7 @@ class SettingsModel(context: Context) {
 	}
 
 	init {
+		EvvEngine.init(app)
 		ensurePreview(EvvEngine.available.firstOrNull())
 		preview?.open {
 			// A voice's own settings are what the sliders start at, and only
