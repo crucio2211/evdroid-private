@@ -20,6 +20,11 @@
 	<string name="speak_label">Speak a sample</string>
 	<string name="reset_label">Reset voice to defaults</string>
 
+	<string name="force_rate_label">Force speech rate</string>
+	<string name="forced_rate_label">Speech rate</string>
+	<string name="force_pitch_label">Force pitch</string>
+	<string name="forced_pitch_label">Pitch</string>
+
 	<string name="pauses_label">Pauses</string>
 	<string name="pauses_keep">Do not shorten</string>
 	<string name="pauses_end">Shorten at end of text</string>
@@ -83,10 +88,6 @@
 
 	<string name="audio_volume_label">Output volume</string>
 	<string name="audio_limiter_label">Limit loud peaks</string>
-	<string name="audio_bass_label">Bass</string>
-	<string name="audio_treble_label">Treble</string>
-	<string name="decibel_value">%1$d dB</string>
-	<string name="decibel_spoken">%1$d decibels</string>
 
 	<string name="percent">%1$d%%</string>
 	<string name="percent_spoken">%1$d percent</string>

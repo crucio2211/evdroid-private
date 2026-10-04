@@ -67,8 +67,16 @@ class EvvPreview(private val language: Int) {
 
 	/** Says [text] in [voice] with [shape] on it, stopping whatever was being
 	 *  said. The output stage follows [audio], so the sample is heard the way
-	 *  TalkBack will hear it. */
-	fun say(text: String, voice: Int, shape: Map<Int, Int>, rateHz: Int, audio: AudioOutput.Snapshot = AudioOutput.Snapshot()) {
+	 *  TalkBack will hear it, and a forced rate or pitch is heard too. */
+	fun say(
+		text: String,
+		voice: Int,
+		shape: Map<Int, Int>,
+		rateHz: Int,
+		audio: AudioOutput.Snapshot = AudioOutput.Snapshot(),
+		ratePercent: Int? = null,
+		pitchPercent: Int? = null
+	) {
 		// Whatever is being said stops first, and the turn this utterance
 		// belongs to is taken after that -- stopping is what moves the count
 		// on, so reading it first would leave this utterance holding a number
@@ -80,6 +88,8 @@ class EvvPreview(private val language: Int) {
 			val e = engine ?: EvvEngine.open(language)?.also { engine = it } ?: return@post
 			e.setSampleRate(rateHz)
 			e.applyVoice(voice, shape)
+			ratePercent?.let { e.setRatePercent(it) }
+			pitchPercent?.let { e.setPitchPercent(it) }
 			if (!e.speak(text)) {
 				Log.e(TAG, "the engine refused the sample")
 				return@post
@@ -116,7 +126,7 @@ class EvvPreview(private val language: Int) {
 		track = t
 		t.play()
 		val buffer = ByteArray(CHUNK)
-		val chain = AudioOutput.Chain(e.sampleRateHz, audio)
+		val chain = AudioOutput.Chain(audio)
 		var written = 0L
 		while (mine == generation) {
 			val n = e.read(buffer)

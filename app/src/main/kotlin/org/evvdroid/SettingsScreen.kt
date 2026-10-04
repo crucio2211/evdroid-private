@@ -3,7 +3,6 @@ package org.evvdroid
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -20,7 +21,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -32,24 +32,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
-import kotlin.math.roundToInt
 
 /**
  * Every setting the engine has, and a button to hear them.
@@ -58,7 +48,9 @@ import kotlin.math.roundToInt
  *
  * A control is one thing to stop at. A label, a bar and a number are three
  * stops for a screen reader, so each row merges into a single node that says
- * what it is and what it is set to, and adjusts in place.
+ * what it is and what it is set to. A number row opens a dialog listing every
+ * value instead of a slider: holding an arrow to travel a slider is tiring,
+ * while a dialog opens at the value in force.
  *
  * And the numbers are percentages. The engine's speed runs to 250 and the
  * rest to a hundred, and a bare number leaves it to the listener to remember
@@ -101,18 +93,52 @@ fun SettingsScreen(state: SettingsModel) {
 					onChoose = { state.chooseForcedLanguage(state.languageOptions[it]) }
 				)
 			}
-			Gap()
-			for (param in Settings.SLIDERS) {
-				SliderRow(
-					label = stringResource(labelOf(param)),
-					percent = state.percentOf(param),
-					onPercent = { state.setPercent(param, it) },
-					onStep = { state.stepPercent(param, it) }
-				)
-			}
-			Gap()
-			ActionRow(stringResource(R.string.speak_label), state::say)
-			ActionRow(stringResource(R.string.reset_label), state::resetVoice)
+		Gap()
+		for (param in Settings.PARAMS) {
+			NumberDialogRow(
+				label = stringResource(labelOf(param)),
+				value = state.percentOf(param),
+				min = 0,
+				max = Eci.PERCENT_MAX,
+				shown = stringResource(R.string.percent, state.percentOf(param)),
+				onChoose = { state.setPercent(param, it) }
+			)
+		}
+		Gap()
+		ActionRow(stringResource(R.string.speak_label), state::say)
+		ActionRow(stringResource(R.string.reset_label), state::resetVoice)
+
+		Gap()
+		SwitchRow(
+			label = stringResource(R.string.force_rate_label),
+			checked = state.forceRate,
+			onChange = state::chooseForceRate
+		)
+		if (state.forceRate) {
+			NumberDialogRow(
+				label = stringResource(R.string.forced_rate_label),
+				value = state.forcedRate,
+				min = 0,
+				max = Eci.PERCENT_MAX,
+				shown = stringResource(R.string.percent, state.forcedRate),
+				onChoose = state::chooseForcedRate
+			)
+		}
+		SwitchRow(
+			label = stringResource(R.string.force_pitch_label),
+			checked = state.forcePitch,
+			onChange = state::chooseForcePitch
+		)
+		if (state.forcePitch) {
+			NumberDialogRow(
+				label = stringResource(R.string.forced_pitch_label),
+				value = state.forcedPitch,
+				min = 0,
+				max = Eci.PERCENT_MAX,
+				shown = stringResource(R.string.percent, state.forcedPitch),
+				onChoose = state::chooseForcedPitch
+			)
+		}
 
 			Gap()
 			ChoiceRow(
@@ -238,38 +264,18 @@ fun SettingsScreen(state: SettingsModel) {
 			onChoose = { state.chooseSampleRate(SettingsModel.RATES[it]) }
 		)
 		Gap()
-		SliderRow(
+		NumberDialogRow(
 			label = stringResource(R.string.audio_volume_label),
-			percent = state.audioVolume,
-			onPercent = state::chooseAudioVolume,
-			onStep = state::stepAudioVolume,
+			value = state.audioVolume,
 			min = AudioOutput.VOLUME_MIN,
-			max = AudioOutput.VOLUME_MAX
+			max = AudioOutput.VOLUME_MAX,
+			shown = stringResource(R.string.percent, state.audioVolume),
+			onChoose = state::chooseAudioVolume
 		)
 		SwitchRow(
 			label = stringResource(R.string.audio_limiter_label),
 			checked = state.audioLimiter,
 			onChange = state::chooseAudioLimiter
-		)
-		SliderRow(
-			label = stringResource(R.string.audio_bass_label),
-			percent = state.audioBass,
-			onPercent = state::chooseAudioBass,
-			onStep = state::stepAudioBass,
-			min = AudioOutput.TONE_MIN_DB,
-			max = AudioOutput.TONE_MAX_DB,
-			shown = stringResource(R.string.decibel_value, state.audioBass),
-			spoken = stringResource(R.string.decibel_spoken, state.audioBass)
-		)
-		SliderRow(
-			label = stringResource(R.string.audio_treble_label),
-			percent = state.audioTreble,
-			onPercent = state::chooseAudioTreble,
-			onStep = state::stepAudioTreble,
-			min = AudioOutput.TONE_MIN_DB,
-			max = AudioOutput.TONE_MAX_DB,
-			shown = stringResource(R.string.decibel_value, state.audioTreble),
-			spoken = stringResource(R.string.decibel_spoken, state.audioTreble)
 		)
 		Gap()
 			Text(
@@ -313,88 +319,66 @@ private fun Gap() {
 }
 
 /**
- * A label, the value it is at, and a bar, as one thing.
+ * A label and the value it is at; activating it opens a dialog listing every
+ * value it can take.
  *
- * clearAndSetSemantics throws away what the label and the bar would each have
- * said and puts one control there instead: the name, the value, the range it
- * moves in, and how to move it. Without it a reader finds the text and the bar
- * separately and neither says what the other is.
- *
- * The row takes the keyboard, and the bar inside it does not. A bar that keeps
- * a focus of its own is a second place for the keyboard to be, invisible to a
- * screen reader because the semantics here are the row's: tabbing lands on a
- * bar nothing announces, and its own answer to the End key is to go to the
- * maximum, so a setting moves with nothing said about it. So the bar is taken
- * out of the tab order and the row answers the keys itself.
- *
- * A key press moves it by one. TalkBack adjusts any slider by a twentieth of
- * the range it is given, so its own arrow key asks for five percent here
- * whatever the steps say, and the number of steps is not part of what the
- * platform is told. Five percent of the speed scale is the difference between
- * too slow to bear and faster than was wanted, so a request to move is read as
- * a request to move one rather than as the number it carries.
- *
- * [min] and [max] move the row off percentages: the output volume runs to two
- * hundred and the tone controls run negative. [shown] and [spoken] say the
- * value when a percent is not what it is; a null either way falls back to
- * percents.
+ * Sliders were here before, and holding an arrow on one to travel from twenty
+ * to eighty is tiring: every step speaks and every step is a stop. A dialog
+ * opens at the value in force, so reaching for a nearby one is a few moves.
+ * The list is lazy because two hundred rows composed at once would stall the
+ * opening, and it is one row on the screen rather than three stops the way a
+ * label, a bar and a number are.
  */
 @Composable
-private fun SliderRow(
+private fun NumberDialogRow(
 	label: String,
-	percent: Int,
-	onPercent: (Int) -> Unit,
-	onStep: (Int) -> Unit,
-	min: Int = 0,
-	max: Int = Eci.PERCENT_MAX,
-	shown: String? = null,
-	spoken: String? = null
+	value: Int,
+	min: Int,
+	max: Int,
+	shown: String,
+	onChoose: (Int) -> Unit
 ) {
-	val say = spoken ?: stringResource(R.string.percent_spoken, percent)
-	val show = shown ?: stringResource(R.string.percent, percent)
-	Column(
-		modifier = Modifier
-			.fillMaxWidth()
-			.padding(horizontal = 16.dp, vertical = 8.dp)
-			.onKeyEvent { press ->
-				if (press.type != KeyEventType.KeyDown) return@onKeyEvent false
-				when (press.key) {
-					Key.DirectionLeft, Key.DirectionDown -> onStep(-1)
-					Key.DirectionRight, Key.DirectionUp -> onStep(1)
-					Key.MoveHome -> onPercent(min)
-					Key.MoveEnd -> onPercent(max)
-					else -> return@onKeyEvent false
+	var open by remember { mutableStateOf(false) }
+	ValueRow(label = label, value = shown, onClick = { open = true })
+	if (open) {
+		AlertDialog(
+			onDismissRequest = { open = false },
+			title = { Text(label) },
+			text = {
+				LazyColumn(
+					state = rememberLazyListState((value - min).coerceIn(0, max - min))
+				) {
+					items(max - min + 1, key = { min + it }) { offset ->
+						val at = min + offset
+						Row(
+							modifier = Modifier
+								.fillMaxWidth()
+								.selectable(
+									selected = at == value,
+									onClick = {
+										onChoose(at)
+										open = false
+									},
+									role = Role.RadioButton
+								)
+								.padding(vertical = 12.dp),
+							verticalAlignment = Alignment.CenterVertically
+						) {
+							RadioButton(selected = at == value, onClick = null)
+							Text(
+								text = stringResource(R.string.percent, at),
+								modifier = Modifier.padding(start = 12.dp),
+								style = MaterialTheme.typography.bodyLarge
+							)
+						}
+					}
 				}
-				true
-			}
-			.focusable()
-			.clearAndSetSemantics {
-				contentDescription = label
-				stateDescription = say
-				progressBarRangeInfo = ProgressBarRangeInfo(
-					percent.toFloat(), min.toFloat()..max.toFloat(), (max - min - 1).coerceAtLeast(0)
-				)
-				setProgress { want ->
-					val target = want.roundToInt()
-					if (target != percent) onStep(if (target > percent) 1 else -1)
-					true
+			},
+			confirmButton = {
+				TextButton(onClick = { open = false }) {
+					Text(stringResource(R.string.cancel))
 				}
 			}
-	) {
-		Text(
-			text = stringResource(
-				R.string.labelled_value,
-				label,
-				show
-			),
-			style = MaterialTheme.typography.labelLarge
-		)
-		Slider(
-			modifier = Modifier.focusProperties { canFocus = false },
-			value = percent.toFloat(),
-			onValueChange = { onPercent(it.roundToInt().coerceIn(min, max)) },
-			valueRange = min.toFloat()..max.toFloat(),
-			steps = 0
 		)
 	}
 }

@@ -10,7 +10,7 @@ import org.junit.runner.RunWith
 /** That the settings screen builds itself without falling over.
  *
  *  It reads the engine's own voices to fill itself in, and the settings are
- *  driven off one list of keys where every one is a slider, so it is a screen
+ *  driven off lists of keys where every one is a row, so it is a screen
  *  that can fail before it is ever seen. It has done, twice: once casting a
  *  choice control to a slider and once writing a number into a control that
  *  stores text.

@@ -8,18 +8,18 @@ import org.junit.runner.RunWith
 /**
  * That a step of one percent is a step.
  *
- * The sliders show percentages and the engine stores its own numbers, and a
+ * The dialogs show percentages and the engine stores its own numbers, and a
  * step goes out through one conversion and comes back through the other. Speed
  * is the one where the two scales differ: a percent is two and a half of the
  * engine's units, so a percent that rounded to the same engine number as the
- * one before it would leave the slider stuck under an arrow key.
+ * one before it would leave two dialog rows choosing the same speed.
  */
 @RunWith(AndroidJUnit4::class)
-class SliderStepTest {
+class ParamStepTest {
 
 	@Test
-	fun everyPercentOfEverySliderIsItsOwnNumber() {
-		for (param in Settings.SLIDERS) {
+	fun everyPercentOfEveryParamIsItsOwnNumber() {
+		for (param in Settings.PARAMS) {
 			for (percent in 0..Eci.PERCENT_MAX) {
 				assertEquals(
 					"param $param lost $percent percent on the way through the engine's scale",

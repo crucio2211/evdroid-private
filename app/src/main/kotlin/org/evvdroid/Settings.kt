@@ -77,30 +77,32 @@ class Settings(context: Context) {
 		get() = prefs.getBoolean(KEY_AUDIO_LIMITER, true)
 		set(value) = prefs.edit().putBoolean(KEY_AUDIO_LIMITER, value).apply()
 
-	/** Bass and treble in decibels. Nought is the engine untouched. */
-	var audioBass: Int
-		get() = prefs.getInt(KEY_AUDIO_BASS, 0)
-			.coerceIn(AudioOutput.TONE_MIN_DB, AudioOutput.TONE_MAX_DB)
-		set(value) = prefs.edit().putInt(
-			KEY_AUDIO_BASS,
-			value.coerceIn(AudioOutput.TONE_MIN_DB, AudioOutput.TONE_MAX_DB)
-		).apply()
-
-	var audioTreble: Int
-		get() = prefs.getInt(KEY_AUDIO_TREBLE, 0)
-			.coerceIn(AudioOutput.TONE_MIN_DB, AudioOutput.TONE_MAX_DB)
-		set(value) = prefs.edit().putInt(
-			KEY_AUDIO_TREBLE,
-			value.coerceIn(AudioOutput.TONE_MIN_DB, AudioOutput.TONE_MAX_DB)
-		).apply()
-
 	/** The output stage's choices as one utterance reads them. */
 	fun audioSnapshot(): AudioOutput.Snapshot = AudioOutput.Snapshot(
 		volume = audioVolume,
-		limiter = audioLimiter,
-		bassDb = audioBass,
-		trebleDb = audioTreble
+		limiter = audioLimiter
 	)
+
+	/** Whether TalkBack's speech rate is overruled by [forcedRate]. On: every
+	 *  utterance runs at the chosen pace no matter what the caller asked for. */
+	var forceRate: Boolean
+		get() = prefs.getBoolean(KEY_FORCE_RATE, false)
+		set(value) = prefs.edit().putBoolean(KEY_FORCE_RATE, value).apply()
+
+	/** The speech rate in force when [forceRate] is on, in percent of normal. */
+	var forcedRate: Int
+		get() = prefs.getInt(KEY_FORCED_RATE, DEFAULT_FORCED_RATE).coerceIn(0, Eci.PERCENT_MAX)
+		set(value) = prefs.edit().putInt(KEY_FORCED_RATE, value.coerceIn(0, Eci.PERCENT_MAX)).apply()
+
+	/** Whether TalkBack's pitch is overruled by [forcedPitch]. */
+	var forcePitch: Boolean
+		get() = prefs.getBoolean(KEY_FORCE_PITCH, false)
+		set(value) = prefs.edit().putBoolean(KEY_FORCE_PITCH, value).apply()
+
+	/** The pitch in force when [forcePitch] is on, in percent of normal. */
+	var forcedPitch: Int
+		get() = prefs.getInt(KEY_FORCED_PITCH, DEFAULT_FORCED_PITCH).coerceIn(0, Eci.PERCENT_MAX)
+		set(value) = prefs.edit().putInt(KEY_FORCED_PITCH, value.coerceIn(0, Eci.PERCENT_MAX)).apply()
 
 	/** The abbreviation dictionary. Off by default: it expands what it takes
 	 *  for an abbreviation whether that was wanted or not. */
@@ -336,8 +338,12 @@ class Settings(context: Context) {
 		const val KEY_SAMPLE_RATE = "sample_rate_hz"
 		const val KEY_AUDIO_VOLUME = "audio_volume"
 		const val KEY_AUDIO_LIMITER = "audio_limiter"
-		const val KEY_AUDIO_BASS = "audio_bass"
-		const val KEY_AUDIO_TREBLE = "audio_treble"
+		const val KEY_FORCE_RATE = "force_rate"
+		const val KEY_FORCED_RATE = "forced_rate"
+		const val KEY_FORCE_PITCH = "force_pitch"
+		const val KEY_FORCED_PITCH = "forced_pitch"
+		const val DEFAULT_FORCED_RATE = 100
+		const val DEFAULT_FORCED_PITCH = 100
 		const val KEY_ABBREVIATIONS = "abbreviations"
 		const val KEY_SPEED = "speed"
 		const val KEY_PAUSES = "pauses"
@@ -371,7 +377,7 @@ class Settings(context: Context) {
 		/** The six that belong to a voice. Speed belongs to the listener. */
 		val PER_VOICE = SHAPE.filter { it != Eci.VOICE_SPEED }
 
-		/** Every one of them is a slider. */
-		val SLIDERS = SHAPE
+		/** Every one of them takes a dialog. */
+		val PARAMS = SHAPE
 	}
 }

@@ -91,7 +91,7 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 
 	/** What preset [index] (0 based, so 0 is Reed) is set to, without changing
 	 *  the voice being spoken in. This is what the settings screen shows, so a
-	 *  slider starts at the voice's own number rather than at one of ours. */
+	 *  row starts at the voice's own number rather than at one of ours. */
 	fun presetShape(index: Int): Map<Int, Int> = synchronized(guard) {
 		if (closed) return emptyMap()
 		val preset = (index + Eci.FIRST_PRESET).coerceIn(Eci.FIRST_PRESET, Eci.LAST_PRESET)

@@ -73,7 +73,7 @@ object Eci {
 	/** The eight are on three different scales, and a screen reader saying a
 	 *  bare number leaves it to the listener to remember which. So the settings
 	 *  screen works in hundredths of whatever the setting's own range is, which
-	 *  for six of the seven sliders is the number the engine already uses and
+	 *  for six of the seven rows is the number the engine already uses and
 	 *  for speed is a fifth of it. */
 	fun toPercent(param: Int, value: Int): Int {
 		val top = voiceRange(param).last

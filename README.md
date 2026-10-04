@@ -87,21 +87,22 @@ constantly.
 
 Launcher icon, or the gear beside the engine in the text-to-speech settings.
 
-Sliders for the seven voice parameters, plus voice, force language,
-sample rate (8, 11, 16, 22, 32 and 44.1 kHz, all synthesized natively;
-rates above 11 kHz get an automatic loudness lift to match), pauses,
-phrase prediction, abbreviations, backquote voice tags, emoji, numbers,
-camel case, punctuation, volume dictionaries and a regex dictionary. "Speak a sample"
-sits under the sliders, speaking through the same rewrites TalkBack hears
-except user dictionaries, so what it says is what the settings do.
-Nothing speaks on its own. A setting takes effect when you set it, and the
+Dialogs for the seven voice parameters, plus voice, force language,
+force speech rate, force pitch, an output volume with a peak limiter,
+sample rate (8, 11, 16, 22, 32 and 44.1 kHz, all synthesized natively),
+pauses, phrase prediction, abbreviations, backquote voice tags, emoji,
+numbers, camel case, punctuation, volume dictionaries and a regex dictionary.
+"Speak a sample" sits under the voice rows, speaking through the same rewrites
+TalkBack hears except user dictionaries, so what it says is what the settings
+do. Nothing speaks on its own. A setting takes effect when you set it, and the
 button is how you hear it.
 
 Six deliberate choices:
 
 Each row is one control. A label, a bar and a number would be three stops for a
 screen reader, so each row merges into a single node with
-`clearAndSetSemantics`. It reads as "Speed, 20 percent" and adjusts in place.
+`clearAndSetSemantics`. It reads as "Speed, 20 percent" and opens a dialog
+listing every value instead of a slider, opening at the one in force.
 
 Values are percentages. The engine uses two scales (speed
 runs to 250, the rest to 100), so a raw number means nothing without knowing
@@ -123,7 +124,7 @@ and Glen and Sandy ship at 70, half again as fast. That is IBM's data, but it
 made changing voice change the pace, so a preset brings its other six
 settings and leaves the speed alone.
 
-Sliders start at the voice's own values. Each preset carries its own head size,
+Dialogs start at the voice's own values. Each preset carries its own head size,
 inflection and volume; Reed is inflection 30 and volume 92, Bobby is 35 and 90.
 Picking a voice loads that voice's numbers. A parameter you have not set is
 never sent to the engine, so a fresh install sounds like Eloquence always has.

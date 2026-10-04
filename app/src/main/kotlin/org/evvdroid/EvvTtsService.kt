@@ -291,8 +291,8 @@ class EvvTtsService : TextToSpeechService() {
 		// Re-sent every time rather than once, because it is the one setting
 		// with no way of telling whether something else has moved it.
 		s?.let { target.setAbbreviations(it.abbreviations) }
-		target.setRatePercent(request.speechRate)
-		target.setPitchPercent(request.pitch)
+		target.setRatePercent(if (s != null && s.forceRate) s.forcedRate else request.speechRate)
+		target.setPitchPercent(if (s != null && s.forcePitch) s.forcedPitch else request.pitch)
 		// One pipeline for TalkBack and the sample button alike; the shape of
 		// it is documented on TextPipeline.
 		val raw = request.charSequenceText?.toString().orEmpty()
@@ -359,7 +359,7 @@ class EvvTtsService : TextToSpeechService() {
 	private fun pump(target: EvvEngine, callback: SynthesisCallback, pace: Pace, opening: Opening, audio: AudioOutput.Snapshot): Boolean {
 		val size = callback.maxBufferSize.coerceIn(MIN_CHUNK, MAX_CHUNK)
 		val buffer = ByteArray(size)
-		val chain = AudioOutput.Chain(target.sampleRateHz, audio)
+		val chain = AudioOutput.Chain(audio)
 		while (!stopped) {
 			val n = target.read(buffer)
 			if (n <= 0) break

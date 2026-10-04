@@ -48,10 +48,16 @@ class SettingsModel(context: Context) {
 	var audioLimiter by mutableStateOf(settings.audioLimiter)
 		private set
 
-	var audioBass by mutableStateOf(settings.audioBass)
+	var forceRate by mutableStateOf(settings.forceRate)
 		private set
 
-	var audioTreble by mutableStateOf(settings.audioTreble)
+	var forcedRate by mutableStateOf(settings.forcedRate)
+		private set
+
+	var forcePitch by mutableStateOf(settings.forcePitch)
+		private set
+
+	var forcedPitch by mutableStateOf(settings.forcedPitch)
 		private set
 
 	var pauses by mutableStateOf(settings.pauses)
@@ -112,7 +118,7 @@ class SettingsModel(context: Context) {
 	init {
 		ensurePreview(EvvEngine.available.firstOrNull())
 		preview?.open {
-			// A voice's own settings are what the sliders start at, and only
+			// A voice's own settings are what the rows start at, and only
 			// the engine knows them.
 			if (!settings.shapeIsCustom(settings.voice)) adoptVoice()
 			shape.putAll(settings.shape(settings.voice))
@@ -161,16 +167,6 @@ class SettingsModel(context: Context) {
 	}
 
 	fun setPercent(param: Int, percent: Int) = setShape(param, Eci.fromPercent(param, percent))
-
-	/** One percent up or down from wherever the setting is now.
-	 *
-	 *  It reads the value rather than taking one, because a held key sends
-	 *  several of these before the screen has drawn any of them, and a step
-	 *  measured from what the screen last showed would land on the same number
-	 *  every time. */
-	fun stepPercent(param: Int, by: Int) {
-		setPercent(param, (percentOf(param) + by).coerceIn(0, Eci.PERCENT_MAX))
-	}
 
 	fun setShape(param: Int, value: Int) {
 		val settled = Eci.clampVoice(param, value)
@@ -450,33 +446,29 @@ class SettingsModel(context: Context) {
 		settings.audioVolume = audioVolume
 	}
 
-	/** One percent up or down from wherever the volume is now, read back
-	 *  rather than taken, for the same held-key reason as stepPercent. */
-	fun stepAudioVolume(by: Int) {
-		chooseAudioVolume(audioVolume + by)
-	}
-
 	fun chooseAudioLimiter(on: Boolean) {
 		audioLimiter = on
 		settings.audioLimiter = on
 	}
 
-	fun chooseAudioBass(db: Int) {
-		audioBass = db.coerceIn(AudioOutput.TONE_MIN_DB, AudioOutput.TONE_MAX_DB)
-		settings.audioBass = audioBass
+	fun chooseForceRate(on: Boolean) {
+		forceRate = on
+		settings.forceRate = on
 	}
 
-	fun stepAudioBass(by: Int) {
-		chooseAudioBass(audioBass + by)
+	fun chooseForcedRate(percent: Int) {
+		forcedRate = percent.coerceIn(0, Eci.PERCENT_MAX)
+		settings.forcedRate = forcedRate
 	}
 
-	fun chooseAudioTreble(db: Int) {
-		audioTreble = db.coerceIn(AudioOutput.TONE_MIN_DB, AudioOutput.TONE_MAX_DB)
-		settings.audioTreble = audioTreble
+	fun chooseForcePitch(on: Boolean) {
+		forcePitch = on
+		settings.forcePitch = on
 	}
 
-	fun stepAudioTreble(by: Int) {
-		chooseAudioTreble(audioTreble + by)
+	fun chooseForcedPitch(percent: Int) {
+		forcedPitch = percent.coerceIn(0, Eci.PERCENT_MAX)
+		settings.forcedPitch = forcedPitch
 	}
 
 	// ---- hearing it ------------------------------------------------------
@@ -502,7 +494,15 @@ class SettingsModel(context: Context) {
 		)
 		val text = Prosody.prefix(settings.phrasePrediction) +
 			Pauses.apply(heard, settings.pauses, true)
-		preview?.say(text, voice, settings.shape(voice), sampleRateHz, settings.audioSnapshot())
+		preview?.say(
+			text,
+			voice,
+			settings.shape(voice),
+			sampleRateHz,
+			settings.audioSnapshot(),
+			ratePercent = forcedRate.takeIf { forceRate },
+			pitchPercent = forcedPitch.takeIf { forcePitch }
+		)
 	}
 
 	private fun adoptVoice() {
@@ -510,7 +510,7 @@ class SettingsModel(context: Context) {
 		if (own.isEmpty()) return
 		// Everything but the speed, which stays where the listener put it.
 		// Glen and Sandy ship at 70 where the rest are 50, so taking the
-		// voice's own would move the slider and the pace on every change.
+		// voice's own would move the row and the pace on every change.
 		settings.writeShape(settings.voice, own - Eci.VOICE_SPEED)
 	}
 

@@ -7,8 +7,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * The output stage: a master volume, a soft limiter, and bass and treble,
- * applied to 16-bit samples in place.
+ * The output stage: a master volume and a soft limiter, applied to 16-bit
+ * samples in place.
  *
  * A signal alternating every sample is used throughout: it sits far above
  * the DC blocker's corner, so what comes out is the stage's doing rather
@@ -27,7 +27,7 @@ class AudioOutputTest {
 		return buffer
 	}
 
-	/** Samples past the DC blocker's settling, signs as written. */
+	/** Samples past the start, signs as written. */
 	private fun settled(buffer: ByteArray, skipSamples: Int = 10): List<Int> {
 		val out = ArrayList<Int>()
 		var i = skipSamples * 2
@@ -42,8 +42,7 @@ class AudioOutputTest {
 	fun silenceStaysSilent() {
 		val buffer = ByteArray(64)
 		AudioOutput.Chain(
-			16000,
-			AudioOutput.Snapshot(volume = 200, limiter = true, bassDb = 12, trebleDb = -12)
+			AudioOutput.Snapshot(volume = 200, limiter = true)
 		).process(buffer, buffer.size)
 		assertTrue(buffer.all { it == 0.toByte() })
 	}
@@ -51,7 +50,7 @@ class AudioOutputTest {
 	@Test
 	fun volumeScales() {
 		val buffer = alternating(40, 10000)
-		AudioOutput.Chain(16000, AudioOutput.Snapshot(volume = 150)).process(buffer, buffer.size)
+		AudioOutput.Chain(AudioOutput.Snapshot(volume = 150)).process(buffer, buffer.size)
 		val got = settled(buffer)
 		assertTrue(got.isNotEmpty())
 		got.forEachIndexed { at, value ->
@@ -63,14 +62,14 @@ class AudioOutputTest {
 	@Test
 	fun volumeZeroSilences() {
 		val buffer = alternating(40, 20000)
-		AudioOutput.Chain(16000, AudioOutput.Snapshot(volume = 0)).process(buffer, buffer.size)
+		AudioOutput.Chain(AudioOutput.Snapshot(volume = 0)).process(buffer, buffer.size)
 		assertTrue(buffer.all { it == 0.toByte() })
 	}
 
 	@Test
 	fun limiterRoundsPeaksInsteadOfLoppingThem() {
 		val buffer = alternating(40, 30000)
-		AudioOutput.Chain(16000, AudioOutput.Snapshot(volume = 130, limiter = true))
+		AudioOutput.Chain(AudioOutput.Snapshot(volume = 130, limiter = true))
 			.process(buffer, buffer.size)
 		val peaks = settled(buffer).filterIndexed { at, _ -> at % 2 == 0 }
 		assertTrue(peaks.isNotEmpty())
@@ -81,7 +80,7 @@ class AudioOutputTest {
 	@Test
 	fun limiterOffLops() {
 		val buffer = alternating(40, 30000)
-		AudioOutput.Chain(16000, AudioOutput.Snapshot(volume = 130, limiter = false))
+		AudioOutput.Chain(AudioOutput.Snapshot(volume = 130, limiter = false))
 			.process(buffer, buffer.size)
 		val peaks = settled(buffer).filterIndexed { at, _ -> at % 2 == 0 }
 		assertTrue(peaks.isNotEmpty())
@@ -89,21 +88,19 @@ class AudioOutputTest {
 	}
 
 	@Test
-	fun flatToneIsExact() {
-		val buffer = alternating(40, 5000)
-		AudioOutput.Chain(16000, AudioOutput.Snapshot(volume = 100, bassDb = 0, trebleDb = 0))
-			.process(buffer, buffer.size)
-		val got = settled(buffer)
-		got.forEachIndexed { at, value ->
-			val want = if (at % 2 == 0) 5000.0 else -5000.0
-			assertEquals("sample $at", want, value.toDouble(), 100.0)
-		}
+	fun defaultSnapshotIsLoudButUnclipped() {
+		val buffer = alternating(40, 20000)
+		AudioOutput.Chain(AudioOutput.Snapshot()).process(buffer, buffer.size)
+		val peaks = settled(buffer).filterIndexed { at, _ -> at % 2 == 0 }
+		assertTrue(peaks.isNotEmpty())
+		// 130% of 20000 is 26000, inside the linear knee: exact, not rounded.
+		peaks.forEach { assertEquals(26000.0, it.toDouble(), 300.0) }
 	}
 
 	@Test
 	fun oddTailByteIsLeftAlone() {
 		val buffer = byteArrayOf(0x10, 0x27, 0x56)
-		AudioOutput.Chain(16000, AudioOutput.Snapshot(volume = 200)).process(buffer, buffer.size)
+		AudioOutput.Chain(AudioOutput.Snapshot(volume = 200)).process(buffer, buffer.size)
 		assertEquals(0x56.toByte(), buffer[2])
 	}
 }
