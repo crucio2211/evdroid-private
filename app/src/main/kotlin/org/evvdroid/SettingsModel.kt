@@ -42,6 +42,18 @@ class SettingsModel(context: Context) {
 	var sampleRateHz by mutableStateOf(settings.sampleRateHz)
 		private set
 
+	var audioVolume by mutableStateOf(settings.audioVolume)
+		private set
+
+	var audioLimiter by mutableStateOf(settings.audioLimiter)
+		private set
+
+	var audioBass by mutableStateOf(settings.audioBass)
+		private set
+
+	var audioTreble by mutableStateOf(settings.audioTreble)
+		private set
+
 	var pauses by mutableStateOf(settings.pauses)
 		private set
 
@@ -433,6 +445,40 @@ class SettingsModel(context: Context) {
 		settings.sampleRateHz = hz
 	}
 
+	fun chooseAudioVolume(volume: Int) {
+		audioVolume = volume.coerceIn(AudioOutput.VOLUME_MIN, AudioOutput.VOLUME_MAX)
+		settings.audioVolume = audioVolume
+	}
+
+	/** One percent up or down from wherever the volume is now, read back
+	 *  rather than taken, for the same held-key reason as stepPercent. */
+	fun stepAudioVolume(by: Int) {
+		chooseAudioVolume(audioVolume + by)
+	}
+
+	fun chooseAudioLimiter(on: Boolean) {
+		audioLimiter = on
+		settings.audioLimiter = on
+	}
+
+	fun chooseAudioBass(db: Int) {
+		audioBass = db.coerceIn(AudioOutput.TONE_MIN_DB, AudioOutput.TONE_MAX_DB)
+		settings.audioBass = audioBass
+	}
+
+	fun stepAudioBass(by: Int) {
+		chooseAudioBass(audioBass + by)
+	}
+
+	fun chooseAudioTreble(db: Int) {
+		audioTreble = db.coerceIn(AudioOutput.TONE_MIN_DB, AudioOutput.TONE_MAX_DB)
+		settings.audioTreble = audioTreble
+	}
+
+	fun stepAudioTreble(by: Int) {
+		chooseAudioTreble(audioTreble + by)
+	}
+
 	// ---- hearing it ------------------------------------------------------
 
 	/** Nothing here speaks by itself. Every setting is in force the moment it
@@ -456,7 +502,7 @@ class SettingsModel(context: Context) {
 		)
 		val text = Prosody.prefix(settings.phrasePrediction) +
 			Pauses.apply(heard, settings.pauses, true)
-		preview?.say(text, voice, settings.shape(voice), sampleRateHz)
+		preview?.say(text, voice, settings.shape(voice), sampleRateHz, settings.audioSnapshot())
 	}
 
 	private fun adoptVoice() {

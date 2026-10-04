@@ -81,6 +81,13 @@
 	<string name="hertz">%1$d Hz</string>
 	<string name="version_info">Version %1$s (%2$d)</string>
 
+	<string name="audio_volume_label">Output volume</string>
+	<string name="audio_limiter_label">Limit loud peaks</string>
+	<string name="audio_bass_label">Bass</string>
+	<string name="audio_treble_label">Treble</string>
+	<string name="decibel_value">%1$d dB</string>
+	<string name="decibel_spoken">%1$d decibels</string>
+
 	<string name="percent">%1$d%%</string>
 	<string name="percent_spoken">%1$d percent</string>
 	<string name="labelled_value">%1$s: %2$s</string>

@@ -230,14 +230,48 @@ fun SettingsScreen(state: SettingsModel) {
 		)
 		ActionRow(stringResource(R.string.dictionary_remove), state::removeDictionaries)
 
-			Gap()
-			ChoiceRow(
-				label = stringResource(R.string.sample_rate_label),
-				options = SettingsModel.RATES.map { stringResource(R.string.hertz, it) },
-				chosen = SettingsModel.RATES.indexOf(state.sampleRateHz).coerceAtLeast(0),
-				onChoose = { state.chooseSampleRate(SettingsModel.RATES[it]) }
-			)
-			Gap()
+		Gap()
+		ChoiceRow(
+			label = stringResource(R.string.sample_rate_label),
+			options = SettingsModel.RATES.map { stringResource(R.string.hertz, it) },
+			chosen = SettingsModel.RATES.indexOf(state.sampleRateHz).coerceAtLeast(0),
+			onChoose = { state.chooseSampleRate(SettingsModel.RATES[it]) }
+		)
+		Gap()
+		SliderRow(
+			label = stringResource(R.string.audio_volume_label),
+			percent = state.audioVolume,
+			onPercent = state::chooseAudioVolume,
+			onStep = state::stepAudioVolume,
+			min = AudioOutput.VOLUME_MIN,
+			max = AudioOutput.VOLUME_MAX
+		)
+		SwitchRow(
+			label = stringResource(R.string.audio_limiter_label),
+			checked = state.audioLimiter,
+			onChange = state::chooseAudioLimiter
+		)
+		SliderRow(
+			label = stringResource(R.string.audio_bass_label),
+			percent = state.audioBass,
+			onPercent = state::chooseAudioBass,
+			onStep = state::stepAudioBass,
+			min = AudioOutput.TONE_MIN_DB,
+			max = AudioOutput.TONE_MAX_DB,
+			shown = stringResource(R.string.decibel_value, state.audioBass),
+			spoken = stringResource(R.string.decibel_spoken, state.audioBass)
+		)
+		SliderRow(
+			label = stringResource(R.string.audio_treble_label),
+			percent = state.audioTreble,
+			onPercent = state::chooseAudioTreble,
+			onStep = state::stepAudioTreble,
+			min = AudioOutput.TONE_MIN_DB,
+			max = AudioOutput.TONE_MAX_DB,
+			shown = stringResource(R.string.decibel_value, state.audioTreble),
+			spoken = stringResource(R.string.decibel_spoken, state.audioTreble)
+		)
+		Gap()
 			Text(
 				text = stringResource(
 					R.string.version_info,
@@ -299,15 +333,25 @@ private fun Gap() {
  * platform is told. Five percent of the speed scale is the difference between
  * too slow to bear and faster than was wanted, so a request to move is read as
  * a request to move one rather than as the number it carries.
+ *
+ * [min] and [max] move the row off percentages: the output volume runs to two
+ * hundred and the tone controls run negative. [shown] and [spoken] say the
+ * value when a percent is not what it is; a null either way falls back to
+ * percents.
  */
 @Composable
 private fun SliderRow(
 	label: String,
 	percent: Int,
 	onPercent: (Int) -> Unit,
-	onStep: (Int) -> Unit
+	onStep: (Int) -> Unit,
+	min: Int = 0,
+	max: Int = Eci.PERCENT_MAX,
+	shown: String? = null,
+	spoken: String? = null
 ) {
-	val spoken = stringResource(R.string.percent_spoken, percent)
+	val say = spoken ?: stringResource(R.string.percent_spoken, percent)
+	val show = shown ?: stringResource(R.string.percent, percent)
 	Column(
 		modifier = Modifier
 			.fillMaxWidth()
@@ -317,8 +361,8 @@ private fun SliderRow(
 				when (press.key) {
 					Key.DirectionLeft, Key.DirectionDown -> onStep(-1)
 					Key.DirectionRight, Key.DirectionUp -> onStep(1)
-					Key.MoveHome -> onPercent(0)
-					Key.MoveEnd -> onPercent(Eci.PERCENT_MAX)
+					Key.MoveHome -> onPercent(min)
+					Key.MoveEnd -> onPercent(max)
 					else -> return@onKeyEvent false
 				}
 				true
@@ -326,8 +370,10 @@ private fun SliderRow(
 			.focusable()
 			.clearAndSetSemantics {
 				contentDescription = label
-				stateDescription = spoken
-				progressBarRangeInfo = ProgressBarRangeInfo(percent.toFloat(), 0f..100f, 99)
+				stateDescription = say
+				progressBarRangeInfo = ProgressBarRangeInfo(
+					percent.toFloat(), min.toFloat()..max.toFloat(), (max - min - 1).coerceAtLeast(0)
+				)
 				setProgress { want ->
 					val target = want.roundToInt()
 					if (target != percent) onStep(if (target > percent) 1 else -1)
@@ -339,15 +385,15 @@ private fun SliderRow(
 			text = stringResource(
 				R.string.labelled_value,
 				label,
-				stringResource(R.string.percent, percent)
+				show
 			),
 			style = MaterialTheme.typography.labelLarge
 		)
 		Slider(
 			modifier = Modifier.focusProperties { canFocus = false },
 			value = percent.toFloat(),
-			onValueChange = { onPercent(it.roundToInt()) },
-			valueRange = 0f..100f,
+			onValueChange = { onPercent(it.roundToInt().coerceIn(min, max)) },
+			valueRange = min.toFloat()..max.toFloat(),
 			steps = 0
 		)
 	}

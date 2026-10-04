@@ -339,12 +339,12 @@ class EvvTtsService : TextToSpeechService() {
 		for ((at, raw) in pieces.withIndex()) {
 			if (stopped) break
 			val piece = prosody + Pauses.apply(raw, pauses, at == pieces.lastIndex)
-			if (!target.speak(piece)) {
-				Log.e(TAG, "the engine refused ${piece.length} characters")
-				callback.error(TextToSpeech.ERROR_SYNTHESIS)
-				return
-			}
-			if (!pump(target, callback, pace, opening)) {
+		if (!target.speak(piece)) {
+			Log.e(TAG, "the engine refused ${piece.length} characters")
+			callback.error(TextToSpeech.ERROR_SYNTHESIS)
+			return
+		}
+		if (!pump(target, callback, pace, opening, s?.audioSnapshot() ?: AudioOutput.Snapshot())) {
 				remember(pace)
 				return
 			}
@@ -354,15 +354,16 @@ class EvvTtsService : TextToSpeechService() {
 	}
 
 	/** Hands one piece's samples on as they arrive, and answers whether the
-	 *  caller may go on to the next. */
-	private fun pump(target: EvvEngine, callback: SynthesisCallback, pace: Pace, opening: Opening): Boolean {
+	 *  caller may go on to the next. The output stage is one chain for the
+	 *  piece, so its filters run continuously across its chunks. */
+	private fun pump(target: EvvEngine, callback: SynthesisCallback, pace: Pace, opening: Opening, audio: AudioOutput.Snapshot): Boolean {
 		val size = callback.maxBufferSize.coerceIn(MIN_CHUNK, MAX_CHUNK)
 		val buffer = ByteArray(size)
-		val gain = AudioGain.gainFor(target.sampleRateHz)
+		val chain = AudioOutput.Chain(target.sampleRateHz, audio)
 		while (!stopped) {
 			val n = target.read(buffer)
 			if (n <= 0) break
-			AudioGain.apply(buffer, n, gain)
+			chain.process(buffer, n)
 			if (!opening.open()) {
 				target.stop()
 				return false

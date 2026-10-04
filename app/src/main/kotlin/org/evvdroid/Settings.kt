@@ -61,6 +61,47 @@ class Settings(context: Context) {
 		get() = Eci.coerceSampleRate(prefs.getInt(KEY_SAMPLE_RATE, DEFAULT_SAMPLE_RATE))
 		set(value) = prefs.edit().putInt(KEY_SAMPLE_RATE, Eci.coerceSampleRate(value)).apply()
 
+	/** The output stage's master volume, in percent: 100 is the engine as it
+	 *  comes out, 200 is twice as loud into the limiter. */
+	var audioVolume: Int
+		get() = prefs.getInt(KEY_AUDIO_VOLUME, AudioOutput.DEFAULT_VOLUME)
+			.coerceIn(AudioOutput.VOLUME_MIN, AudioOutput.VOLUME_MAX)
+		set(value) = prefs.edit().putInt(
+			KEY_AUDIO_VOLUME,
+			value.coerceIn(AudioOutput.VOLUME_MIN, AudioOutput.VOLUME_MAX)
+		).apply()
+
+	/** Whether loud peaks are rounded off instead of lopped. On: turning the
+	 *  volume up stays loud instead of turning harsh. */
+	var audioLimiter: Boolean
+		get() = prefs.getBoolean(KEY_AUDIO_LIMITER, true)
+		set(value) = prefs.edit().putBoolean(KEY_AUDIO_LIMITER, value).apply()
+
+	/** Bass and treble in decibels. Nought is the engine untouched. */
+	var audioBass: Int
+		get() = prefs.getInt(KEY_AUDIO_BASS, 0)
+			.coerceIn(AudioOutput.TONE_MIN_DB, AudioOutput.TONE_MAX_DB)
+		set(value) = prefs.edit().putInt(
+			KEY_AUDIO_BASS,
+			value.coerceIn(AudioOutput.TONE_MIN_DB, AudioOutput.TONE_MAX_DB)
+		).apply()
+
+	var audioTreble: Int
+		get() = prefs.getInt(KEY_AUDIO_TREBLE, 0)
+			.coerceIn(AudioOutput.TONE_MIN_DB, AudioOutput.TONE_MAX_DB)
+		set(value) = prefs.edit().putInt(
+			KEY_AUDIO_TREBLE,
+			value.coerceIn(AudioOutput.TONE_MIN_DB, AudioOutput.TONE_MAX_DB)
+		).apply()
+
+	/** The output stage's choices as one utterance reads them. */
+	fun audioSnapshot(): AudioOutput.Snapshot = AudioOutput.Snapshot(
+		volume = audioVolume,
+		limiter = audioLimiter,
+		bassDb = audioBass,
+		trebleDb = audioTreble
+	)
+
 	/** The abbreviation dictionary. Off by default: it expands what it takes
 	 *  for an abbreviation whether that was wanted or not. */
 	var abbreviations: Boolean
@@ -293,6 +334,10 @@ class Settings(context: Context) {
 		const val KEY_FORCED_LANGUAGE = "forced_language"
 		const val DEFAULT_FORCED_LANGUAGE = 0x00010000
 		const val KEY_SAMPLE_RATE = "sample_rate_hz"
+		const val KEY_AUDIO_VOLUME = "audio_volume"
+		const val KEY_AUDIO_LIMITER = "audio_limiter"
+		const val KEY_AUDIO_BASS = "audio_bass"
+		const val KEY_AUDIO_TREBLE = "audio_treble"
 		const val KEY_ABBREVIATIONS = "abbreviations"
 		const val KEY_SPEED = "speed"
 		const val KEY_PAUSES = "pauses"

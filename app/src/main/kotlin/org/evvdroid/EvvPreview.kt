@@ -66,8 +66,9 @@ class EvvPreview(private val language: Int) {
 	}
 
 	/** Says [text] in [voice] with [shape] on it, stopping whatever was being
-	 *  said. */
-	fun say(text: String, voice: Int, shape: Map<Int, Int>, rateHz: Int) {
+	 *  said. The output stage follows [audio], so the sample is heard the way
+	 *  TalkBack will hear it. */
+	fun say(text: String, voice: Int, shape: Map<Int, Int>, rateHz: Int, audio: AudioOutput.Snapshot = AudioOutput.Snapshot()) {
 		// Whatever is being said stops first, and the turn this utterance
 		// belongs to is taken after that -- stopping is what moves the count
 		// on, so reading it first would leave this utterance holding a number
@@ -83,11 +84,11 @@ class EvvPreview(private val language: Int) {
 				Log.e(TAG, "the engine refused the sample")
 				return@post
 			}
-			play(e, mine)
+			play(e, mine, audio)
 		}
 	}
 
-	private fun play(e: EvvEngine, mine: Int) {
+	private fun play(e: EvvEngine, mine: Int, audio: AudioOutput.Snapshot) {
 		playing = true
 		drained = false
 		val rate = e.sampleRateHz
@@ -115,12 +116,12 @@ class EvvPreview(private val language: Int) {
 		track = t
 		t.play()
 		val buffer = ByteArray(CHUNK)
-		val gain = AudioGain.gainFor(e.sampleRateHz)
+		val chain = AudioOutput.Chain(e.sampleRateHz, audio)
 		var written = 0L
 		while (mine == generation) {
 			val n = e.read(buffer)
 			if (n <= 0) break
-			AudioGain.apply(buffer, n, gain)
+			chain.process(buffer, n)
 			var at = 0
 			while (at < n && mine == generation) {
 				val wrote = t.write(buffer, at, n - at)
