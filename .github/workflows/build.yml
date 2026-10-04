@@ -39,6 +39,8 @@ jobs:
     name: release APK
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    permissions:
+      contents: write
     steps:
       - name: Check out with the engine submodule
         uses: actions/checkout@v4
@@ -82,3 +84,16 @@ jobs:
         with:
           name: evvdroid-release
           path: app/build/outputs/apk/release/*.apk
+
+      # Rolling release holding the newest main-branch APK. Release assets do
+      # not count against the Actions artifact quota, so the APK stays
+      # downloadable even when that quota is hit.
+      - name: Publish the APK to the rolling release
+        if: github.ref == 'refs/heads/main' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          apk=$(echo app/build/outputs/apk/release/*.apk)
+          tag="ci-latest"
+          gh release view "$tag" > /dev/null 2>&1 || gh release create "$tag" --title "Latest CI build" --notes "Rolling build of the main branch; replaced on every successful run." --prerelease
+          gh release upload "$tag" "$apk" --clobber
