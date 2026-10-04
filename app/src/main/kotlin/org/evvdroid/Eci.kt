@@ -92,12 +92,17 @@ object Eci {
 	 *  not listed here at all. */
 	val SAMPLE_RATES = intArrayOf(8000, 11025)
 
-	/** [hz] as one of the rates this build can store. 16000 is Apple-path
-	 *  only (upsampled + DSP); the openevv path falls back to 11025 for it
-	 *  in sampleRateIndex below, so it can never wrong-foot that engine. */
+	/** Native 16 kHz, openevv path only: its Klatt tables are built per
+	 *  rate (klatt_buildRateTables), so this is genuine synthesis, not a
+	 *  resample. Apple blobs stay 8000/11025. */
+	const val SAMPLE_RATE_16K = 16000
+
+	/** [hz] as one of the rates this build can store. 16000 is kept for
+	 *  the openevv path (genuine synthesis); the Apple path coerces it
+	 *  back to 11025 wherever it sets a rate. */
 	fun coerceSampleRate(hz: Int): Int = when (hz) {
 		SAMPLE_RATES[0] -> SAMPLE_RATES[0]
-		16000 -> 16000
+		SAMPLE_RATE_16K -> SAMPLE_RATE_16K
 		else -> SAMPLE_RATES[1]
 	}
 

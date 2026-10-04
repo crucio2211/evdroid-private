@@ -86,7 +86,33 @@ phoneme says alike. Regex dictionaries already rewrite text upstream
 and keep working. Per-word teaching is skipped there; `lookUpWord`
 answers from the pushed map (used by tests).
 
-## 16 kHz output (ported from IBMTTS-16k-tune)
+## 16 kHz: Apple path vs openevv path
+
+Apple blobs render 8000/11025 natively, nothing else — all Apple-path
+16 kHz experiments (format request, rate index 2, upsampling, DSP) are
+REMOVED. This path is 8k/11k bit-transparent (cubic only for the 11k
+render behind an 8 kHz request).
+
+Native 16 kHz lives on the **openevv path**, by design, not by patch:
+`src/klatt/klatt_rates.*` (`klatt_buildRateTables`) builds correct
+resonator tables for any rate 8000-44100 (verified exact against IBM's
+shipped 8k/11k tables), and `ev_engineHz` synthesises outright at the
+requested rate whenever `EVV_UPSAMPLE=none` is in the environment
+(default holding repeats 8k/11k samples instead). So:
+
+- `app/src/main/cpp/evv_jni.c` sets `EVV_UPSAMPLE=none` (no override) at
+  instance creation. 8k/11k behavior is unchanged; only rates above
+  11025 are affected, and only 16000 is offered.
+- `EvvEngine.setSampleRate` sends raw 16000 Hz on the openevv path
+  (`eciSetParam(h, 5, 16000)` — openevv takes numbered rates and hertz
+  alike). Apple path coerces 16000 back to 11025.
+- Settings offers 8000/11025/16000 on openevv, 8000/11025 on Apple
+  (`SettingsModel.RATES`); the stored pref keeps 16000 for openevv.
+- The user's `klatt_fx.c` / `klatt_rates.c` / `klatt_rates.h` copies are
+  byte-identical to openevv upstream (CRLF aside) — the submodule already
+  carries them, so nothing is vendored; this wiring IS the integration.
+
+History of the removed Apple experiments (kept for the record):
 
 The NVDA patch has two halves: (1) binary `.syn` module patches so the
 Windows engine renders 16 kHz natively, and (2) an output DSP stage
@@ -95,74 +121,11 @@ player. Only (2) ports: the Apple engine renders 11025 Hz fixed
 (`SetParam(5,1)`; 22050 is refused), and its `.so` layout has no patch
 pack, so there is nothing to binary-patch.
 
-Ported (`AppleEngine` companion):
+Removed from the Apple path: upsampling to 16 kHz, presence/air DSP
+and its toggle, rate-index-2 and format probes, the micro-JNI rate
+bridge (`evv_rate.c`, its build script, prebuilt and ProGuard rule),
+and probe diagnostics. Rationale per item lives in git history.
 
-- Upsampling to 16 kHz was REMOVED entirely (it could play a stale
-  16 kHz-format session slow, and could never create real content).
-  16 kHz output is proven-native render or honest 11025 within the same
-  utterance (`sampleRateHz` mirrors the effective rate, so the framework
-  always opens the track at the true rate). Sinc/cubic remain only for
-  DOWNsampling (22k->16k, 16k->11k/8k, 11k->8k).
-- Leaving 16 kHz output reopens a fresh 11 kHz session (`reopenClean`),
-  so a format can never leak into other rates. Rate discovery is lazy
-  (first 16 kHz utterance per session); 11k/8k users pay no probe synths.
-- On-device probe report: the settings "Output:" line now carries the
-  probe one-liners (`fmt16k: ret=.. ratio=.. hf=..`, `idx2: ...`), so a
-  lost 16 kHz is diagnosable without logcat.
-- Versus the `Apple-Eloquence-ELF` fork's "16000 Hz (ECI test)" mode
-  (trust `eciSetParam(5,2)` return >= 0): a bare acceptance is NOT
-  trusted here, because an accepted-but-unrendered switch reports 16 kHz
-  over 11 kHz PCM — chipmunk. Only PCM proof (length ratio + HF energy)
-  engages a native path.
-
-- Native-22k probe (`probe22k`): at session open, one ASCII word is
-  synthesized at rate index 1 and 2; only a ~2x PCM length ratio trusts
-  22050. Then 16 kHz output downsamples genuine content (cubic) instead
-  of upsampling 11 kHz. 8 kHz renders natively with an 11 kHz fallback.
-  Refusal/empty/crash restores index 1 — 11 kHz can never break.
-- Native-16k format experiment (`probe16k`, `libevvrate.so`): disassembly
-  of `libeci.so` shows `SynthThread::setEngineSampleRate` explicitly
-  branching on 16000/11025/8000, and `SynthThread::newAudioFormat`
-  reading the requested rate at `ECIaudioFormat+8` — so a 16 kHz output
-  format is a first-class citizen, not a hack. `evv_rate.c` (compiled in
-  CI by `native/build-apple-rate.sh`) calls the exported
-  `eciNewAudioFormat2` with a zeroed format carrying only rate=16000 at
-  +8; calibration trusts only a ~1.45x PCM ratio, else the session is
-  reopened clean and the 22k/11k paths take over. Proven 16 kHz renders
-  go straight to DSP with no resampling at all. (Also proven dangerous
-  to skip: `vvtts_voice.c`'s `eci+224` is `ECIstate*`, not `SynthThread*`,
-  on Apple libeci — Guangrong offsets do not transfer.)
-- NDK is optional for Apple builds: with one, `build-apple-rate.sh`
-  compiles `evv_rate.c` fresh; without one it copies the checked-in
-  `native/prebuilt-rate/arm64-v8a/libevvrate.so` (our own 4 KB bridge).
-  Small local setups (JDK + SDK only, no NDK) can build.
-
-- `resampleLinear`: 11025 -> 16000 bandlimited windowed-sinc (32 taps,
-  Hann, 256 phases, cached per rate pair, unity-gain rows) — replaces
-  linear/cubic, whose imaging aliases above 5.5 kHz the shelves then
-  boosted as harshness. 22050 -> 16000 likewise; 8 kHz downsample stays
-  cubic (aliasing matters less there). Klatt-hook native render was
-  ruled out: the published ECI header carries no Klatt structs (Apple
-  extension, undocumented layout) — blind structs would corrupt audio.
-- `dsp16k`: presence s1 +9 dB @ 3 kHz + air +5 dB @ 7 kHz (RBJ high-shelf,
-  S=1, fs=16000 — same formulae as `_ibmeci._shelf_coeffs`), 32-sample
-  (2 ms) utterance-start ramp, int16 clamp. s1 because presence-contour
-  defaults on in the NVDA tune; 8/11 kHz stay bit-transparent like NVDA.
-- Settings offers 8000/11025/16000 on the Apple path only
-  (`SettingsModel.RATES`); `Eci.coerceSampleRate` keeps 16000 stored, and
-  the openevv path safely falls back to 11025 for it.
-- Pure-native policy (no EQ): proven 16 kHz renders pass through
-  bit-transparent — presence/air shelves removed entirely, no contour
-  toggle. Sinc/cubic remain solely for DOWNsampling genuine content
-  (22k->16k, 16k->11k/8k, 11k->8k). Upsampling to 16 kHz was deleted:
-  16 kHz output is proven-native render or honest 11025.
-- Probe hardening: warmup synth (discarded), long sibilant calibration
-  ("She sells six thick socks."), absolute minimum lengths, tight ratio
-  windows (1.38-1.53 @16k, 1.9-2.1 @22k) PLUS high-band energy witness
-  (>5.5 kHz must hold real energy). A short calibration word could false-
-  positive on length alone (chipmunk reports); this cannot.
-
-Pick "16000" in voice settings for the tuned output. Default stays 11025.
 
 Native-render note (investigated Oct 2026): `libeci.so` strings show no
 16 kHz/22.05 kHz support, only `setEngineSampleRate` driven by the voice

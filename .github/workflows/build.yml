@@ -106,14 +106,6 @@ jobs:
       - name: Set up Gradle caching
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Install the NDK (rate bridge compile)
-        run: |
-          export ANDROID_HOME="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
-          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
-          yes | sdkmanager --licenses > /dev/null
-          sdkmanager "ndk;${NDK_VERSION}"
-          echo "ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/${NDK_VERSION}" >> "${GITHUB_ENV}"
-
       - name: Restore the signing key
         env:
           KEYSTORE_B64: ${{ secrets.EVVDROID_KEYSTORE_B64 }}

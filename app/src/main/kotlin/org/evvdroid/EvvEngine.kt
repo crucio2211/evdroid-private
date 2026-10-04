@@ -112,6 +112,14 @@ class EvvEngine private constructor(
 	fun setSampleRate(hz: Int) = synchronized(guard) {
 		apple?.let { it.setSampleRate(hz); sampleRateHz = it.sampleRateHz; return }
 		if (closed) return
+		if (hz == Eci.SAMPLE_RATE_16K) {
+			// Raw hertz: openevv takes numbered rates and hertz alike, and
+			// with EVV_UPSAMPLE=none (set in evv_jni.c) this synthesizes
+			// natively with built Klatt tables instead of repeating samples.
+			EvvNative.setParam(handle, Eci.PARAM_SAMPLE_RATE, Eci.SAMPLE_RATE_16K)
+			sampleRateHz = Eci.SAMPLE_RATE_16K
+			return
+		}
 		val index = Eci.sampleRateIndex(hz)
 		EvvNative.setParam(handle, Eci.PARAM_SAMPLE_RATE, index)
 		sampleRateHz = Eci.sampleRateHz(index)
@@ -271,13 +279,9 @@ class EvvEngine private constructor(
 	}
 
 	/** What the last utterance actually rendered as (Apple path), e.g.
-	 *  "native 16 kHz", plus the probe one-liners behind it. Empty on the
-	 *  openevv path. */
+	 *  "native 11 kHz". Empty on the openevv path. */
 	fun renderInfo(): String = synchronized(guard) {
-		val a = apple ?: return ""
-		val probes = listOf(a.probe16kSummary, a.probe22kSummary)
-			.filter { it.isNotEmpty() }.joinToString("; ")
-		return if (probes.isEmpty()) a.lastRender else "${a.lastRender} (${probes})"
+		apple?.lastRender ?: ""
 	}
 
 	fun close() = synchronized(guard) {

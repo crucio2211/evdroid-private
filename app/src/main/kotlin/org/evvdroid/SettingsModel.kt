@@ -477,9 +477,9 @@ class SettingsModel(context: Context) {
 	}
 
 	companion object {
-		/** Sample-rate choices. The Apple path adds 16000 (upsampled + DSP);
-		 *  openevv keeps its native 8000/11025 pair. */
+		/** Sample-rate choices. Only the openevv path offers 16000 (native
+		 *  Klatt synthesis); Apple blobs stay 8000/11025. */
 		val RATES: List<Int>
-			get() = if (EvvEngine.isApple) listOf(8000, 11025, 16000) else Eci.SAMPLE_RATES.sorted()
+			get() = if (EvvEngine.isApple) Eci.SAMPLE_RATES.sorted() else listOf(8000, 11025, Eci.SAMPLE_RATE_16K)
 	}
 }

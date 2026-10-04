@@ -192,6 +192,12 @@ JNIEXPORT jlong JNICALL Java_org_evvdroid_EvvNative_create(JNIEnv* env, jclass c
 	instance* in;
 	(void)env;
 	(void)cls;
+	/* True synthesis above 11025 Hz: with EVV_UPSAMPLE=none the engine
+	 * builds Klatt resonator tables per rate (klatt_buildRateTables) and
+	 * synthesises outright instead of repeating 8k/11k samples. Read once
+	 * per process by the engine; the 0 keeps a test setup's own value.
+	 * Only 16000 is ever offered above 11025, and 8k/11k are unaffected. */
+	setenv("EVV_UPSAMPLE", "none", 0);
 	in = (instance*)calloc(1, sizeof *in);
 	if (in == NULL)
 		return 0;

@@ -7,7 +7,3 @@
 	native <methods>;
 }
 -keep class com.xw.vvtts.utils.KonaVoice { *; }
-# Apple-engine micro-JNI rate bridge (libevvrate.so).
--keepclasseswithmembernames class org.evvdroid.AppleEngine {
-	native <methods>;
-}
