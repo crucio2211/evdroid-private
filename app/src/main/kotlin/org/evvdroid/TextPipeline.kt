@@ -35,7 +35,7 @@ object TextPipeline {
 		val camelled = if (camelCase) CamelCase.apply(numbered) else numbered
 		val guarded = AntiCrash.apply(camelled, stripBackquotes)
 		val fixed = TextFixes.apply(guarded)
-		val worded = SymbolWords.apply(fixed, punctLevel == null)
-		return if (punctLevel != null) PunctuationProcessing.apply(worded, punctLevel) else worded
+		val voiced = SymbolWords.apply(fixed, punctLevel == null)
+		return if (punctLevel != null) PunctuationProcessing.apply(voiced, punctLevel) else voiced
 	}
 }
