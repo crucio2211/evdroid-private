@@ -6,47 +6,26 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * `@` is always the word `at`; dots and pluses go quiet only with
- * punctuation off, where the engine would otherwise spell them.
+ * `@` is always the word `at`; everything else passes to the engine
+ * untouched, punctuation on or off.
  */
 @RunWith(AndroidJUnit4::class)
 class SymbolWordsTest {
 
 	@Test
 	fun atSignBecomesAtWithSpaces() {
-		assertEquals("user at example.com", SymbolWords.apply("user@example.com", false))
-		assertEquals("user at example.com", SymbolWords.apply("user@example.com", true))
+		assertEquals("user at example.com", SymbolWords.apply("user@example.com"))
+		assertEquals("at home", SymbolWords.apply("@home"))
+		assertEquals("mail me at a at b", SymbolWords.apply("mail me@a@b"))
 	}
 
 	@Test
-	fun dotsBetweenLowercaseGoQuietWhenOff() {
-		assertEquals(
-			"user at example com",
-			SymbolWords.apply("user@example.com", true)
-		)
-	}
-
-	@Test
-	fun sentenceDotsDecimalsAndInitialsStay() {
-		assertEquals("Hello. World", SymbolWords.apply("Hello. World", true))
-		assertEquals("Call 3.14 now", SymbolWords.apply("Call 3.14 now", true))
-		assertEquals("U.S. laws", SymbolWords.apply("U.S. laws", true))
-		assertEquals("He said Hi.", SymbolWords.apply("He said Hi.", true))
-	}
-
-	@Test
-	fun plusGoesQuietWhenOffButSpokenWhenOn() {
-		assertEquals("a b", SymbolWords.apply("a+b", true))
-		assertEquals("a+b", SymbolWords.apply("a+b", false))
-	}
-
-	@Test
-	fun dotsStayWhenPunctuationIsOn() {
-		assertEquals("example.com", SymbolWords.apply("example.com", false))
-	}
-
-	@Test
-	fun emptyPassesThrough() {
-		assertEquals("", SymbolWords.apply("", true))
+	fun everythingElsePassesThrough() {
+		assertEquals("example.com", SymbolWords.apply("example.com"))
+		assertEquals("a+b", SymbolWords.apply("a+b"))
+		assertEquals("Hello. World", SymbolWords.apply("Hello. World"))
+		assertEquals("Call 3.14 now", SymbolWords.apply("Call 3.14 now"))
+		assertEquals("", SymbolWords.apply(""))
+		assertEquals("no marks here", SymbolWords.apply("no marks here"))
 	}
 }

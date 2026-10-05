@@ -191,10 +191,9 @@ default, sentence-ending .!? stays prosody below all, and dots and commas
 between digits pass untouched.
 
 `@` never reaches any of that: it is always the word `at` first, so an
-address reads as words. With punctuation off, dots between lowercase
-letters and pluses anywhere go quiet the same way -- the engine would
-spell them -- while sentence dots, decimals, initials and ellipsis keep
-what they mean.
+address reads as words. Everything else passes to the engine untouched,
+punctuation on or off: with it off the engine's own defaults speak dots
+and pluses, which is what that setting means.
 
 Big text is split before any of it, NVDA-style: each piece is rewritten
 and spoken on its own, so the first audio lands after the first piece's
