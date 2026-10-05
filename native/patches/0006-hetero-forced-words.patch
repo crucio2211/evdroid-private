@@ -1,15 +1,24 @@
-hetero: forced words said as written, starting with candidate
+hetero: forced words said as written, forced first
 
 The heteronym table consults grammar; some words need no asking. A
-forced word is replaced by its annotation wherever it stands, so a
-word whose dictionary entry cannot carry what it has to say is said
-from here instead. candidate goes first, with the reading specified.
+forced word is replaced by its annotation wherever it stands, before
+the heteronym table is even consulted, so a word whose dictionary
+entry cannot carry what it has to say is said from here instead.
+candidate and the users produce reading go first.
 Applied at build time so CI builds the same tree.
 diff --git a/src/eci/hetero/eci_hetero.c b/src/eci/hetero/eci_hetero.c
-index e9e6f85..addd781 100644
+index e9e6f85..3c88ca9 100644
 --- a/src/eci/hetero/eci_hetero.c
 +++ b/src/eci/hetero/eci_hetero.c
-@@ -87,6 +87,22 @@ static const Hetero words[] = {
+@@ -77,7 +77,6 @@ static const Hetero words[] = {
+     { "digest",     0,                    "`[.0dX.1JEst]"        },
+     { "export",     0,                    "`[.0Ek.1spcrt]"       },
+     { "exports",    0,                    "`[.0Ek.1spcrts]"      },
+-    { "produce",    "`[.1pro.0dus]",      0                      },
+     { "transfer",   0,                    "`[.0trAns.1fR]"       },
+     { "transfers",  0,                    "`[.0trAns.1fRz]"      },
+     { "transplant", 0,                    "`[.0trAnz.1plAnt]"    },
+@@ -87,6 +86,23 @@ static const Hetero words[] = {
  
  #define WORDS (int)(sizeof words / sizeof words[0])
  
@@ -25,6 +34,7 @@ index e9e6f85..addd781 100644
 +
 +static const Forced forced[] = {
 +    { "candidate", "`[k1A1ndXd1et]" },
++    { "produce",   "`[prU1d1us]" },
 +};
 +
 +#define FORCED (int)(sizeof forced / sizeof forced[0])
@@ -64,21 +74,23 @@ index e9e6f85..addd781 100644
      return strlen(text) * (most + 2) + 1;
  }
  
-@@ -208,6 +242,17 @@ char *hetero_rewrite(const char *text)
-                 say = words[w].verb;
+@@ -196,6 +230,19 @@ char *hetero_rewrite(const char *text)
+             p++;
+         n = (size_t)(p - start);
  
-             if (say != 0) {
-+                memcpy(out + at, say, strlen(say));
-+                at += strlen(say);
-+                continue;
-+            }
-+        } else {
-+            /* No grammar asked: a forced word is said as written. */
++        /* Forced first: a word said as written is never asked about. */
++        {
 +            int f = which_forced(start, n);
 +
 +            if (f >= 0) {
 +                const char *say = forced[f].say;
 +
-                 memcpy(out + at, say, strlen(say));
-                 at += strlen(say);
-                 continue;
++                memcpy(out + at, say, strlen(say));
++                at += strlen(say);
++                continue;
++            }
++        }
++
+         w = which(start, n);
+         if (w >= 0) {
+             size_t bn = 0;
