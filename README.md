@@ -134,22 +134,6 @@ never sent to the engine, so a fresh install sounds like Eloquence always has.
 Getting this wrong is audible. An early version applied its own defaults over
 every preset and made all eight voices wrong the same way.
 
-## Phoneme dictionary
-
-Words with pronunciations in the engine's own alphabet, bypassing every
-dictionary and rule. Each line is a word, a tab, and its phones:
-`produce\t.1pro.0dus`. A listed word is wrapped as `` `[.1pro.0dus] `` in the
-text, which the engine honours as written -- dotted syllables with the stress
-digits, the form upstream measured all seventeen heteronyms in. An undotted
-string may work, but the dotted form is the one proved.
-
-It applies last, after the regex dictionary, and the sample button hears it
-too. A pronunciation holding a backquote or whitespace is refused when the
-file is read, since either would break the annotation or the piece it travels
-in. Anything else the engine cannot parse is spoken as text, which is how a
-bad entry announces itself. Picking a file with no usable entries refuses it;
-picking a good one switches the dictionary on.
-
 ## Pauses
 
 Eloquence pauses generously, which reads well in prose and badly in a screen

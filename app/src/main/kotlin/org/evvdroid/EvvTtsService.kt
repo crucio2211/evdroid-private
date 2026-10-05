@@ -41,8 +41,6 @@ class EvvTtsService : TextToSpeechService() {
 
 	private var loadedRegex: RegexDictionaries.Loaded? = null
 	private var regexEnabled = false
-	private var loadedPhonemes: Map<String, String> = emptyMap()
-	private var phonemesEnabled = false
 
 	override fun onCreate() {
 		settings = Settings(this)
@@ -185,7 +183,6 @@ class EvvTtsService : TextToSpeechService() {
 		target.setAbbreviations(s.abbreviations)
 		loadDictionaries(target, s)
 		loadRegexDictionary(s)
-		loadPhonemeDictionary(s)
 		// A voice is written, so the engine can refuse it while it is speaking.
 		// One that did not land is left unrecorded and asked for again at the
 		// next utterance rather than believed.
@@ -208,19 +205,6 @@ class EvvTtsService : TextToSpeechService() {
 		}
 	}
 
-	/** The phoneme dictionary is reread when the settings change, for the
-	 *  same reason the regex one is: the file it reads is a copy of our
-	 *  own, written by the settings screen. */
-	private fun loadPhonemeDictionary(s: Settings) {
-		phonemesEnabled = s.phonemeEnabled
-		loadedPhonemes = if (phonemesEnabled) {
-			s.phonemeMap().also {
-				Log.i(TAG, "phoneme dictionary: ${it.size} words")
-			}
-		} else {
-			emptyMap()
-		}
-	}
 	/** Reads the picked files into memory when they change. Teaching tens
 	 *  of thousands of words one by one blocks the synthesis thread past
 	 *  any reasonable wait, so nothing here touches the engine: words are
@@ -328,16 +312,12 @@ class EvvTtsService : TextToSpeechService() {
 			punctLevel = punctLevel
 		)
 		// The user's own rewrites go last, closest to the engine, so what is
-		// written in the regex dictionary is what gets said. The phoneme
-		// dictionary goes after even that: its annotations must never pass
-		// through a rewrite that could mangle them.
+		// written in the regex dictionary is what gets said.
 		val text = if (regexEnabled) RegexDictionaries.apply(loadedRegex, fixed) else fixed
 		// Words the dictionaries know are taught now, ahead of the engine
-		// meeting them below -- from the text before phonemes, so the
-		// annotations themselves are never taught as words.
+		// meeting them below.
 		teachUnknownWords(target, text)
-		val said = if (phonemesEnabled) PhonemeDictionaries.apply(text, loadedPhonemes) else text
-		if (said.isEmpty()) {
+		if (text.isEmpty()) {
 			callback.start(target.sampleRateHz, AudioFormat.ENCODING_PCM_16BIT, 1)
 			callback.done()
 			return
@@ -359,7 +339,7 @@ class EvvTtsService : TextToSpeechService() {
 		// found by looking at the end of a word.
 		val pauses = settings?.pauses ?: Pauses.ALL
 		val prosody = Prosody.prefix(settings?.phrasePrediction ?: false)
-		val pieces = TextPieces.split(said)
+		val pieces = TextPieces.split(text)
 		for ((at, raw) in pieces.withIndex()) {
 			if (stopped) break
 			val piece = prosody + Pauses.apply(raw, pauses, at == pieces.lastIndex)
