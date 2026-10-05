@@ -1,11 +1,13 @@
 enus: lay down the user-fixed pronunciations
 
-address/open/produce/visual/quality with corrected phones.
+open/produce/quality with corrected phones. address and visual were tried
+and put back: the dictionary carries no stress operator, so emphasis is
+the rules business, not the words.
 dict.py build laid them down: new constant-blob records plus the rule
 arms repointed at them. dict.py read its own work back word for word.
 Applied at build time so CI builds the same tree.
 diff --git a/lang/enus/delta_consts_enus.c b/lang/enus/delta_consts_enus.c
-index 11dda10..686eb72 100644
+index 11dda10..d2f67ce 100644
 --- a/lang/enus/delta_consts_enus.c
 +++ b/lang/enus/delta_consts_enus.c
 @@ -236,7 +236,7 @@ uint8_t enus_evv_ea_morph_data_3[802] = {
@@ -13,11 +15,11 @@ index 11dda10..686eb72 100644
  };
  
 -uint8_t enus_evv_ea_pname_data_3[20625] = {
-+uint8_t enus_evv_ea_pname_data_3[20711] = {
++uint8_t enus_evv_ea_pname_data_3[20728] = {
      30,24,33,21,36,1,50,3,32,1,3,45,25,0,0,0,
      32,1,3,45,25,36,13,28,13,0,0,0,44,1,3,45,
      25,36,0,0,32,1,33,17,44,21,0,0,30,1,24,36,
-@@ -1526,7 +1526,12 @@ uint8_t enus_evv_ea_pname_data_3[20625] = {
+@@ -1526,7 +1526,13 @@ uint8_t enus_evv_ea_pname_data_3[20625] = {
      13,45,25,44,17,33,7,36,25,0,0,0,13,45,16,0,
      13,47,11,33,24,32,7,14,15,44,0,0,13,45,25,45,
      13,0,0,0,13,46,24,33,7,0,0,0,4,14,11,49,
@@ -27,42 +29,35 @@ index 11dda10..686eb72 100644
 +    33,3,24,31,14,0,0,0,47,2,33,21,0,0,0,0,
 +    11,29,15,27,36,25,0,0,36,3,24,31,14,0,0,0,
 +    47,2,33,21,0,0,0,0,7,27,48,25,29,4,28,0,
-+    11,29,15,27,36,25,0,
++    11,29,15,27,36,25,0,0,47,2,33,21,0,0,0,0,
++    7,27,48,25,29,4,28,0,
  };
  
  uint8_t enus_evv_ea_roots_data_3[7895] = {
-@@ -2953,7 +2958,7 @@ uint8_t enus_evv_glob_bss_4[6] = {
+@@ -2953,7 +2959,7 @@ uint8_t enus_evv_glob_bss_4[6] = {
      0,0,0,0,0,0,
  };
  
 -uint8_t enus_evv_glob_data_3[2054] = {
-+uint8_t enus_evv_glob_data_3[2079] = {
++uint8_t enus_evv_glob_data_3[2087] = {
      0,1,0,0,0,1,2,3,4,5,6,7,8,9,0,0,
      0,2,1,0,1,11,0,0,1,11,19,2,1,14,26,2,
      24,0,0,0,1,15,2,0,1,19,0,0,1,19,1,11,
-@@ -3082,7 +3087,8 @@ uint8_t enus_evv_glob_data_3[2054] = {
+@@ -3082,7 +3088,9 @@ uint8_t enus_evv_glob_data_3[2054] = {
      72,0,0,0,72,26,4,72,73,0,0,0,73,25,74,75,
      76,78,79,8,8,24,30,36,20,0,0,0,8,31,4,14,
      8,46,3,80,81,86,87,88,89,9,0,0,9,30,24,12,
 -    48,24,96,97,98,99,
 +    48,24,96,97,98,99,0,0,2,24,46,3,45,14,0,0,
-+    2,24,46,3,45,14,0,0,2,24,46,3,45,14,0,
++    2,24,46,3,45,14,0,0,2,24,46,3,45,14,0,0,
++    2,24,46,3,45,14,0,
  };
  
  uint8_t enus_evv_u_intfac_data_3[106] = {
 diff --git a/lang/enus/enus.dict b/lang/enus/enus.dict
-index da42226..65ce4e4 100644
+index da42226..3d90832 100644
 --- a/lang/enus/enus.dict
 +++ b/lang/enus/enus.dict
-@@ -1179,7 +1179,7 @@ dictionary pnames1 statement 1 width 0 records sound
-   adolf 255 255 26 says e d a l f
-   adolph 255 255 27 says e d c l f
-   adonis 255 255 28 says A d a n X s
--  address 255 255 19 says A d r E s
-+  address 255 255 19 says x d r E s
-   adler 255 255 24 says A d l x r
-   adm 255 255 25 says A d m I n I s t r e S x n
-   adriatic 255 255 29 says e d r i A t X k
 @@ -2905,7 +2905,7 @@ dictionary pnames4 statement 1 width 0 records sound
    oneill 255 255 210 says o n i l
    ont 255 255 211 says a n t e r i o
@@ -90,17 +85,8 @@ index da42226..65ce4e4 100644
    qualcomm 255 255 394 says k w a l k a m
    quandary 255 255 396 says k w a@ n d R i
    quarles 255 255 397 says k w c r l E s
-@@ -3834,7 +3834,7 @@ dictionary pnames5 statement 1 width 0 records sound
-   villalobos 255 255 414 says v i l a l o b o z
-   villanueva 255 255 415 says v i l a n w E v x
-   vineland 255 255 416 says v Y n l x n d
--  visual 255 255 417 says v I Z x w x l
-+  visual 255 255 417 says v I Z w x l
-   vitale 255 255 418 says v X t A l i
-   vitaly 255 255 419 says v x t A l i
-   viva 255 255 420 says v i v x
 diff --git a/lang/enus/rules/ea_pname.dr b/lang/enus/rules/ea_pname.dr
-index b143ed4..a79af5e 100644
+index b143ed4..36308b2 100644
 --- a/lang/enus/rules/ea_pname.dr
 +++ b/lang/enus/rules/ea_pname.dr
 @@ -186,7 +186,7 @@ label L26 was $X18$102283
@@ -117,7 +103,7 @@ index b143ed4..a79af5e 100644
  label L210 was $X213$106084
    store movb imm 4 slot 100
 -  load movl sym string_1843 into r6
-+  load movl sym string_2733 into r6
++  load movl sym string_2737 into r6
    jump to L4
  label L211 was $X214$106085
    store movb imm 7 slot 100
@@ -126,7 +112,7 @@ index b143ed4..a79af5e 100644
    jump to L569
  label L368 was $X370$106241
 -  load movl sym ZZstring206 into r6
-+  load movl sym string_2734 into r6
++  load movl sym string_2738 into r6
    jump to L583
  label L369 was $X371$106242
    store movb imm 9 slot 100
@@ -135,7 +121,7 @@ index b143ed4..a79af5e 100644
    jump to L577
  label L394 was $X395$106266
 -  load movl sym string_2020 into r6
-+  load movl sym string_2735 into r6
++  load movl sym string_2739 into r6
    jump to L561
  label L395 was $X396$106267
    store movb imm 7 slot 100
@@ -151,10 +137,10 @@ index b143ed4..a79af5e 100644
  label L415 was $X418$107492
    store movb imm 6 slot 100
 diff --git a/lang/enus/rules/symbols b/lang/enus/rules/symbols
-index 907d75c..ae4bee9 100644
+index 907d75c..924ac73 100644
 --- a/lang/enus/rules/symbols
 +++ b/lang/enus/rules/symbols
-@@ -6841,3 +6841,18 @@ at * lts_et enus_evv_authored_data 61
+@@ -6841,3 +6841,21 @@ at * lts_et enus_evv_authored_data 61
  at * say_07 enus_evv_authored_data 63
  at * lts_e enus_evv_authored_data 64
  at * say_071b enus_evv_authored_data 65
@@ -173,3 +159,6 @@ index 907d75c..ae4bee9 100644
 +at ea_pname.obj string_2734 enus_evv_glob_data_3 2072
 +at ea_pname.obj string_2735 enus_evv_ea_pname_data_3 20696
 +at ea_pname.obj string_2736 enus_evv_ea_pname_data_3 20704
++at ea_pname.obj string_2737 enus_evv_ea_pname_data_3 20712
++at ea_pname.obj string_2738 enus_evv_glob_data_3 2080
++at ea_pname.obj string_2739 enus_evv_ea_pname_data_3 20720
