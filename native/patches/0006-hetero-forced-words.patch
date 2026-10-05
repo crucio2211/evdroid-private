@@ -1,0 +1,84 @@
+hetero: forced words said as written, starting with candidate
+
+The heteronym table consults grammar; some words need no asking. A
+forced word is replaced by its annotation wherever it stands, so a
+word whose dictionary entry cannot carry what it has to say is said
+from here instead. candidate goes first, with the reading specified.
+Applied at build time so CI builds the same tree.
+diff --git a/src/eci/hetero/eci_hetero.c b/src/eci/hetero/eci_hetero.c
+index e9e6f85..addd781 100644
+--- a/src/eci/hetero/eci_hetero.c
++++ b/src/eci/hetero/eci_hetero.c
+@@ -87,6 +87,22 @@ static const Hetero words[] = {
+ 
+ #define WORDS (int)(sizeof words / sizeof words[0])
+ 
++/* Words always said one way, whatever stands around them. Unlike the
++   heteronyms above these consult no grammar: the reading given here is
++   written in the word's place every time it is met, so a word whose
++   dictionary entry cannot carry what it needs to say is said from here
++   instead and the entry goes away. */
++typedef struct {
++    const char *word;
++    const char *say;      /* the annotation written in its place */
++} Forced;
++
++static const Forced forced[] = {
++    { "candidate", "`[k1A1ndXd1et]" },
++};
++
++#define FORCED (int)(sizeof forced / sizeof forced[0])
++
+ /* What the word before says about what this one is.
+  *
+  * The engine's own test looks no further than one word back and neither does
+@@ -136,6 +152,18 @@ static int which(const char *at, size_t n)
+     return -1;
+ }
+ 
++/* Which of the forced words this word is, or -1. */
++static int which_forced(const char *at, size_t n)
++{
++    int i;
++
++    for (i = 0; i < FORCED; i++)
++        if (strlen(forced[i].word) == n
++            && strncasecmp(forced[i].word, at, n) == 0)
++            return i;
++    return -1;
++}
++
+ /* The word before the one at `at', as an offset and a length. Answers 0 when
+    there is none. */
+ static const char *word_before(const char *text, const char *at, size_t *n)
+@@ -168,6 +196,12 @@ static size_t room_for(const char *text)
+         if (b > most)
+             most = b;
+     }
++    for (i = 0; i < FORCED; i++) {
++        size_t a = strlen(forced[i].say);
++
++        if (a > most)
++            most = a;
++    }
+     return strlen(text) * (most + 2) + 1;
+ }
+ 
+@@ -208,6 +242,17 @@ char *hetero_rewrite(const char *text)
+                 say = words[w].verb;
+ 
+             if (say != 0) {
++                memcpy(out + at, say, strlen(say));
++                at += strlen(say);
++                continue;
++            }
++        } else {
++            /* No grammar asked: a forced word is said as written. */
++            int f = which_forced(start, n);
++
++            if (f >= 0) {
++                const char *say = forced[f].say;
++
+                 memcpy(out + at, say, strlen(say));
+                 at += strlen(say);
+                 continue;
