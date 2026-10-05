@@ -321,6 +321,38 @@ class Settings(context: Context) {
 		edit.apply()
 	}
 
+	// ---- phoneme dictionary --------------------------------------------
+
+	/** Whether listed words are spoken as their written pronunciation. Off
+	 *  until a file is picked, which turns it on. */
+	var phonemeEnabled: Boolean
+		get() = prefs.getBoolean(KEY_PHONEME_ENABLED, false)
+		set(value) = prefs.edit().putBoolean(KEY_PHONEME_ENABLED, value).apply()
+
+	fun phonemePath(): String? = prefs.getString(KEY_PHONEME_PATH, null)
+
+	fun phonemeName(): String? = prefs.getString(KEY_PHONEME_NAME, null)
+
+	/** The phoneme file if one has been picked and still exists. */
+	fun phonemeFile(): java.io.File? =
+		phonemePath()?.let { java.io.File(it) }?.takeIf { it.exists() }
+
+	fun setPhonemeDictionary(path: String?, name: String?) {
+		val edit = prefs.edit()
+		if (path == null) {
+			edit.remove(KEY_PHONEME_PATH).remove(KEY_PHONEME_NAME)
+		} else {
+			edit.putString(KEY_PHONEME_PATH, path).putString(KEY_PHONEME_NAME, name)
+		}
+		edit.apply()
+	}
+
+	/** Word to phones as one utterance reads them; empty when off or with
+	 *  no file, in which case the text passes through untouched. */
+	fun phonemeMap(): Map<String, String> =
+		if (!phonemeEnabled) emptyMap()
+		else phonemeFile()?.let { PhonemeDictionaries.load(it) } ?: emptyMap()
+
 	companion object {
 		const val KEY_VOICE = "voice_preset"
 		const val KEY_FORCE_LANGUAGE = "force_language"
@@ -346,6 +378,9 @@ class Settings(context: Context) {
 		const val KEY_REGEX_ENABLED = "regex_enabled"
 		const val KEY_REGEX_PATH = "regex_path"
 		const val KEY_REGEX_NAME = "regex_name"
+		const val KEY_PHONEME_ENABLED = "phoneme_enabled"
+		const val KEY_PHONEME_PATH = "phoneme_path"
+		const val KEY_PHONEME_NAME = "phoneme_name"
 		const val KEY_USE_DICT_PREFIX = "use_dict_"
 		const val DEFAULT_SAMPLE_RATE = 11025
 

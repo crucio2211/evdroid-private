@@ -87,6 +87,9 @@ class SettingsModel(context: Context) {
 	var regexDictionaryEnabled by mutableStateOf(settings.regexDictionaryEnabled)
 		private set
 
+	var usePhonemes by mutableStateOf(settings.phonemeEnabled)
+		private set
+
 	private val shape = mutableStateMapOf<Int, Int>().apply { putAll(settings.shape(settings.voice)) }
 
 	private var dictionaries: Map<Int, String> by mutableStateOf(
@@ -186,6 +189,12 @@ class SettingsModel(context: Context) {
 	/** What the row for [volume] says: the file picked for it, or nothing. */
 	fun dictionaryName(volume: Int): String = dictionaries[volume] ?: app.getString(R.string.dictionary_none)
 
+	/** What the phoneme dictionary row says: the file picked for it, or nothing. */
+	var phonemeDictionary: String by mutableStateOf(
+		settings.phonemeName() ?: app.getString(R.string.dictionary_none)
+	)
+		private set
+
 	/** What the regex dictionary row says: the file picked for it, or nothing. */
 	var regexDictionary: String by mutableStateOf(
 		settings.regexDictionaryName() ?: app.getString(R.string.dictionary_none)
@@ -264,6 +273,10 @@ class SettingsModel(context: Context) {
 		chooseRegexDictionaryEnabled(false)
 		regexDictionary = app.getString(R.string.dictionary_none)
 		regexEntries = emptyList()
+		settings.phonemePath()?.let { java.io.File(it).delete() }
+		settings.setPhonemeDictionary(null, null)
+		chooseUsePhonemes(false)
+		phonemeDictionary = app.getString(R.string.dictionary_none)
 	}
 
 	/**
@@ -305,6 +318,44 @@ class SettingsModel(context: Context) {
 	fun chooseRegexDictionaryEnabled(on: Boolean) {
 		regexDictionaryEnabled = on
 		settings.regexDictionaryEnabled = on
+	}
+
+	/**
+	 * Takes a copy of the phoneme dictionary the picker handed back.
+	 *
+	 * Same copy-of-our-own arrangement as the other dictionaries. A file
+	 * with no usable entries in it is refused rather than kept. Picking a
+	 * good file turns the dictionary on.
+	 */
+	fun choosePhonemeDictionary(uri: android.net.Uri) {
+		val into = java.io.File(app.filesDir, "dictionaries").apply { mkdirs() }
+		val file = java.io.File(into, "phonemes.dic")
+		val name = nameOf(uri) ?: file.name
+		try {
+			app.contentResolver.openInputStream(uri).use { source ->
+				if (source == null) return
+				file.outputStream().use { sink -> source.copyTo(sink) }
+			}
+		} catch (unreadable: Exception) {
+			android.util.Log.e("evvdroid", "cannot read the phoneme dictionary picked", unreadable)
+			return
+		}
+		val words = PhonemeDictionaries.count(file)
+		if (words == 0) {
+			file.delete()
+			settings.setPhonemeDictionary(null, null)
+			phonemeDictionary = app.getString(R.string.dictionary_none)
+			return
+		}
+		val said = app.getString(R.string.dictionary_entries, name, words)
+		settings.setPhonemeDictionary(file.absolutePath, said)
+		phonemeDictionary = said
+		chooseUsePhonemes(true)
+	}
+
+	fun chooseUsePhonemes(on: Boolean) {
+		usePhonemes = on
+		settings.phonemeEnabled = on
 	}
 
 	/**
@@ -461,7 +512,8 @@ class SettingsModel(context: Context) {
 	 *  is written down, and this is how it gets heard. The sample follows a
 	 *  forced language the same way utterances do, and it runs the same
 	 *  rewrites TalkBack hears -- everything but the user dictionaries,
-	 *  which live on the service engine. */
+	 *  which live on the service engine. The phoneme dictionary is file
+	 *  text rather than taught words, so the sample hears it too. */
 	fun say() {
 		val forced = settings.forcedLanguage.takeIf {
 			settings.forceLanguage && EvvEngine.available.contains(it)
@@ -478,8 +530,9 @@ class SettingsModel(context: Context) {
 		)
 		val text = Prosody.prefix(settings.phrasePrediction) +
 			Pauses.apply(heard, settings.pauses, true)
+		val said = PhonemeDictionaries.apply(text, settings.phonemeMap())
 		preview?.say(
-			text,
+			said,
 			voice,
 			settings.shape(voice),
 			sampleRateHz,
