@@ -1,0 +1,22 @@
+trial: halve phrase-medial nucleus durations
+
+DIAGNOSTIC, not a fix: phrase_medial_dur scales one class of nuclei by
+75/100; this tries 75/150 so all mid-phrase nuclei come out clearly
+shorter. If the word-final -ie emphasis vanishes among the rushing,
+duration through this path is confirmed and the factor gets tuned for
+real. If the -ie still sticks out, the cause is elsewhere (another
+duration path, or pitch/energy) and this reverts.
+Applied at build time so CI builds the same tree.
+diff --git a/lang/enus/rules/es_ndur.dr b/lang/enus/rules/es_ndur.dr
+index f6e9e6f..478c74f 100644
+--- a/lang/enus/rules/es_ndur.dr
++++ b/lang/enus/rules/es_ndur.dr
+@@ -3434,7 +3434,7 @@ label L4 was $X8$99871
+   addk 2788 reg r6 into r1
+   load movl ind reg r1 0 into r0
+   mul imull imm 75 reg r0 into r0
+-  push imm 100
++  push imm 150
+   widen cltd
+   popreg r7
+   div idivl reg r7
