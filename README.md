@@ -256,6 +256,18 @@ The volume dictionaries teach Western bytes and do not cover Japanese,
 which travels Shift-JIS encoded; the regex dictionary rewrites text and
 works in every language.
 
+## Heteronyms
+
+Built into the engine, with no setting and no file. The ten words the
+engine's own test does not turn -- produce, transfer, export, decrease,
+digest, transplant, transport and their plurals -- are decided from the
+word before, IBM 6.1's own pattern: a determiner or preposition makes a
+noun ("the produce is fresh"), a modal, `to` or pronoun makes a verb
+("will produce"), and anything else is left as the engine has it. Upstream
+ships the filter off because any filter turns annotation reading on;
+annotations are already on here and caller backquotes are stripped first,
+so it is on here.
+
 ## Interrupting
 
 A screen reader wants each string to cut off the one before it. Two things make
