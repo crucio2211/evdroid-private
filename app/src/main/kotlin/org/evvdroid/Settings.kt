@@ -83,26 +83,17 @@ class Settings(context: Context) {
 		limiter = audioLimiter
 	)
 
-	/** Whether TalkBack's speech rate is overruled by [forcedRate]. On: every
-	 *  utterance runs at the chosen pace no matter what the caller asked for. */
+	/** Whether TalkBack's speech rate is overruled by the voice's own Speed
+	 *  row. On: every utterance runs at that pace no matter what the caller
+	 *  asked for. */
 	var forceRate: Boolean
 		get() = prefs.getBoolean(KEY_FORCE_RATE, false)
 		set(value) = prefs.edit().putBoolean(KEY_FORCE_RATE, value).apply()
 
-	/** The speech rate in force when [forceRate] is on, in percent of normal. */
-	var forcedRate: Int
-		get() = prefs.getInt(KEY_FORCED_RATE, DEFAULT_FORCED_RATE).coerceIn(0, Eci.PERCENT_MAX)
-		set(value) = prefs.edit().putInt(KEY_FORCED_RATE, value.coerceIn(0, Eci.PERCENT_MAX)).apply()
-
-	/** Whether TalkBack's pitch is overruled by [forcedPitch]. */
+	/** Whether TalkBack's pitch is overruled by the voice's own Pitch row. */
 	var forcePitch: Boolean
 		get() = prefs.getBoolean(KEY_FORCE_PITCH, false)
 		set(value) = prefs.edit().putBoolean(KEY_FORCE_PITCH, value).apply()
-
-	/** The pitch in force when [forcePitch] is on, in percent of normal. */
-	var forcedPitch: Int
-		get() = prefs.getInt(KEY_FORCED_PITCH, DEFAULT_FORCED_PITCH).coerceIn(0, Eci.PERCENT_MAX)
-		set(value) = prefs.edit().putInt(KEY_FORCED_PITCH, value.coerceIn(0, Eci.PERCENT_MAX)).apply()
 
 	/** The abbreviation dictionary. Off by default: it expands what it takes
 	 *  for an abbreviation whether that was wanted or not. */
@@ -339,11 +330,7 @@ class Settings(context: Context) {
 		const val KEY_AUDIO_VOLUME = "audio_volume"
 		const val KEY_AUDIO_LIMITER = "audio_limiter"
 		const val KEY_FORCE_RATE = "force_rate"
-		const val KEY_FORCED_RATE = "forced_rate"
 		const val KEY_FORCE_PITCH = "force_pitch"
-		const val KEY_FORCED_PITCH = "forced_pitch"
-		const val DEFAULT_FORCED_RATE = 100
-		const val DEFAULT_FORCED_PITCH = 100
 		const val KEY_ABBREVIATIONS = "abbreviations"
 		const val KEY_SPEED = "speed"
 		const val KEY_PAUSES = "pauses"

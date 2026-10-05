@@ -95,7 +95,10 @@ numbers, camel case, punctuation, volume dictionaries and a regex dictionary.
 "Speak a sample" sits under the voice rows, speaking through the same rewrites
 TalkBack hears except user dictionaries, so what it says is what the settings
 do. Nothing speaks on its own. A setting takes effect when you set it, and the
-button is how you hear it.
+button is how you hear it. Force speech rate and force pitch sit at the top:
+when on, TalkBack's rate and pitch are ignored and the voice's own Speed and
+Pitch rows are what is heard, so there are no separate rows for them; when
+off, those two rows dim because TalkBack is driving.
 
 Six deliberate choices:
 

@@ -51,13 +51,7 @@ class SettingsModel(context: Context) {
 	var forceRate by mutableStateOf(settings.forceRate)
 		private set
 
-	var forcedRate by mutableStateOf(settings.forcedRate)
-		private set
-
 	var forcePitch by mutableStateOf(settings.forcePitch)
-		private set
-
-	var forcedPitch by mutableStateOf(settings.forcedPitch)
 		private set
 
 	var pauses by mutableStateOf(settings.pauses)
@@ -456,19 +450,9 @@ class SettingsModel(context: Context) {
 		settings.forceRate = on
 	}
 
-	fun chooseForcedRate(percent: Int) {
-		forcedRate = percent.coerceIn(0, Eci.PERCENT_MAX)
-		settings.forcedRate = forcedRate
-	}
-
 	fun chooseForcePitch(on: Boolean) {
 		forcePitch = on
 		settings.forcePitch = on
-	}
-
-	fun chooseForcedPitch(percent: Int) {
-		forcedPitch = percent.coerceIn(0, Eci.PERCENT_MAX)
-		settings.forcedPitch = forcedPitch
 	}
 
 	// ---- hearing it ------------------------------------------------------
@@ -500,8 +484,8 @@ class SettingsModel(context: Context) {
 			settings.shape(voice),
 			sampleRateHz,
 			settings.audioSnapshot(),
-			ratePercent = forcedRate.takeIf { forceRate },
-			pitchPercent = forcedPitch.takeIf { forcePitch }
+			ratePercent = 100.takeIf { forceRate },
+			pitchPercent = 100.takeIf { forcePitch }
 		)
 	}
 

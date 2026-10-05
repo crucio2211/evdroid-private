@@ -21,9 +21,7 @@
 	<string name="reset_label">Reset voice to defaults</string>
 
 	<string name="force_rate_label">Force speech rate</string>
-	<string name="forced_rate_label">Speech rate</string>
 	<string name="force_pitch_label">Force pitch</string>
-	<string name="forced_pitch_label">Pitch</string>
 
 	<string name="pauses_label">Pauses</string>
 	<string name="pauses_keep">Do not shorten</string>

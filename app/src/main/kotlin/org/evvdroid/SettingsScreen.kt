@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -74,13 +75,23 @@ fun SettingsScreen(state: SettingsModel) {
 				.verticalScroll(rememberScrollState())
 				.padding(bottom = 24.dp)
 		) {
-			ChoiceRow(
-				label = stringResource(R.string.voice_label),
-				options = Eci.PRESET_NAMES.toList(),
-				chosen = state.voice,
-				onChoose = state::chooseVoice
-			)
-			SwitchRow(
+		ChoiceRow(
+			label = stringResource(R.string.voice_label),
+			options = Eci.PRESET_NAMES.toList(),
+			chosen = state.voice,
+			onChoose = state::chooseVoice
+		)
+		SwitchRow(
+			label = stringResource(R.string.force_rate_label),
+			checked = state.forceRate,
+			onChange = state::chooseForceRate
+		)
+		SwitchRow(
+			label = stringResource(R.string.force_pitch_label),
+			checked = state.forcePitch,
+			onChange = state::chooseForcePitch
+		)
+		SwitchRow(
 				label = stringResource(R.string.force_language_label),
 				checked = state.forceLanguage,
 				onChange = state::chooseForceLanguage
@@ -95,13 +106,22 @@ fun SettingsScreen(state: SettingsModel) {
 			}
 		Gap()
 		for (param in Settings.PARAMS) {
+			// The forced rate and pitch are the Speed and Pitch rows
+			// themselves, so those rows are only live while their force
+			// switch is on; there are no extra rows for them.
+			val live = when (param) {
+				Eci.VOICE_SPEED -> state.forceRate
+				Eci.VOICE_PITCH_BASELINE -> state.forcePitch
+				else -> true
+			}
 			NumberDialogRow(
 				label = stringResource(labelOf(param)),
 				value = state.percentOf(param),
 				min = 0,
 				max = Eci.PERCENT_MAX,
 				shown = stringResource(R.string.percent, state.percentOf(param)),
-				onChoose = { state.setPercent(param, it) }
+				onChoose = { state.setPercent(param, it) },
+				enabled = live
 			)
 		}
 		Gap()
@@ -109,36 +129,6 @@ fun SettingsScreen(state: SettingsModel) {
 		ActionRow(stringResource(R.string.reset_label), state::resetVoice)
 
 		Gap()
-		SwitchRow(
-			label = stringResource(R.string.force_rate_label),
-			checked = state.forceRate,
-			onChange = state::chooseForceRate
-		)
-		if (state.forceRate) {
-			NumberDialogRow(
-				label = stringResource(R.string.forced_rate_label),
-				value = state.forcedRate,
-				min = 0,
-				max = Eci.PERCENT_MAX,
-				shown = stringResource(R.string.percent, state.forcedRate),
-				onChoose = state::chooseForcedRate
-			)
-		}
-		SwitchRow(
-			label = stringResource(R.string.force_pitch_label),
-			checked = state.forcePitch,
-			onChange = state::chooseForcePitch
-		)
-		if (state.forcePitch) {
-			NumberDialogRow(
-				label = stringResource(R.string.forced_pitch_label),
-				value = state.forcedPitch,
-				min = 0,
-				max = Eci.PERCENT_MAX,
-				shown = stringResource(R.string.percent, state.forcedPitch),
-				onChoose = state::chooseForcedPitch
-			)
-		}
 
 			Gap()
 			ChoiceRow(
@@ -336,10 +326,11 @@ private fun NumberDialogRow(
 	min: Int,
 	max: Int,
 	shown: String,
-	onChoose: (Int) -> Unit
+	onChoose: (Int) -> Unit,
+	enabled: Boolean = true
 ) {
 	var open by remember { mutableStateOf(false) }
-	ValueRow(label = label, value = shown, onClick = { open = true })
+	ValueRow(label = label, value = shown, onClick = { open = true }, enabled = enabled)
 	if (open) {
 		AlertDialog(
 			onDismissRequest = { open = false },
@@ -469,15 +460,18 @@ private fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Un
 	}
 }
 
-/** A label, what it is set to, and something to press to change it. */
+/** A label, what it is set to, and something to press to change it. Off means
+ *  off: a disabled row is dimmed and does nothing, which is how the Speed and
+ *  Pitch rows read while their force switch is off. */
 @Composable
-private fun ValueRow(label: String, value: String, onClick: () -> Unit) {
+private fun ValueRow(label: String, value: String, onClick: () -> Unit, enabled: Boolean = true) {
 	Text(
 		text = stringResource(R.string.labelled_value, label, value),
 		style = MaterialTheme.typography.bodyLarge,
 		modifier = Modifier
 			.fillMaxWidth()
-			.clickable(onClick = onClick)
+			.clickable(enabled = enabled, onClick = onClick)
+			.alpha(if (enabled) 1f else 0.4f)
 			.padding(horizontal = 16.dp, vertical = 14.dp)
 			.clearAndSetSemantics {
 				contentDescription = label

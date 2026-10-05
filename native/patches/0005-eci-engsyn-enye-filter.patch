@@ -7,7 +7,7 @@ the capital to "Ny"/"Enye", before the text enters the engine link.
 Comment-only removals aside, that is the whole of this patch.
 Applied at build time so CI builds the same file.
 diff --git a/src/eci/api/eci_engsyn.c b/src/eci/api/eci_engsyn.c
-index 04cce33..8b06e9e 100644
+index 04cce33..8ad746f 100644
 --- a/src/eci/api/eci_engsyn.c
 +++ b/src/eci/api/eci_engsyn.c
 @@ -109,16 +109,85 @@ extern THIS int32_t ds_updateEntry(void *s, int32_t volume,
@@ -19,7 +19,7 @@ index 04cce33..8b06e9e 100644
 -
  STDCALL int32_t es_engsynRestart(delta_state *d);
  
-+/* ---- EÑE FILTER / PRE-PROCESSOR -------------------------------------- */
++/* ---- ENYE FILTER / PRE-PROCESSOR -------------------------------------- */
 +
 +static char *filter_text_enye(const char *text)
 +{
@@ -33,7 +33,7 @@ index 04cce33..8b06e9e 100644
 +    if (len == 0)
 +        return 0;
 +
-+    /* Standalone lowercase 'ñ' (Latin-1 0xF1 or UTF-8 \xC3\xB1) */
++    /* Standalone lowercase 'enye' (Latin-1 0xF1 or UTF-8 \xC3\xB1) */
 +    if ((len == 1 && (unsigned char)text[0] == 0xF1) ||
 +        (len == 2 && (unsigned char)text[0] == 0xC3 && (unsigned char)text[1] == 0xB1)) {
 +        char *res = (char *)malloc(5);
@@ -42,7 +42,7 @@ index 04cce33..8b06e9e 100644
 +        return res;
 +    }
 +
-+    /* Standalone uppercase 'Ñ' (Latin-1 0xD1 or UTF-8 \xC3\x91) */
++    /* Standalone uppercase 'Enye' (Latin-1 0xD1 or UTF-8 \xC3\x91) */
 +    if ((len == 1 && (unsigned char)text[0] == 0xD1) ||
 +        (len == 2 && (unsigned char)text[0] == 0xC3 && (unsigned char)text[1] == 0x91)) {
 +        char *res = (char *)malloc(5);
@@ -51,7 +51,7 @@ index 04cce33..8b06e9e 100644
 +        return res;
 +    }
 +
-+    /* Allocate buffer with enough headroom (worst-case: eñe expands 1 to 2 chars) */
++    /* Allocate buffer with enough headroom (worst-case: enye expands 1 to 2 chars) */
 +    buf = (char *)malloc(len * 2 + 1);
 +    if (!buf)
 +        return 0;
@@ -62,25 +62,25 @@ index 04cce33..8b06e9e 100644
 +        unsigned char c1 = (unsigned char)text[r];
 +        unsigned char c2 = (r + 1 < len) ? (unsigned char)text[r + 1] : 0;
 +
-+        /* UTF-8: lowercase ñ (\xC3\xB1) -> "ny" */
++        /* UTF-8: lowercase enye (\xC3\xB1) -> "ny" */
 +        if (c1 == 0xC3 && c2 == 0xB1) {
 +            buf[w++] = 'n';
 +            buf[w++] = 'y';
 +            r += 2;
 +        }
-+        /* UTF-8: uppercase Ñ (\xC3\x91) -> "Ny" */
++        /* UTF-8: uppercase Enye (\xC3\x91) -> "Ny" */
 +        else if (c1 == 0xC3 && c2 == 0x91) {
 +            buf[w++] = 'N';
 +            buf[w++] = 'y';
 +            r += 2;
 +        }
-+        /* ANSI / Latin-1 / CP1252: lowercase ñ (0xF1) -> "ny" */
++        /* ANSI / Latin-1 / CP1252: lowercase enye (0xF1) -> "ny" */
 +        else if (c1 == 0xF1) {
 +            buf[w++] = 'n';
 +            buf[w++] = 'y';
 +            r++;
 +        }
-+        /* ANSI / Latin-1 / CP1252: uppercase Ñ (0xD1) -> "Ny" */
++        /* ANSI / Latin-1 / CP1252: uppercase Enye (0xD1) -> "Ny" */
 +        else if (c1 == 0xD1) {
 +            buf[w++] = 'N';
 +            buf[w++] = 'y';
@@ -249,7 +249,7 @@ index 04cce33..8b06e9e 100644
              setEngsynError(d, -1);
          } else {
 -            if (!eciLinkDataFromECI(ELOQ_MAINLINK(d), text))
-+            /* FIX: I-filter ang eñe bago pumasok sa engine link */
++            /* FIX: I-filter ang enye bago pumasok sa engine link */
 +            char *filtered = filter_text_enye(text);
 +            const char *actual_text = filtered ? filtered : text;
 +
@@ -280,7 +280,7 @@ index 04cce33..8b06e9e 100644
 -        } else if (DeltaProc_process_remaining(d) || deltaErrorThrown(d)) {
 -            setEngsynError(d, ERR_ENGINE);
 +        } else {
-+            /* FIX: I-filter ang eñe bago pumasok sa engine link */
++            /* FIX: I-filter ang enye bago pumasok sa engine link */
 +            char *filtered = filter_text_enye(text);
 +            const char *actual_text = filtered ? filtered : text;
 +

@@ -291,8 +291,12 @@ class EvvTtsService : TextToSpeechService() {
 		// Re-sent every time rather than once, because it is the one setting
 		// with no way of telling whether something else has moved it.
 		s?.let { target.setAbbreviations(it.abbreviations) }
-		target.setRatePercent(if (s != null && s.forceRate) s.forcedRate else request.speechRate)
-		target.setPitchPercent(if (s != null && s.forcePitch) s.forcedPitch else request.pitch)
+		// A forced rate or pitch is the voice's own Speed or Pitch row: the
+		// voice is applied absolutely below, so 100 here leaves it alone and
+		// whatever TalkBack asked for is ignored. Unforced, TalkBack's numbers
+		// multiply the voice as before.
+		target.setRatePercent(if (s != null && s.forceRate) 100 else request.speechRate)
+		target.setPitchPercent(if (s != null && s.forcePitch) 100 else request.pitch)
 		// One pipeline for TalkBack and the sample button alike; the shape of
 		// it is documented on TextPipeline.
 		val raw = request.charSequenceText?.toString().orEmpty()
