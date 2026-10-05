@@ -5,9 +5,11 @@ forced entry names a stem: wherever the stem leads the token, the stem
 is replaced by its annotation and the rest stays on as text, so one
 entry says produce/produces/producing and candidate/candidates.
 Checked before the heteronym table, which it shadows.
+Annotations are dotted syllables with the stress digits, the only form
+the engine is measured to honour; undotted strings are spoken as text.
 Applied at build time so CI builds the same tree.
 diff --git a/src/eci/hetero/eci_hetero.c b/src/eci/hetero/eci_hetero.c
-index e9e6f85..b75e76d 100644
+index e9e6f85..6d7cab0 100644
 --- a/src/eci/hetero/eci_hetero.c
 +++ b/src/eci/hetero/eci_hetero.c
 @@ -77,7 +77,6 @@ static const Hetero words[] = {
@@ -18,7 +20,7 @@ index e9e6f85..b75e76d 100644
      { "transfer",   0,                    "`[.0trAns.1fR]"       },
      { "transfers",  0,                    "`[.0trAns.1fRz]"      },
      { "transplant", 0,                    "`[.0trAnz.1plAnt]"    },
-@@ -87,6 +86,24 @@ static const Hetero words[] = {
+@@ -87,6 +86,25 @@ static const Hetero words[] = {
  
  #define WORDS (int)(sizeof words / sizeof words[0])
  
@@ -34,8 +36,9 @@ index e9e6f85..b75e76d 100644
 +} Forced;
 +
 +static const Forced forced[] = {
-+    { "candidate", "`[k1A1ndXd1et]" },
-+    { "produce",   "`[prU1d1us]" },
++    { "candidate", "`[.1kA.0ndX.0det]" },
++    { "produce",   "`[.0prU.1dus]" },
++    { "unread",    "`[.0xnr.1Ed]" },
 +};
 +
 +#define FORCED (int)(sizeof forced / sizeof forced[0])
@@ -43,7 +46,7 @@ index e9e6f85..b75e76d 100644
  /* What the word before says about what this one is.
   *
   * The engine's own test looks no further than one word back and neither does
-@@ -136,6 +153,28 @@ static int which(const char *at, size_t n)
+@@ -136,6 +154,28 @@ static int which(const char *at, size_t n)
      return -1;
  }
  
@@ -72,7 +75,7 @@ index e9e6f85..b75e76d 100644
  /* The word before the one at `at', as an offset and a length. Answers 0 when
     there is none. */
  static const char *word_before(const char *text, const char *at, size_t *n)
-@@ -168,6 +207,12 @@ static size_t room_for(const char *text)
+@@ -168,6 +208,12 @@ static size_t room_for(const char *text)
          if (b > most)
              most = b;
      }
@@ -85,7 +88,7 @@ index e9e6f85..b75e76d 100644
      return strlen(text) * (most + 2) + 1;
  }
  
-@@ -196,6 +241,24 @@ char *hetero_rewrite(const char *text)
+@@ -196,6 +242,24 @@ char *hetero_rewrite(const char *text)
              p++;
          n = (size_t)(p - start);
  
