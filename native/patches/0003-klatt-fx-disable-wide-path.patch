@@ -6,7 +6,7 @@ state writeback arm in pole_filter, force noise_shaping() off and raise
 NOISE_BAND to 7500 Hz so frication passes unshaped at wideband rates.
 Applied at build time so CI builds the same file.
 diff --git a/src/klatt/klatt_fx.c b/src/klatt/klatt_fx.c
-index 78e7142..573b775 100644
+index 78e7142..368aec5 100644
 --- a/src/klatt/klatt_fx.c
 +++ b/src/klatt/klatt_fx.c
 @@ -42,17 +42,11 @@ int16_t fxdivl(int32_t num, int32_t den)
@@ -35,7 +35,15 @@ index 78e7142..573b775 100644
  void fxmul_vector(const int32_t *src, int16_t coef, int32_t *acc, int32_t n)
  {
      int32_t i;
-@@ -98,8 +91,6 @@ int32_t db2lin(int32_t db)
+@@ -83,6 +76,7 @@ void fxmul_vector(const int32_t *src, int16_t coef, int32_t *acc, int32_t n)
+         acc[i] += fxmul_scaled(coef, src[i]);
+ }
+ 
++/* Original clean implementation: No artificial multiplier */
+ void fxmul1_vector(const int16_t *src, int16_t coef, int32_t *acc, int32_t n)
+ {
+     int32_t i;
+@@ -98,8 +92,6 @@ int32_t db2lin(int32_t db)
      if (db <= 0)
          return 0;
  
@@ -44,7 +52,7 @@ index 78e7142..573b775 100644
      t = mul32(db, 299) / 90;
      if (t >= 400)
          t = 400;
-@@ -121,10 +112,6 @@ int verifyKlattHandle(void *handle)
+@@ -121,10 +113,6 @@ int verifyKlattHandle(void *handle)
  
  typedef char filter_parms_is_84_bytes[sizeof(filter_parms) == 84 ? 1 : -1];
  
@@ -55,7 +63,7 @@ index 78e7142..573b775 100644
  static void pole_filter_wide(filter_parms *fp, int32_t *buf, int32_t n);
  
  void pole_filter(filter_parms *fp, int32_t *buf, int32_t n)
-@@ -138,9 +125,6 @@ void pole_filter(filter_parms *fp, int32_t *buf, int32_t n)
+@@ -138,9 +126,6 @@ void pole_filter(filter_parms *fp, int32_t *buf, int32_t n)
      buf[-1] = fp->d1;
      i = 0;
  
@@ -65,7 +73,7 @@ index 78e7142..573b775 100644
      if (klatt_wide_on()) {
          pole_filter_wide(fp, buf, n);
          return;
-@@ -170,15 +154,12 @@ void pole_filter(filter_parms *fp, int32_t *buf, int32_t n)
+@@ -170,15 +155,12 @@ void pole_filter(filter_parms *fp, int32_t *buf, int32_t n)
      if (n > 1) {
          fp->d2 = buf[i - 2];
          fp->d1 = buf[i - 1];
@@ -83,7 +91,7 @@ index 78e7142..573b775 100644
  void parallel0_filter(filter_parms *fp, int32_t *buf, int32_t n)
  {
      int32_t i, t1, t2;
-@@ -195,9 +176,9 @@ void parallel0_filter(filter_parms *fp, int32_t *buf, int32_t n)
+@@ -195,9 +177,9 @@ void parallel0_filter(filter_parms *fp, int32_t *buf, int32_t n)
      if (n > 1) {
          fp->d2 = buf[i - 2];
          fp->d1 = buf[i - 1];
@@ -95,7 +103,7 @@ index 78e7142..573b775 100644
      }
  }
  
-@@ -212,9 +193,6 @@ void zero_filter(filter_parms *fp, const zero_ABCs *z, int32_t *buf, int32_t n)
+@@ -212,9 +194,6 @@ void zero_filter(filter_parms *fp, const zero_ABCs *z, int32_t *buf, int32_t n)
      p1 = fp->d1;
      i = 0;
  
@@ -105,7 +113,7 @@ index 78e7142..573b775 100644
      if (fp->ramp != 0) {
          count = fp->ramp < n ? fp->ramp : n;
          k = 3 - fp->ramp;
-@@ -240,64 +218,25 @@ void zero_filter(filter_parms *fp, const zero_ABCs *z, int32_t *buf, int32_t n)
+@@ -240,64 +219,22 @@ void zero_filter(filter_parms *fp, const zero_ABCs *z, int32_t *buf, int32_t n)
          p1 = x;
      }
  
@@ -146,8 +154,6 @@ index 78e7142..573b775 100644
 - * two are measured against. */
 -
 -#define NOISE_BAND 5512
-+/* Authentic Symbian Wideband Tuning:
-+   Set to 7500 Hz near the 16 kHz Nyquist ceiling so speech doesn't get lobotomized to 5.5 kHz */
 +#define NOISE_BAND 7500
  
  static int noise_shaping(void)
@@ -162,7 +168,6 @@ index 78e7142..573b775 100644
 -            on = 0;
 -    }
 -    return on;
-+    /* Return 0 to allow natural, open wideband noise like the authentic Symbian/Nokia mobile builds */
 +    return 0;
  }
  
@@ -176,7 +181,7 @@ index 78e7142..573b775 100644
  void klatt_shape_noise(int16_t *buf, int32_t n, int32_t rate, double *z)
  {
      static const double q[2] = { 0.54119610, 1.30656296 };
-@@ -320,9 +259,6 @@ void klatt_shape_noise(int16_t *buf, int32_t n, int32_t rate, double *z)
+@@ -320,9 +257,6 @@ void klatt_shape_noise(int16_t *buf, int32_t n, int32_t rate, double *z)
          a[s][1] = (1.0 - al) / a0;
      }
  
@@ -186,7 +191,7 @@ index 78e7142..573b775 100644
      g = sqrt((double)rate / 11025.0);
  
      for (i = 0; i < n; i++) {
-@@ -345,70 +281,6 @@ void klatt_shape_noise(int16_t *buf, int32_t n, int32_t rate, double *z)
+@@ -345,70 +279,6 @@ void klatt_shape_noise(int16_t *buf, int32_t n, int32_t rate, double *z)
      }
  }
  
@@ -257,7 +262,7 @@ index 78e7142..573b775 100644
  static int32_t wide_round(double y);
  #define WIDES 64
  
-@@ -417,39 +289,14 @@ static struct {
+@@ -417,39 +287,13 @@ static struct {
      double              d1, d2;
  } wide[WIDES];
  
@@ -282,7 +287,6 @@ index 78e7142..573b775 100644
 -            allowed = 2;
 -    }
 -    wide_on = allowed && rate > 11025;
-+    /* Keep wide path disabled to prevent experimental spikes/volume loss */
 +    wide_on = 0;
  }
  
@@ -300,7 +304,7 @@ index 78e7142..573b775 100644
  static double *wide_state(filter_parms *fp)
  {
      int i, spare = -1;
-@@ -479,8 +326,6 @@ static int32_t wide_round(double y)
+@@ -479,8 +323,6 @@ static int32_t wide_round(double y)
      return (int32_t)(y >= 0.0 ? y + 0.5 : y - 0.5);
  }
  
@@ -309,7 +313,7 @@ index 78e7142..573b775 100644
  static void pole_filter_wide(filter_parms *fp, int32_t *buf, int32_t n)
  {
      double *z = wide_state(fp);
-@@ -556,4 +401,4 @@ static void pole_filter_wide(filter_parms *fp, int32_t *buf, int32_t n)
+@@ -556,4 +398,4 @@ static void pole_filter_wide(filter_parms *fp, int32_t *buf, int32_t n)
  int klatt_wide_on(void)
  {
      return wide_on;
