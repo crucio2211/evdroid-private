@@ -302,26 +302,12 @@ class EvvTtsService : TextToSpeechService() {
 		val raw = request.charSequenceText?.toString().orEmpty()
 		val numberMode: Int? = if (s != null && s.numberProcessing) s.numberMode else null
 		val punctLevel: Int? = if (s != null && s.punctProcessing) s.punctLevel else null
-		val fixed = TextPipeline.process(
-			raw,
-			emoji = s?.speakEmoji != false,
-			emojiCompress = s?.emojiCompress ?: EmojiProcessing.DEFAULT_COMPRESS,
-			numberMode = numberMode,
-			camelCase = s?.splitCamelCase != false,
-			stripBackquotes = s?.backquoteTags != true,
-			punctLevel = punctLevel
-		)
-		// The user's own rewrites go last, closest to the engine, so what is
-		// written in the regex dictionary is what gets said.
-		val text = if (regexEnabled) RegexDictionaries.apply(loadedRegex, fixed) else fixed
-		// Words the dictionaries know are taught now, ahead of the engine
-		// meeting them below.
-		teachUnknownWords(target, text)
-		if (text.isEmpty()) {
-			callback.start(target.sampleRateHz, AudioFormat.ENCODING_PCM_16BIT, 1)
-			callback.done()
-			return
-		}
+		// Split before any rewriting, NVDA-style: each raw piece is
+		// processed and spoken on its own, so the first audio lands after
+		// the first piece's frontend rather than the whole block's. A
+		// block-sized regex and dictionary scan plus one engine frontend
+		// over all of it is what kept big text waiting.
+		val rawPieces = TextPieces.split(raw)
 		// The framework is not told an utterance has begun until there are
 		// samples for it. Saying so up front and then being silenced before the
 		// engine has made anything hands the reader a whole start and finish
@@ -339,22 +325,48 @@ class EvvTtsService : TextToSpeechService() {
 		// found by looking at the end of a word.
 		val pauses = settings?.pauses ?: Pauses.ALL
 		val prosody = Prosody.prefix(settings?.phrasePrediction ?: false)
-		val pieces = TextPieces.split(text)
-		for ((at, raw) in pieces.withIndex()) {
+		for ((ri, rawPiece) in rawPieces.withIndex()) {
 			if (stopped) break
-			val piece = prosody + Pauses.apply(raw, pauses, at == pieces.lastIndex)
+			val fixed = TextPipeline.process(
+				rawPiece,
+				emoji = s?.speakEmoji != false,
+				emojiCompress = s?.emojiCompress ?: EmojiProcessing.DEFAULT_COMPRESS,
+				numberMode = numberMode,
+				camelCase = s?.splitCamelCase != false,
+				stripBackquotes = s?.backquoteTags != true,
+				punctLevel = punctLevel
+			)
+			// The user's own rewrites go last, closest to the engine, so what is
+			// written in the regex dictionary is what gets said.
+			val text = if (regexEnabled) RegexDictionaries.apply(loadedRegex, fixed) else fixed
+			// Words the dictionaries know are taught now, ahead of the engine
+			// meeting them below.
+			teachUnknownWords(target, text)
+			if (text.isEmpty()) continue
+			val pieces = TextPieces.split(text)
+			for ((at, part) in pieces.withIndex()) {
+				if (stopped) break
+				val piece = prosody + Pauses.apply(
+					part, pauses,
+					at == pieces.lastIndex && ri == rawPieces.lastIndex
+				)
 		if (!target.speak(piece)) {
 			Log.e(TAG, "the engine refused ${piece.length} characters")
 			callback.error(TextToSpeech.ERROR_SYNTHESIS)
 			return
 		}
 		if (!pump(target, callback, pace, opening, s?.audioSnapshot() ?: AudioOutput.Snapshot())) {
-				remember(pace)
-				return
+					remember(pace)
+					return
+				}
 			}
 		}
 		remember(pace)
 		if (opening.began) callback.done()
+		else {
+			callback.start(target.sampleRateHz, AudioFormat.ENCODING_PCM_16BIT, 1)
+			callback.done()
+		}
 	}
 
 	/** Hands one piece's samples on as they arrive, and answers whether the

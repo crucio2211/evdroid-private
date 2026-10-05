@@ -7,8 +7,9 @@ package org.evvdroid
  *
  * Thousands commas go first, always, even with everything off. Then emoji
  * into words, numbers regrouped when asked, camel case split when asked,
- * the crash guards on words as typed, readability fixes, punctuation when
- * asked, and the user's own rewrites closest to the engine. User
+ * the crash guards on words as typed, readability fixes, `@` as the word
+ * `at` with dots and pluses silenced when punctuation is off, punctuation
+ * when asked, and the user's own rewrites closest to the engine. User
  * dictionaries stay out: they live on the service engine, which the preview
  * does not share.
  */
@@ -34,6 +35,7 @@ object TextPipeline {
 		val camelled = if (camelCase) CamelCase.apply(numbered) else numbered
 		val guarded = AntiCrash.apply(camelled, stripBackquotes)
 		val fixed = TextFixes.apply(guarded)
-		return if (punctLevel != null) PunctuationProcessing.apply(fixed, punctLevel) else fixed
+		val worded = SymbolWords.apply(fixed, punctLevel == null)
+		return if (punctLevel != null) PunctuationProcessing.apply(worded, punctLevel) else worded
 	}
 }

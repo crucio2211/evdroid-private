@@ -190,6 +190,16 @@ kept one came out twice. Below its level a mark stays for the engine's
 default, sentence-ending .!? stays prosody below all, and dots and commas
 between digits pass untouched.
 
+`@` never reaches any of that: it is always the word `at` first, so an
+address reads as words. With punctuation off, dots between lowercase
+letters and pluses anywhere go quiet the same way -- the engine would
+spell them -- while sentence dots, decimals, initials and ellipsis keep
+what they mean.
+
+Big text is split before any of it, NVDA-style: each piece is rewritten
+and spoken on its own, so the first audio lands after the first piece's
+frontend rather than the whole block's.
+
 ## Emoji
 
 "Speak emoji" turns every emoji into its plain-English name before anything

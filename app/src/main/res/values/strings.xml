@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">evvdroid</string>
-	<string name="engine_name">Eloquence (openevv)</string>
+	<string name="app_name">Eloquence</string>
+	<string name="engine_name">Eloquence</string>
 	<string name="sample_text">Hello from Eloquence.</string>
 	<string name="preview_text">Hello from Eloquence. This is a test of the current voice.</string>
 
