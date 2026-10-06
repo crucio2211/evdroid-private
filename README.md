@@ -177,7 +177,8 @@ specification here rather than this text.
 
 Thousands commas go first and always, even with everything off: 1,000
 reads one thousand instead of one comma hundred, and decimals pass
-through. Then digit runs regroup -- apart, remainder-first pairs and
+through. A lone ñ is the letter's name, said as enye; inside a word it
+goes in as ny, which reads as the palatal sound. Then digit runs regroup -- apart, remainder-first pairs and
 triplets (12345 in pairs is 1 23 45), quadruplets whole up to four and
 apart past that -- wherever they stand.
 

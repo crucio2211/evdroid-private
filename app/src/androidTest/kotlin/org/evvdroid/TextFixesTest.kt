@@ -24,14 +24,15 @@ class TextFixesTest {
 		assertEquals("win 10", TextFixes.apply("win10"))
 	}
 
-	/** A lone enye is the letter's name; inside words the engine's own
-	 *  preprocessor reads it, so only the lone one is rewritten here. */
+	/** A lone enye is the letter's name; inside words it goes in as ny,
+	 *  which the engine reads as the palatal nj sound. */
 	@Test
 	fun loneEnyeIsSaidAsEnye() {
 		assertEquals("enye", TextFixes.apply("ñ"))
 		assertEquals("Enye", TextFixes.apply("Ñ"))
 		assertEquals("a enye b", TextFixes.apply("a ñ b"))
-		assertEquals("niña", TextFixes.apply("niña"))
+		assertEquals("ninya", TextFixes.apply("niña"))
+		assertEquals("ENVYAz", TextFixes.apply("EÑYAz"))
 	}
 
 	/** The other way round is right already and gets worse when split. */

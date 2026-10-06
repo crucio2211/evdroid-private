@@ -27,11 +27,12 @@ object TextFixes {
 fun apply(text: String): String {
 	if (text.isEmpty()) return text
 	// A lone enye is the letter's name, said as enye: the engine reads a
-	// bare ñ as eh-nee. Inside words the engine's own preprocessor takes
-	// it from here, so this runs first and only where no letter stands
-	// beside it.
+	// bare ñ as eh-nee. Inside a word it goes in as ny, which n_rules
+	// and y_rules read as the palatal nj sound: piñata reads pinyata.
+	// Lone first, so what remains has a letter beside it.
 	var out = ENYE_ALONE.replace(text, "enye")
 	out = ENYE_ALONE_CAPITAL.replace(out, "Enye")
+	out = out.replace("ñ", "ny").replace("Ñ", "Ny")
 	out = BEFORE_A_DIGIT.replace(out, "$1 $2")
 	out = BEFORE_AN_OPENER.replace(out, "$1 $2")
 	out = LOOSE_S_SUFFIX.replace(out, "$1$2")
