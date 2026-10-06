@@ -1,18 +1,16 @@
-hetero: forced plain-word respellings after an emptied table
+hetero: users produce phoneme entry plus plain-word respellings
 
-The heteronym table consults grammar but all of its readings are
-bracket annotations this engine spells aloud instead of honouring,
-measured, so the table stands empty and only whole-word plain
-respellings remain. High bytes count as word bytes so an enye stays
-inside its token for matching. Starts with nina said as niya, in
-Western and UTF-8 bytes alike. Octal escapes: hex escapes eat the
-letter after them.
+The heteronym table stands empty: all of its readings are bracket
+annotations this engine spells aloud instead of honouring, measured.
+Whole-word plain respellings remain (nina as niya), plus the users
+own produce phoneme entry as specified. High bytes count as word
+bytes so an enye stays inside its token for matching.
 Applied at build time so CI builds the same tree.
 diff --git a/src/eci/hetero/eci_hetero.c b/src/eci/hetero/eci_hetero.c
-index e9e6f85..a60304e 100644
+index e9e6f85..6aa73cc 100644
 --- a/src/eci/hetero/eci_hetero.c
 +++ b/src/eci/hetero/eci_hetero.c
-@@ -73,20 +73,37 @@ typedef struct {
+@@ -73,20 +73,38 @@ typedef struct {
  } Hetero;
  
  static const Hetero words[] = {
@@ -51,6 +49,7 @@ index e9e6f85..a60304e 100644
 +} Forced;
 +
 +static const Forced forced[] = {
++    { "produce",   "`[.0prU.1dus]" },
 +    { "ni\361a", "niya" },
 +    { "ni\303\261a", "niya" },
 +};
@@ -60,7 +59,7 @@ index e9e6f85..a60304e 100644
  /* What the word before says about what this one is.
   *
   * The engine's own test looks no further than one word back and neither does
-@@ -120,8 +137,12 @@ static int among(const char *word, size_t n, const char *const *list)
+@@ -120,8 +138,12 @@ static int among(const char *word, size_t n, const char *const *list)
  
  static int is_word_byte(char c)
  {
@@ -75,7 +74,7 @@ index e9e6f85..a60304e 100644
  }
  
  /* Which of the table this word is, or -1. */
-@@ -136,6 +157,19 @@ static int which(const char *at, size_t n)
+@@ -136,6 +158,19 @@ static int which(const char *at, size_t n)
      return -1;
  }
  
@@ -95,7 +94,7 @@ index e9e6f85..a60304e 100644
  /* The word before the one at `at', as an offset and a length. Answers 0 when
     there is none. */
  static const char *word_before(const char *text, const char *at, size_t *n)
-@@ -168,6 +202,12 @@ static size_t room_for(const char *text)
+@@ -168,6 +203,12 @@ static size_t room_for(const char *text)
          if (b > most)
              most = b;
      }
@@ -108,7 +107,7 @@ index e9e6f85..a60304e 100644
      return strlen(text) * (most + 2) + 1;
  }
  
-@@ -213,6 +253,18 @@ char *hetero_rewrite(const char *text)
+@@ -213,6 +254,18 @@ char *hetero_rewrite(const char *text)
                  continue;
              }
          }
