@@ -27,10 +27,11 @@ object TextFixes {
 fun apply(text: String): String {
 	if (text.isEmpty()) return text
 	// The engine reads ñ as the word "enye" and then the vowel after it
-	// on its own -- niña comes out as enye-a -- so it goes in as ny, in
-	// every language: no word wants the enye reading. First, before any
-	// rule that looks at letters meets a non-ASCII one.
-	var out = text.replace("ñ", "ny").replace("Ñ", "Ny")
+	// on its own, so it goes in as a bare y: niña reads niya, mañana
+	// reads mayana. A ny doubles the nasal into nin-ya, which is what
+	// came out wrong. First, before any rule that looks at letters meets
+	// a non-ASCII one.
+	var out = text.replace("ñ", "y").replace("Ñ", "Y")
 	out = BEFORE_A_DIGIT.replace(out, "$1 $2")
 		out = BEFORE_AN_OPENER.replace(out, "$1 $2")
 		out = LOOSE_S_SUFFIX.replace(out, "$1$2")

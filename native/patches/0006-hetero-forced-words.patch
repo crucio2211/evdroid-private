@@ -8,7 +8,7 @@ syllables with the stress digits, the only form the engine is measured
 to honour; undotted strings are spoken as text.
 Applied at build time so CI builds the same tree.
 diff --git a/src/eci/hetero/eci_hetero.c b/src/eci/hetero/eci_hetero.c
-index e9e6f85..dc8910b 100644
+index e9e6f85..ff19ae8 100644
 --- a/src/eci/hetero/eci_hetero.c
 +++ b/src/eci/hetero/eci_hetero.c
 @@ -87,6 +87,26 @@ static const Hetero words[] = {
@@ -28,7 +28,7 @@ index e9e6f85..dc8910b 100644
 +} Forced;
 +
 +static const Forced forced[] = {
-+    { "candidate", "`[.0kan.0di.1da.0te]" },
++    { "candidate", "`[.1kA.0ndX.0det]" },
 +    { "produce",   "`[.0prU.1dus]" },
 +    { "unread",    "`[.0xnr.1Ed]" },
 +};

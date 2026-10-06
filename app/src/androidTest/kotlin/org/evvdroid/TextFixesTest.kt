@@ -25,12 +25,12 @@ class TextFixesTest {
 	}
 
 	/** The engine reads ñ as the word "enye" plus the vowel after it, so
-	 *  niña would come out as enye-a. As ny it blends. */
+	 *  niña would come out as enye-a. As a bare y it blends: niya. */
 	@Test
-	fun enyeBecomesNy() {
-		assertEquals("ninya", TextFixes.apply("niña"))
-		assertEquals("manyana", TextFixes.apply("mañana"))
-		assertEquals("Ny", TextFixes.apply("Ñ"))
+	fun enyeBecomesY() {
+		assertEquals("niya", TextFixes.apply("niña"))
+		assertEquals("mayana", TextFixes.apply("mañana"))
+		assertEquals("Y", TextFixes.apply("Ñ"))
 	}
 
 	/** The other way round is right already and gets worse when split. */
