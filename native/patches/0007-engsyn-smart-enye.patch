@@ -3,11 +3,11 @@ engsyn: word-level enye phonetic preprocessor (user)
 User-supplied eci_engsyn.c: in-word enye units (UTF-8 or Western)
 become ny/Ny, word-initial before a becomes nyah/Nyah, standalone
 stays as-is for the screen reader echo. Wired into both text entry
-doors with the same lifetime handling. Upstream comments stripped in
-passing.
+doors with the same lifetime handling. Comments ASCII-only: raw
+Latin-1 bytes break the rules tooling which reads UTF-8.
 Applied at build time so CI builds the same tree.
 diff --git a/src/eci/api/eci_engsyn.c b/src/eci/api/eci_engsyn.c
-index 04cce33..338a4e9 100644
+index 04cce33..068ed9f 100644
 --- a/src/eci/api/eci_engsyn.c
 +++ b/src/eci/api/eci_engsyn.c
 @@ -20,6 +20,7 @@
@@ -27,7 +27,7 @@ index 04cce33..338a4e9 100644
 -
  STDCALL int32_t es_engsynRestart(delta_state *d);
  
-+/* ---- WORD-LEVEL EÑE PHONETIC PREPROCESSOR ----------------------------- */
++/* ---- WORD-LEVEL ENYE PHONETIC PREPROCESSOR ----------------------------- */
 +
 +static char *filter_smart_enye(const char *text)
 +{
@@ -68,13 +68,13 @@ index 04cce33..338a4e9 100644
 +            int has_prev_letter = isalpha(prev);
 +            int has_next_letter = isalpha(next);
 +
-+            /* CASE 1: Standalone eñe (nag-iisa) -> Hayaan as-is para sa screen reader echo */
++            /* CASE 1: Standalone enye (nag-iisa) -> Hayaan as-is para sa screen reader echo */
 +            if (!has_prev_letter && !has_next_letter) {
 +                buf[w++] = text[r++];
 +                if (char_len == 2)
 +                    buf[w++] = text[r++];
 +            }
-+            /* CASE 2: Simula ng salita bago ang 'a' (tulad ng "ña") -> "nyah" para single syllable */
++            /* CASE 2: Simula ng salita bago ang 'a' (tulad ng "nya") -> "nyah" para single syllable */
 +            else if (!has_prev_letter && tolower(next) == 'a') {
 +                buf[w++] = is_upper ? 'N' : 'n';
 +                buf[w++] = 'y';
@@ -82,7 +82,7 @@ index 04cce33..338a4e9 100644
 +                buf[w++] = 'h';
 +                r += char_len + 1;
 +            }
-+            /* CASE 3: Nasa loob ng salita (tulad ng niño, baño, piñata, Parañaque) -> "ny" */
++            /* CASE 3: Nasa loob ng salita (tulad ng nino, bano, pinata, Paraaque (lahat may enye)) -> "ny" */
 +            else {
 +                buf[w++] = is_upper ? 'N' : 'n';
 +                buf[w++] = 'y';
