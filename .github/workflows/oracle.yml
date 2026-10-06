@@ -27,7 +27,7 @@ jobs:
 
       - name: Lay our patches on
         run: |
-          for patch in native/patches/*.patch; do
+          for patch in "$GITHUB_WORKSPACE"/native/patches/*.patch; do
             [ -e "$patch" ] || continue
             git -C native/openevv apply --whitespace=nowarn "$patch"
             echo "applied $(basename "$patch")"
