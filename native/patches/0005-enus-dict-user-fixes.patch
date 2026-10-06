@@ -8969,9 +8969,9 @@ index da42226..7e00234 100644
    a 255 255 43 says alpha or ay
    e 255 255 47 says echo or ee
 @@ -5648,7 +5616,6 @@ dictionary eng_char_name statement 1 width 0 records characters
-   [??] 255 255 125 says macron
-   [??] 255 255 130 says mu
-   [??] 255 255 131 says paragraphs or paragraph
+   [¯] 255 255 125 says macron
+   [µ] 255 255 130 says mu
+   [¶] 255 255 131 says paragraphs or paragraph
 -
  dictionary eng_tok_dict statement 1 width 0 records characters
    am 255 255 2 says ay[ ]emm
@@ -8982,11 +8982,11 @@ index da42226..7e00234 100644
    (S)he 255 255 50 says she[ ]or[ ]he
 -
  dictionary eng_cur_dict statement 1 width 0 records characters
-   AED 255 255 1 says [??][ ]yu[ ]ey[ ]ee[ ] then [??] then Dirham
-   AOA 255 255 6 says [??][ ] then [??] then Kwanza
+   AED 255 255 1 says [§][ ]yu[ ]ey[ ]ee[ ] then [§] then Dirham
+   AOA 255 255 6 says [§][ ] then [§] then Kwanza
 @@ -5918,7 +5884,6 @@ dictionary eng_cur_dict statement 1 width 0 records characters
-   ZAR 255 255 170 says [??][ ] then [??] then rand
-   ZMK 255 255 171 says [??][ ]Zambian[ ] then [??] then kwacha
+   ZAR 255 255 170 says [§][ ] then [§] then rand
+   ZMK 255 255 171 says [§][ ]Zambian[ ] then [§] then kwacha
    ZWD 255 255 172
 -
  dictionary eng_words statement 1 width 0 records sound
@@ -8996,7 +8996,7 @@ index da42226..7e00234 100644
    naturally 255 255 53 says n A C r x l i
    nevertheless 255 255 54 says n E v x r D x l E s
    nez 255 255 55 says n e
-+  ni[??]a 255 255 123 says n i y a
++  ni[ñ]a 255 255 123 says n i y a
    noone 255 255 58 says n o w H n
    nonesuch 255 255 56 says n H n s H C
    nonetheless 255 255 57 says n H n D x l E s
