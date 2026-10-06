@@ -1,0 +1,42 @@
+name: oracle
+
+# Our-side accent oracle, to hold against ETI measurements taken on real
+# hardware. Builds the desktop phonemes harness (English only) and prints
+# what our engine says each case is made of -- phones and word accents --
+# into the run log, so no artifact storage is touched. Run it from the
+# Actions tab or with: gh workflow run oracle -R crucio2211/evdroid-private
+#
+# Nothing here runs on this machine; that is the point. See README.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  accents:
+    name: our accents
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out with the engine submodule
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Lay our patches on
+        run: |
+          for patch in native/patches/*.patch; do
+            [ -e "$patch" ] || continue
+            git -C native/openevv apply --whitespace=nowarn "$patch"
+            echo "applied $(basename "$patch")"
+          done
+
+      - name: Build the phonemes harness
+        working-directory: native/openevv
+        run: make phonemes-bin LANGS="lang/enus" RULES="bytecode" -j"$(nproc)"
+
+      - name: Say what our engine hears
+        working-directory: native/openevv
+        run: ./build/phonemes ../accent-cases.txt
