@@ -42,6 +42,6 @@ jobs:
         # With the hetero filter on, exactly like the app runs it: forced
         # readings must show up as annotations in the answers.
         env:
-          EVV_HETERO: on
-          EVV_HETERO_TRACE: on
+          EVV_HETERO: "on"
+          EVV_HETERO_TRACE: "on"
         run: ./build/phonemes ../accent-cases.txt
