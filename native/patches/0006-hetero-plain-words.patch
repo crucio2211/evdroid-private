@@ -3,12 +3,12 @@ hetero: forced plain-word respellings after an emptied table
 The heteronym table consults grammar but all of its readings are
 bracket annotations this engine spells aloud instead of honouring,
 measured, so the table stands empty and only whole-word plain
-respellings remain: a forced word is replaced whole, inflections keep
-their endings for the rules to read. Starts with nina said as niya,
-in Western and UTF-8 bytes alike.
+respellings remain. High bytes count as word bytes so an enye stays
+inside its token for matching. Starts with nina said as niya, in
+Western and UTF-8 bytes alike.
 Applied at build time so CI builds the same tree.
 diff --git a/src/eci/hetero/eci_hetero.c b/src/eci/hetero/eci_hetero.c
-index e9e6f85..6e6414a 100644
+index e9e6f85..0231762 100644
 --- a/src/eci/hetero/eci_hetero.c
 +++ b/src/eci/hetero/eci_hetero.c
 @@ -73,20 +73,37 @@ typedef struct {
@@ -59,7 +59,22 @@ index e9e6f85..6e6414a 100644
  /* What the word before says about what this one is.
   *
   * The engine's own test looks no further than one word back and neither does
-@@ -136,6 +153,19 @@ static int which(const char *at, size_t n)
+@@ -120,8 +137,12 @@ static int among(const char *word, size_t n, const char *const *list)
+ 
+ static int is_word_byte(char c)
+ {
+-    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+-        || (c >= '0' && c <= '9') || c == '\'';
++    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
++        || (c >= '0' && c <= '9') || c == '\'')
++        return 1;
++    /* High bytes too, so a word holding an enye stays one token for the
++       matching below. ASCII text is unaffected. */
++    return (unsigned char)c >= 0x80;
+ }
+ 
+ /* Which of the table this word is, or -1. */
+@@ -136,6 +157,19 @@ static int which(const char *at, size_t n)
      return -1;
  }
  
@@ -79,7 +94,7 @@ index e9e6f85..6e6414a 100644
  /* The word before the one at `at', as an offset and a length. Answers 0 when
     there is none. */
  static const char *word_before(const char *text, const char *at, size_t *n)
-@@ -168,6 +198,12 @@ static size_t room_for(const char *text)
+@@ -168,6 +202,12 @@ static size_t room_for(const char *text)
          if (b > most)
              most = b;
      }
@@ -92,7 +107,7 @@ index e9e6f85..6e6414a 100644
      return strlen(text) * (most + 2) + 1;
  }
  
-@@ -213,6 +249,18 @@ char *hetero_rewrite(const char *text)
+@@ -213,6 +253,18 @@ char *hetero_rewrite(const char *text)
                  continue;
              }
          }
