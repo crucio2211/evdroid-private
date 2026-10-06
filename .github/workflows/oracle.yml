@@ -10,6 +10,11 @@ name: oracle
 
 on:
   workflow_dispatch:
+    inputs:
+      lang:
+        description: 'Language module to build (e.g. lang/enus, lang/eses)'
+        required: false
+        default: 'lang/enus'
 
 permissions:
   contents: read
@@ -35,7 +40,7 @@ jobs:
 
       - name: Build the phonemes harness
         working-directory: native/openevv
-        run: make phonemes-bin LANGS="lang/enus" RULES="bytecode" -j"$(nproc)"
+        run: make phonemes-bin LANGS="${{ inputs.lang }}" RULES="bytecode" -j"$(nproc)"
 
       - name: Say what our engine hears
         working-directory: native/openevv
@@ -46,7 +51,10 @@ jobs:
           EVV_HETERO_TRACE: "on"
         run: |
           echo "hetero-env=[$EVV_HETERO]"
-          ./build/phonemes ../accent-cases.txt
+          tag="$(basename "${{ inputs.lang }}")"
+          cases="../accent-cases.txt"
+          [ -f "../accent-cases-$tag.txt" ] && cases="../accent-cases-$tag.txt"
+          ./build/phonemes "$cases"
 
       - name: Show what the hetero filter writes
         working-directory: native/openevv
