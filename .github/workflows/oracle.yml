@@ -44,4 +44,15 @@ jobs:
         env:
           EVV_HETERO: "on"
           EVV_HETERO_TRACE: "on"
-        run: ./build/phonemes ../accent-cases.txt
+        run: |
+          echo "hetero-env=[$EVV_HETERO]"
+          ./build/phonemes ../accent-cases.txt
+
+      - name: Show what the hetero filter writes
+        working-directory: native/openevv
+        # Calls the rewriting directly, past install questions: a wrong
+        # answer names itself here.
+        run: |
+          make build/hetero LANGS="lang/enus" RULES="bytecode" -j"$(nproc)"
+          printf '%s\n' 'I produce music.' 'they will produce it.' 'the produce was fresh.' 'the candidate won' 'unread messages' 'entries button' > /tmp/hetero-cases.txt
+          ./build/hetero /tmp/hetero-cases.txt
