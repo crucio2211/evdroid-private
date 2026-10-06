@@ -39,4 +39,8 @@ jobs:
 
       - name: Say what our engine hears
         working-directory: native/openevv
+        # With the hetero filter on, exactly like the app runs it: forced
+        # readings must show up as annotations in the answers.
+        env:
+          EVV_HETERO: on
         run: ./build/phonemes ../accent-cases.txt
