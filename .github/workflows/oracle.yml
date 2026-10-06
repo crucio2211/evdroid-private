@@ -65,5 +65,6 @@ jobs:
         # answer names itself here.
         run: |
           make build/hetero LANGS="lang/enus" RULES="bytecode" -j"$(nproc)"
-          printf '%s\n' 'I produce music.' 'they will produce it.' 'the produce was fresh.' 'the candidate won' 'unread messages' 'entries button' > /tmp/hetero-cases.txt
+          printf '%s\n' 'I produce music.' 'they will produce it.' 'the produce was fresh.' 'the candidate won' 'unread messages' 'entries button' 'niña' 'ninya' > /tmp/hetero-cases.txt
+          printf '%b\n' 'ni\361a' 'ma\361ana' >> /tmp/hetero-cases.txt
           ./build/hetero /tmp/hetero-cases.txt
