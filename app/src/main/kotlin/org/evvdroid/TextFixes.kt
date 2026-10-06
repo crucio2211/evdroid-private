@@ -27,11 +27,13 @@ object TextFixes {
 fun apply(text: String): String {
 	if (text.isEmpty()) return text
 	// The engine reads ñ as the word "enye" and then the vowel after it
-	// on its own, so it goes in as a bare y: niña reads niya, mañana
-	// reads mayana. A ny doubles the nasal into nin-ya, which is what
-	// came out wrong. First, before any rule that looks at letters meets
-	// a non-ASCII one.
-	var out = text.replace("ñ", "y").replace("Ñ", "Y")
+	// on its own, so inside a word it goes in as a bare y: niña reads
+	// niya. Standing alone it is the letter's name, said as enye: a lone
+	// y would be spelled wye. First, before any rule that looks at
+	// letters meets a non-ASCII one.
+	var out = ENYE_ALONE.replace(text, "enye")
+	out = ENYE_ALONE_CAPITAL.replace(out, "Enye")
+	out = out.replace("ñ", "y").replace("Ñ", "Y")
 	out = BEFORE_A_DIGIT.replace(out, "$1 $2")
 		out = BEFORE_AN_OPENER.replace(out, "$1 $2")
 		out = LOOSE_S_SUFFIX.replace(out, "$1$2")
@@ -47,6 +49,12 @@ fun apply(text: String): String {
 	 *  Digits against letters are left alone: 1st is right already and gets
 	 *  worse when split. */
 	private val BEFORE_A_DIGIT = Regex("""([A-Za-z])(\d)""")
+
+	/** An enye with no letter on either side is the letter's name, not
+	 *  part of a word. What remains after these two runs has a letter
+	 *  beside it and blends below. */
+	private val ENYE_ALONE = Regex("""(?<![\p{L}])ñ(?![\p{L}])""")
+	private val ENYE_ALONE_CAPITAL = Regex("""(?<![\p{L}])Ñ(?![\p{L}])""")
 
 	/** The marks the engine starts spelling in front of. Closing brackets are
 	 *  deliberately absent: "abc)" already costs no more than "abc", while

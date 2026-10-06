@@ -8,10 +8,10 @@ syllables with the stress digits, the only form the engine is measured
 to honour; undotted strings are spoken as text.
 Applied at build time so CI builds the same tree.
 diff --git a/src/eci/hetero/eci_hetero.c b/src/eci/hetero/eci_hetero.c
-index e9e6f85..d24d99e 100644
+index e9e6f85..ff19ae8 100644
 --- a/src/eci/hetero/eci_hetero.c
 +++ b/src/eci/hetero/eci_hetero.c
-@@ -87,6 +87,32 @@ static const Hetero words[] = {
+@@ -87,6 +87,26 @@ static const Hetero words[] = {
  
  #define WORDS (int)(sizeof words / sizeof words[0])
  
@@ -31,12 +31,6 @@ index e9e6f85..d24d99e 100644
 +    { "candidate", "`[.1kA.0ndX.0det]" },
 +    { "produce",   "`[.0prU.1dus]" },
 +    { "unread",    "`[.0xnr.1Ed]" },
-+    { "entries",   "`[.1en.0tryes]" },
-+    { "cities",    "`[.1Ti.0tyes]" },
-+    { "ladies",    "`[.1la.0dyes]" },
-+    { "stories",   "`[.1sto.0ryes]" },
-+    { "cookies",   "`[.0ko.1o.0kyes]" },
-+    { "dictionaries", "`[.0dik.0tyo.1na.0ryes]" },
 +};
 +
 +#define FORCED (int)(sizeof forced / sizeof forced[0])
@@ -44,7 +38,7 @@ index e9e6f85..d24d99e 100644
  /* What the word before says about what this one is.
   *
   * The engine's own test looks no further than one word back and neither does
-@@ -136,6 +162,19 @@ static int which(const char *at, size_t n)
+@@ -136,6 +156,19 @@ static int which(const char *at, size_t n)
      return -1;
  }
  
@@ -64,7 +58,7 @@ index e9e6f85..d24d99e 100644
  /* The word before the one at `at', as an offset and a length. Answers 0 when
     there is none. */
  static const char *word_before(const char *text, const char *at, size_t *n)
-@@ -168,6 +207,12 @@ static size_t room_for(const char *text)
+@@ -168,6 +201,12 @@ static size_t room_for(const char *text)
          if (b > most)
              most = b;
      }
@@ -77,7 +71,7 @@ index e9e6f85..d24d99e 100644
      return strlen(text) * (most + 2) + 1;
  }
  
-@@ -213,6 +258,18 @@ char *hetero_rewrite(const char *text)
+@@ -213,6 +252,18 @@ char *hetero_rewrite(const char *text)
                  continue;
              }
          }
