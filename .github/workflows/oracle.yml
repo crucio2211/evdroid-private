@@ -49,6 +49,7 @@ jobs:
         env:
           EVV_HETERO: "on"
           EVV_HETERO_TRACE: "on"
+          EVV_ANNO: "1"
         run: |
           echo "hetero-env=[$EVV_HETERO]"
           tag="$(basename "${{ inputs.lang }}")"
