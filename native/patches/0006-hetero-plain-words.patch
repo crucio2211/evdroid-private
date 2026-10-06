@@ -5,10 +5,11 @@ bracket annotations this engine spells aloud instead of honouring,
 measured, so the table stands empty and only whole-word plain
 respellings remain. High bytes count as word bytes so an enye stays
 inside its token for matching. Starts with nina said as niya, in
-Western and UTF-8 bytes alike.
+Western and UTF-8 bytes alike. Octal escapes: hex escapes eat the
+letter after them.
 Applied at build time so CI builds the same tree.
 diff --git a/src/eci/hetero/eci_hetero.c b/src/eci/hetero/eci_hetero.c
-index e9e6f85..0231762 100644
+index e9e6f85..a60304e 100644
 --- a/src/eci/hetero/eci_hetero.c
 +++ b/src/eci/hetero/eci_hetero.c
 @@ -73,20 +73,37 @@ typedef struct {
@@ -50,8 +51,8 @@ index e9e6f85..0231762 100644
 +} Forced;
 +
 +static const Forced forced[] = {
-+    { "ni\xf1a", "niya" },
-+    { "ni\xc3\xb1a", "niya" },
++    { "ni\361a", "niya" },
++    { "ni\303\261a", "niya" },
 +};
 +
 +#define FORCED (int)(sizeof forced / sizeof forced[0])
