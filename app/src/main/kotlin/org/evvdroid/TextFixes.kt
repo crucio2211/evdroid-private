@@ -26,7 +26,12 @@ object TextFixes {
  */
 fun apply(text: String): String {
 	if (text.isEmpty()) return text
-	var out = text
+	// A lone enye is the letter's name, said as enye: the engine reads a
+	// bare ñ as eh-nee. Inside words the engine's own preprocessor takes
+	// it from here, so this runs first and only where no letter stands
+	// beside it.
+	var out = ENYE_ALONE.replace(text, "enye")
+	out = ENYE_ALONE_CAPITAL.replace(out, "Enye")
 	out = BEFORE_A_DIGIT.replace(out, "$1 $2")
 	out = BEFORE_AN_OPENER.replace(out, "$1 $2")
 	out = LOOSE_S_SUFFIX.replace(out, "$1$2")
@@ -42,6 +47,11 @@ fun apply(text: String): String {
 	 *  Digits against letters are left alone: 1st is right already and gets
 	 *  worse when split. */
 	private val BEFORE_A_DIGIT = Regex("""([A-Za-z])(\d)""")
+
+	/** An enye with no letter on either side is the letter's name, not
+	 *  part of a word. */
+	private val ENYE_ALONE = Regex("""(?<![\p{L}])ñ(?![\p{L}])""")
+	private val ENYE_ALONE_CAPITAL = Regex("""(?<![\p{L}])Ñ(?![\p{L}])""")
 
 	/** The marks the engine starts spelling in front of. Closing brackets are
 	 *  deliberately absent: "abc)" already costs no more than "abc", while

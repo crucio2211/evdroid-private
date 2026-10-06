@@ -199,17 +199,11 @@ JNIEXPORT jlong JNICALL Java_org_evvdroid_EvvNative_create(JNIEnv* env, jclass c
 	 * entry by entry against IBM's own). Read once per process, so this runs
 	 * before the first engine exists. 8k and 11k are untouched either way. */
 	setenv("EVV_UPSAMPLE", "none", 1);
-	/* Turn on the builtin heteronym filter: the ten words the engine's own
-	 * test does not turn (produce, transfer, export and the rest) decided
-	 * from the word before, exactly IBM 6.1's pattern -- a determiner or
-	 * preposition makes a noun, a modal or pronoun a verb, anything else
-	 * left as the engine has it. Upstream leaves it off because any filter
-	 * turns annotation reading on for the instance; ours already reads
-	 * annotations, and caller backquotes are stripped before the engine
-	 * sees them, so the tradeoff it fears does not apply here. Read once
-	 * per process, beside the above. A refusal is not fatal: the engine
-	 * speaks perfectly well without it. */
-	setenv("EVV_HETERO", "on", 1);
+	/* The heteronym filter stays off: it writes `[phone] pronunciation
+	 * annotations, which this engine spells aloud instead of honouring --
+	 * measured, not assumed. Until the bracket pronunciation path exists,
+	 * installing it would read every covered word as garbage. The code
+	 * remains, inert without EVV_HETERO=on. */
 	in = (instance*)calloc(1, sizeof *in);
 	if (in == NULL)
 		return 0;
