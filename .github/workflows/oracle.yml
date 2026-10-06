@@ -54,7 +54,9 @@ jobs:
           tag="$(basename "${{ inputs.lang }}")"
           cases="../accent-cases.txt"
           [ -f "../accent-cases-$tag.txt" ] && cases="../accent-cases-$tag.txt"
-          ./build/phonemes "$cases"
+          bin="./build/phonemes-$tag"
+          [ -x "$bin" ] || bin="./build/phonemes"
+          "$bin" "$cases"
 
       - name: Show what the hetero filter writes
         working-directory: native/openevv
