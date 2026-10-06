@@ -1,0 +1,177 @@
+enus: read in-word enye with the palatal nasal
+
+US English letter rules never learned to spell the enye:
+normalize_eng_letters folds it to a plain n, so pinata comes out
+pinata. Standing alone it is the letters name already, through
+dictionary eng_char_name, and is left alone. In-word units, Western
+0xF1/0xD1 or UTF-8, become ny/Ny, which n_rules and y_rules read
+as the authentic nj sound, exactly like the hardcoded senor entries
+already do. Other languages keep their bytes: Spanish reads the
+letter natively.
+Applied at build time so CI builds the same tree.
+diff --git a/src/eci/synth/eci_synthtext.c b/src/eci/synth/eci_synthtext.c
+index fb97f8e..6cf4eac 100644
+--- a/src/eci/synth/eci_synthtext.c
++++ b/src/eci/synth/eci_synthtext.c
+@@ -339,6 +339,104 @@ static int utf8ToWestern(const char *text, uint32_t len, char *out,
+     return 1;
+ }
+ 
++/* ---- enye in English words ------------------------------------------- */
++
++/* Whether this Western byte can stand inside a word: letters and digits in
++   both cases, and the high half that holds the accented letters. The
++   multiplication and division signs are punctuation wherever they stand. */
++static int enye_word_byte(unsigned char c)
++{
++    if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z')
++        || (c >= 'a' && c <= 'z'))
++        return 1;
++    return c >= 0xc0 && c != 0xd7 && c != 0xf7;
++}
++
++/* US English reads ñ inside a word with the palatal nasal, which its own
++   letter rules never learned to spell: normalize_eng_letters folds it to
++   a plain n, so piñata comes out pinata and año ano. Standing alone it is
++   the letter's name already, through dictionary eng_char_name, and is
++   left alone.
++ *
++ * Takes UTF-8 or Western bytes and answers Western ones, since either may
++ * arrive and the machine reads one set. Annotations pass through untouched:
++ * a backquote runs to the next whitespace, which covers voice changes,
++ * pauses and the bracketed pronunciations alike, none of which hold an
++ * enye of their own.
++ *
++ * Answers a new buffer holding the rewrite, or nought when the text holds
++ * no enye at all, which is the common case and costs nothing. */
++static char *enye_rewrite_enus(const char *text, uint32_t len,
++                               uint32_t *newlen)
++{
++    uint32_t i;
++    char *out;
++    char *o;
++
++    if (text == 0 || len == 0)
++        return 0;
++    for (i = 0; i < len; i++) {
++        unsigned char c = (unsigned char)text[i];
++
++        if (c == 0xf1 || c == 0xd1 || c == 0xc3)
++            break;
++    }
++    if (i >= len)
++        return 0;
++    out = (char *)malloc(len * 2 + 1);
++    if (out == 0)
++        return 0;
++    o = out;
++    i = 0;
++    while (i < len) {
++        unsigned char c = (unsigned char)text[i];
++        unsigned char d = i + 1 < len ? (unsigned char)text[i + 1] : 0;
++        int unit = 0;
++        int upper = 0;
++
++        if (c == 0xf1) {
++            unit = 1;
++        } else if (c == 0xd1) {
++            unit = 1;
++            upper = 1;
++        } else if (c == 0xc3 && (d == 0xb1 || d == 0x91)) {
++            unit = 2;
++            upper = d == 0x91;
++        }
++        if (unit == 0) {
++            /* An annotation runs to the next whitespace. */
++            if (c == '`') {
++                while (i < len && text[i] != 0 && text[i] != ' '
++                       && text[i] != '\t' && text[i] != '\n'
++                       && text[i] != '\r')
++                    *o++ = text[i++];
++                continue;
++            }
++            *o++ = text[i++];
++            continue;
++        }
++        {
++            int before = i > 0 && enye_word_byte((unsigned char)text[i - 1]);
++            int after = i + (uint32_t)unit < len
++                && enye_word_byte((unsigned char)text[i + unit]);
++
++            if (before || after) {
++                *o++ = upper ? 'N' : 'n';
++                *o++ = upper ? 'Y' : 'y';
++            } else {
++                uint32_t k;
++
++                for (k = 0; k < (uint32_t)unit; k++)
++                    *o++ = text[i + k];
++            }
++            i += (uint32_t)unit;
++        }
++    }
++    *o = 0;
++    *newlen = (uint32_t)(o - out);
++    return out;
++}
++
+ /* Recode the text if the SSML filter is in the way, and answer whichever
+    buffer the caller should go on with. Either of the two out parameters may
+    come back holding something that has to be given back afterwards. */
+@@ -401,6 +499,7 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+     char *wide_out = 0;
+     char *mbcs_out = 0;
+     char *mapped_out = 0;
++    char *enye_out = 0;
+     const char *source;
+     char *filtered;
+     uint32_t asked = len;
+@@ -423,6 +522,21 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+ 
+     recodeForSSML(t, text, len, &mbcs_out, &mapped_out);
+ 
++    /* US English enye inside words reads with the palatal nasal, through
++       the rewrite above. Other languages keep their bytes: Spanish reads
++       the letter natively, and nothing else here has the letter at all. */
++    {
++        const delta_language *l = langOf(t);
++        uint32_t enye_len = 0;
++
++        if (l != 0 && l->tag != 0 && strcmp(l->tag, "enus") == 0)
++            enye_out = enye_rewrite_enus(text, len, &enye_len);
++        if (enye_out != 0) {
++            text = enye_out;
++            len = enye_len;
++        }
++    }
++
+     /* And the way in for a language whose letters are not in the byte set
+        this engine was built around.
+ 
+@@ -483,6 +597,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+ 
+     if (rz_addText(ST_ROMAN(t), filtered, (int32_t)len, last) == -1) {
+         stb_postRomanizerError(t, 0);
++        if (enye_out)
++            free(enye_out);
+         return;
+     }
+ 
+@@ -494,6 +610,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+ 
+         if (n == -1) {
+             stb_postRomanizerError(t, 0);
++            if (enye_out)
++                free(enye_out);
+             return;
+         }
+         if (n == 0)
+@@ -505,6 +623,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+         free(wide_out);
+     if (mbcs_out)
+         cpp_delete(mbcs_out);
++    if (enye_out)
++        free(enye_out);
+ 
+ counted:
+     lock = ST_LOCK(t);

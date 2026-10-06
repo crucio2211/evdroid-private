@@ -24,24 +24,6 @@ class TextFixesTest {
 		assertEquals("win 10", TextFixes.apply("win10"))
 	}
 
-	/** The engine reads ñ as the word "enye" plus the vowel after it, so
-	 *  inside a word it goes in as a bare y and blends: niya. Standing
-	 *  alone it is the letter's name instead, since a lone y would be
-	 *  spelled wye. */
-	@Test
-	fun enyeBecomesY() {
-		assertEquals("niya", TextFixes.apply("niña"))
-		assertEquals("mayana", TextFixes.apply("mañana"))
-		assertEquals("Y", TextFixes.apply("Ñoño"))
-	}
-
-	@Test
-	fun loneEnyeIsSaidAsEnye() {
-		assertEquals("enye", TextFixes.apply("ñ"))
-		assertEquals("Enye", TextFixes.apply("Ñ"))
-		assertEquals("a enye b", TextFixes.apply("a ñ b"))
-	}
-
 	/** The other way round is right already and gets worse when split. */
 	@Test
 	fun aLetterAfterADigitIsLeftAlone() {
