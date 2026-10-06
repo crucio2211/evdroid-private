@@ -20,14 +20,18 @@ package org.evvdroid
  */
 object TextFixes {
 
-	/**
-	 * [text] with the words the engine mishandles rewritten. Nothing here
-	 * changes what is said, only how it is written down for the engine.
-	 */
-	fun apply(text: String): String {
-		if (text.isEmpty()) return text
-		var out = text
-		out = BEFORE_A_DIGIT.replace(out, "$1 $2")
+/**
+ * [text] with the words the engine mishandles rewritten. Nothing here
+ * changes what is said, only how it is written down for the engine.
+ */
+fun apply(text: String): String {
+	if (text.isEmpty()) return text
+	// The engine reads ñ as the word "enye" and then the vowel after it
+	// on its own -- niña comes out as enye-a -- so it goes in as ny, in
+	// every language: no word wants the enye reading. First, before any
+	// rule that looks at letters meets a non-ASCII one.
+	var out = text.replace("ñ", "ny").replace("Ñ", "Ny")
+	out = BEFORE_A_DIGIT.replace(out, "$1 $2")
 		out = BEFORE_AN_OPENER.replace(out, "$1 $2")
 		out = LOOSE_S_SUFFIX.replace(out, "$1$2")
 		out = SPACE_BEFORE_A_MARK.replace(out, "$1$2")

@@ -24,6 +24,15 @@ class TextFixesTest {
 		assertEquals("win 10", TextFixes.apply("win10"))
 	}
 
+	/** The engine reads ñ as the word "enye" plus the vowel after it, so
+	 *  niña would come out as enye-a. As ny it blends. */
+	@Test
+	fun enyeBecomesNy() {
+		assertEquals("ninya", TextFixes.apply("niña"))
+		assertEquals("manyana", TextFixes.apply("mañana"))
+		assertEquals("Ny", TextFixes.apply("Ñ"))
+	}
+
 	/** The other way round is right already and gets worse when split. */
 	@Test
 	fun aLetterAfterADigitIsLeftAlone() {
