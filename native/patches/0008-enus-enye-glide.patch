@@ -1,8 +1,8 @@
 diff --git a/src/eci/synth/eci_synthtext.c b/src/eci/synth/eci_synthtext.c
-index fb97f8e..c6f2596 100644
+index fb97f8e..cefc5c4 100644
 --- a/src/eci/synth/eci_synthtext.c
 +++ b/src/eci/synth/eci_synthtext.c
-@@ -339,6 +339,104 @@ static int utf8ToWestern(const char *text, uint32_t len, char *out,
+@@ -339,6 +339,120 @@ static int utf8ToWestern(const char *text, uint32_t len, char *out,
      return 1;
  }
  
@@ -19,10 +19,15 @@ index fb97f8e..c6f2596 100644
 +    return c >= 0xc0 && c != 0xd7 && c != 0xf7;
 +}
 +
-+/* US English reads an in-word enye as the palatal glide, which its own letter
-+   rules never learned to spell: normalize_eng_letters folds it to a plain
-+   n, so tilde-n words come out pinata. Standing alone it is the letter's name
-+   already, through dictionary eng_char_name, and is left alone.
++/* US English has no letter for the palatal nasal, and folding the enye to
++   a plain n or a bare glide both misread it: pinata on one side, pee-ya on
++   the other. The way ordinary words spell the sound is "ny" after a vowel
++   left open, the way canyon and Kenya spell it, and the engine answers the
++   one phone for it. An "i" closes into "in" before a nasal, nin on the
++   tongue, so the "i" goes in long, "ee", the way "neenya" reads nee-nya;
++   any other letter stands as it is. Standing alone the enye is the
++   letter's name already, through dictionary eng_char_name, and is left
++   alone.
 + *
 + * Takes UTF-8 or Western bytes and answers Western ones, since either may
 + * arrive and the machine reads one set. An annotation passes through
@@ -31,7 +36,9 @@ index fb97f8e..c6f2596 100644
 + * holds an enye of its own.
 + *
 + * Answers a new buffer holding the rewrite, or nought when the text holds
-+ * no enye at all, which is the common case and costs nothing. */
++ * no enye at all, which is the common case and costs nothing. The buffer
++ * is twice the text and one over, since "i" plus enye goes out as four
++ * letters; nothing longer can come of it. */
 +static char *enye_rewrite_enus(const char *text, uint32_t len,
 +                               uint32_t *newlen)
 +{
@@ -49,7 +56,7 @@ index fb97f8e..c6f2596 100644
 +    }
 +    if (i >= len)
 +        return 0;
-+    out = (char *)malloc(len + 1);
++    out = (char *)malloc(len * 2 + 1);
 +    if (out == 0)
 +        return 0;
 +    o = out;
@@ -86,11 +93,20 @@ index fb97f8e..c6f2596 100644
 +            int after = i + (uint32_t)unit < len
 +                && enye_word_byte((unsigned char)text[i + unit]);
 +
-+            /* In a word the enye goes in as the bare glide, which reads
-+               as niya: a ny would close the syllable into nin-ya. */
-+            if (before || after)
++            if (before || after) {
++                /* In a word the enye goes in as "ny": with the nasal in
++                   it, not the bare glide. After an "i" the pair goes in
++                   long, "eeny", so the syllable stays open. */
++                if (o > out && (o[-1] == 'i' || o[-1] == 'I')) {
++                    char e = o[-1] == 'I' ? 'E' : 'e';
++
++                    o--;
++                    *o++ = e;
++                    *o++ = e;
++                }
++                *o++ = upper ? 'N' : 'n';
 +                *o++ = upper ? 'Y' : 'y';
-+            else {
++            } else {
 +                uint32_t k;
 +
 +                for (k = 0; k < (uint32_t)unit; k++)
@@ -107,7 +123,7 @@ index fb97f8e..c6f2596 100644
  /* Recode the text if the SSML filter is in the way, and answer whichever
     buffer the caller should go on with. Either of the two out parameters may
     come back holding something that has to be given back afterwards. */
-@@ -401,6 +499,7 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -401,6 +515,7 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
      char *wide_out = 0;
      char *mbcs_out = 0;
      char *mapped_out = 0;
@@ -115,11 +131,11 @@ index fb97f8e..c6f2596 100644
      const char *source;
      char *filtered;
      uint32_t asked = len;
-@@ -423,6 +522,20 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -423,6 +538,20 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
  
      recodeForSSML(t, text, len, &mbcs_out, &mapped_out);
  
-+    /* US English enye inside words reads as the bare glide; other
++    /* US English enye inside words reads the way canyon spells it; other
 +       languages keep their bytes. */
 +    {
 +        const delta_language *l = langOf(t);
@@ -136,7 +152,7 @@ index fb97f8e..c6f2596 100644
      /* And the way in for a language whose letters are not in the byte set
         this engine was built around.
  
-@@ -483,6 +596,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -483,6 +612,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
  
      if (rz_addText(ST_ROMAN(t), filtered, (int32_t)len, last) == -1) {
          stb_postRomanizerError(t, 0);
@@ -145,7 +161,7 @@ index fb97f8e..c6f2596 100644
          return;
      }
  
-@@ -494,6 +609,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -494,6 +625,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
  
          if (n == -1) {
              stb_postRomanizerError(t, 0);
@@ -154,7 +170,7 @@ index fb97f8e..c6f2596 100644
              return;
          }
          if (n == 0)
-@@ -505,6 +622,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -505,6 +638,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
          free(wide_out);
      if (mbcs_out)
          cpp_delete(mbcs_out);
