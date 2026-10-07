@@ -1,5 +1,10 @@
+enye: read the palatal nasal the way canyon spells it, in either English
+
+In-word enye goes in as ny (eeny after i, oony after u) the way
+canyon and Kenya spell it; standing alone it is the letter's name
+already. Gated on enus and engb; other languages keep their bytes.
 diff --git a/src/eci/synth/eci_synthtext.c b/src/eci/synth/eci_synthtext.c
-index fb97f8e..1d5108f 100644
+index fb97f8e..ba18893 100644
 --- a/src/eci/synth/eci_synthtext.c
 +++ b/src/eci/synth/eci_synthtext.c
 @@ -339,6 +339,129 @@ static int utf8ToWestern(const char *text, uint32_t len, char *out,
@@ -19,7 +24,7 @@ index fb97f8e..1d5108f 100644
 +    return c >= 0xc0 && c != 0xd7 && c != 0xf7;
 +}
 +
-+/* US English has no letter for the palatal nasal, and folding the enye to
++/* US and British English have no letter for the palatal nasal, and folding the enye to
 +   a plain n or a bare glide both misread it: pinata on one side, pee-ya on
 +   the other. The way ordinary words spell the sound is "ny" after a vowel
 +   left open, the way canyon and Kenya spell it, and the engine answers the
@@ -39,7 +44,7 @@ index fb97f8e..1d5108f 100644
 + * no enye at all, which is the common case and costs nothing. The buffer
 + * is twice the text and one over, since a vowel plus enye goes out as
 + * four letters; nothing longer can come of it. */
-+static char *enye_rewrite_enus(const char *text, uint32_t len,
++static char *enye_rewrite_english(const char *text, uint32_t len,
 +                               uint32_t *newlen)
 +{
 +    uint32_t i;
@@ -140,18 +145,19 @@ index fb97f8e..1d5108f 100644
      const char *source;
      char *filtered;
      uint32_t asked = len;
-@@ -423,6 +547,20 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -423,6 +547,21 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
  
      recodeForSSML(t, text, len, &mbcs_out, &mapped_out);
  
-+    /* US English enye inside words reads the way canyon spells it; other
-+       languages keep their bytes. */
++    /* Either English reads an in-word enye the way canyon spells it; the
++       Spanish pair and the rest keep their bytes, theirs reading already. */
 +    {
 +        const delta_language *l = langOf(t);
 +        uint32_t enye_len = 0;
 +
-+        if (l != 0 && l->tag != 0 && strcmp(l->tag, "enus") == 0)
-+            enye_out = enye_rewrite_enus(text, len, &enye_len);
++        if (l != 0 && l->tag != 0
++            && (strcmp(l->tag, "enus") == 0 || strcmp(l->tag, "engb") == 0))
++            enye_out = enye_rewrite_english(text, len, &enye_len);
 +        if (enye_out != 0) {
 +            text = enye_out;
 +            len = enye_len;
@@ -161,7 +167,7 @@ index fb97f8e..1d5108f 100644
      /* And the way in for a language whose letters are not in the byte set
         this engine was built around.
  
-@@ -483,6 +621,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -483,6 +622,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
  
      if (rz_addText(ST_ROMAN(t), filtered, (int32_t)len, last) == -1) {
          stb_postRomanizerError(t, 0);
@@ -170,7 +176,7 @@ index fb97f8e..1d5108f 100644
          return;
      }
  
-@@ -494,6 +634,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -494,6 +635,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
  
          if (n == -1) {
              stb_postRomanizerError(t, 0);
@@ -179,7 +185,7 @@ index fb97f8e..1d5108f 100644
              return;
          }
          if (n == 0)
-@@ -505,6 +647,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -505,6 +648,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
          free(wide_out);
      if (mbcs_out)
          cpp_delete(mbcs_out);
