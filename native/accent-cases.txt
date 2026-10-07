@@ -60,3 +60,9 @@ muñeca
 
 persona
 personas
+
+quality
+qualities
+address
+addresses
+poor
