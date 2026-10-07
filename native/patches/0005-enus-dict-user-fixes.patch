@@ -1,12 +1,12 @@
 enus: user word fixes; bare punct out of char names
 
-poor/poors say p U r (was p o r). persona left the word list for the
+poor/poors say p u r (was p o r). persona left the word list for the
 forced table. Bare , . ? : ; ! ( ) { } quote and [#80][#81] leave
 eng_char_name so the engine does not speak them as words.
 dict.py build laid it down and read its own work back word for word.
 Applied at build time so CI builds the same tree.
 diff --git a/lang/enus/delta_consts_enus.c b/lang/enus/delta_consts_enus.c
-index 11dda10..6f99827 100644
+index 11dda10..0d66fb8 100644
 --- a/lang/enus/delta_consts_enus.c
 +++ b/lang/enus/delta_consts_enus.c
 @@ -236,7 +236,7 @@ uint8_t enus_evv_ea_morph_data_3[802] = {
@@ -14,11 +14,11 @@ index 11dda10..6f99827 100644
  };
  
 -uint8_t enus_evv_ea_pname_data_3[20625] = {
-+uint8_t enus_evv_ea_pname_data_3[20773] = {
++uint8_t enus_evv_ea_pname_data_3[20789] = {
      30,24,33,21,36,1,50,3,32,1,3,45,25,0,0,0,
      32,1,3,45,25,36,13,28,13,0,0,0,44,1,3,45,
      25,36,0,0,32,1,33,17,44,21,0,0,30,1,24,36,
-@@ -1526,7 +1526,16 @@ uint8_t enus_evv_ea_pname_data_3[20625] = {
+@@ -1526,7 +1526,17 @@ uint8_t enus_evv_ea_pname_data_3[20625] = {
      13,45,25,44,17,33,7,36,25,0,0,0,13,45,16,0,
      13,47,11,33,24,32,7,14,15,44,0,0,13,45,25,45,
      13,0,0,0,13,46,24,33,7,0,0,0,4,14,11,49,
@@ -32,11 +32,12 @@ index 11dda10..6f99827 100644
 +    7,27,48,25,29,4,28,0,47,2,33,21,0,0,0,0,
 +    7,27,48,25,29,4,28,0,47,2,33,21,0,0,0,0,
 +    2,33,24,14,47,21,36,0,2,46,24,0,0,0,0,0,
-+    2,46,24,13,0,
++    2,46,24,13,0,0,0,0,2,45,24,0,0,0,0,0,
++    2,45,24,13,0,
  };
  
  uint8_t enus_evv_ea_roots_data_3[7895] = {
-@@ -2953,7 +2962,7 @@ uint8_t enus_evv_glob_bss_4[6] = {
+@@ -2953,7 +2963,7 @@ uint8_t enus_evv_glob_bss_4[6] = {
      0,0,0,0,0,0,
  };
  
@@ -45,7 +46,7 @@ index 11dda10..6f99827 100644
      0,1,0,0,0,1,2,3,4,5,6,7,8,9,0,0,
      0,2,1,0,1,11,0,0,1,11,19,2,1,14,26,2,
      24,0,0,0,1,15,2,0,1,19,0,0,1,19,1,11,
-@@ -3082,7 +3091,11 @@ uint8_t enus_evv_glob_data_3[2054] = {
+@@ -3082,7 +3092,11 @@ uint8_t enus_evv_glob_data_3[2054] = {
      72,0,0,0,72,26,4,72,73,0,0,0,73,25,74,75,
      76,78,79,8,8,24,30,36,20,0,0,0,8,31,4,14,
      8,46,3,80,81,86,87,88,89,9,0,0,9,30,24,12,
@@ -9252,7 +9253,7 @@ index 6a62e5d..801bf25 100644
  
  /* The streams the language can open by name, and the
 diff --git a/lang/enus/enus.dict b/lang/enus/enus.dict
-index da42226..b2f3d79 100644
+index da42226..adbc745 100644
 --- a/lang/enus/enus.dict
 +++ b/lang/enus/enus.dict
 @@ -38,7 +38,6 @@
@@ -9427,8 +9428,8 @@ index da42226..b2f3d79 100644
    pisa 255 255 327 says p i z x
 -  poor 255 255 347 says p o r
 -  poors 255 255 348 says p o r z
-+  poor 255 255 347 says p U r
-+  poors 255 255 348 says p U r z
++  poor 255 255 347 says p u r
++  poors 255 255 348 says p u r z
    poughkeepsie 255 255 356 says p x k I p s i
    pocahontas 255 255 333 says p o k x h a n t x s
    polaroid 255 255 334 says p o l R O d
@@ -9595,7 +9596,7 @@ index da42226..b2f3d79 100644
    au 255 255 17 says o
    above 255 255 1 says x b H v
 diff --git a/lang/enus/rules/ea_pname.dr b/lang/enus/rules/ea_pname.dr
-index b143ed4..867e821 100644
+index b143ed4..3cc6cd2 100644
 --- a/lang/enus/rules/ea_pname.dr
 +++ b/lang/enus/rules/ea_pname.dr
 @@ -186,7 +186,7 @@ label L26 was $X18$102283
@@ -9632,11 +9633,11 @@ index b143ed4..867e821 100644
  label L345 was $X347$106218
    store movb imm 3 slot 100
 -  load movl sym string_1973 into r6
-+  load movl sym string_2745 into r6
++  load movl sym string_2747 into r6
    jump to L5
  label L346 was $X348$106219
 -  load movl sym string_1974 into r6
-+  load movl sym string_2746 into r6
++  load movl sym string_2748 into r6
    jump to L580
  label L347 was $X349$106220
    load movl sym string_1975 into r6
@@ -9710,10 +9711,10 @@ index 01e78b8..559aac4 100644
  end
  
 diff --git a/lang/enus/rules/symbols b/lang/enus/rules/symbols
-index 907d75c..e339f91 100644
+index 907d75c..a926f97 100644
 --- a/lang/enus/rules/symbols
 +++ b/lang/enus/rules/symbols
-@@ -6841,3 +6841,32 @@ at * lts_et enus_evv_authored_data 61
+@@ -6841,3 +6841,34 @@ at * lts_et enus_evv_authored_data 61
  at * say_07 enus_evv_authored_data 63
  at * lts_e enus_evv_authored_data 64
  at * say_071b enus_evv_authored_data 65
@@ -9746,3 +9747,5 @@ index 907d75c..e339f91 100644
 +at ea_pname.obj string_2744 enus_evv_ea_pname_data_3 20752
 +at ea_pname.obj string_2745 enus_evv_ea_pname_data_3 20760
 +at ea_pname.obj string_2746 enus_evv_ea_pname_data_3 20768
++at ea_pname.obj string_2747 enus_evv_ea_pname_data_3 20776
++at ea_pname.obj string_2748 enus_evv_ea_pname_data_3 20784
