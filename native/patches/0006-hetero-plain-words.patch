@@ -3,12 +3,12 @@ hetero: users produce and persona phoneme entries; plain words removed
 The heteronym table stands empty by an earlier decision, kept as is.
 The forced entries below are bracket annotations and are honoured
 literally when they match, stress marks and all -- the oracle answers
-personas [.2pXr.1so.2nxz] and persona [.0pXr.1so.0nx] mark for mark.
+persona [.0pxrs.1onx] mark for mark.
 Only the users produce and persona phoneme entries remain, as specified,
 plus the matching machinery. High bytes count as word bytes.
 Applied at build time so CI builds the same tree.
 diff --git a/src/eci/hetero/eci_hetero.c b/src/eci/hetero/eci_hetero.c
-index e9e6f85..39957ec 100644
+index e9e6f85..c3b5a0d 100644
 --- a/src/eci/hetero/eci_hetero.c
 +++ b/src/eci/hetero/eci_hetero.c
 @@ -73,20 +73,37 @@ typedef struct {
@@ -51,7 +51,7 @@ index e9e6f85..39957ec 100644
 +
 +static const Forced forced[] = {
 +    { "produce",   "`[.0prU.1dus]" },
-+    { "persona",   "`[.0pXrs.1onx]" },
++    { "persona",   "`[.0pxrs.1onx]" },
 +};
 +
 +#define FORCED (int)(sizeof forced / sizeof forced[0])
