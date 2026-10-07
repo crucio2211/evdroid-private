@@ -68,10 +68,6 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		// that is malformed is spoken rather than obeyed, so ordinary text
 		// carrying a backtick is read out as it stands.
 		setAnnotations(true)
-		// The upstream wideband voice, on for a listen. It only engages
-		// above 11025, which is where this app lives, and stays off for
-		// 8k/11k. If its top band proves harsh it becomes a setting.
-		EvvNative.setParam(handle, Eci.PARAM_WIDEBAND, 1)
 		setSampleRate(Eci.sampleRateHz(EvvNative.getParam(handle, Eci.PARAM_SAMPLE_RATE)))
 	}
 

@@ -192,14 +192,15 @@ JNIEXPORT jlong JNICALL Java_org_evvdroid_EvvNative_create(JNIEnv* env, jclass c
 	instance* in;
 	(void)env;
 	(void)cls;
-	/* TEST BUILD: Mudb0y's wideband path instead of native synthesis. With
-	 * the holding on (no EVV_UPSAMPLE=none), a 16 kHz request runs the
-	 * engine at 11025 plus the 22050 companion, mixed and converted down
-	 * to the device rate. Compare against app-release-native16k.apk and
-	 * keep whichever the ears prefer. */
-#if 0
+	/* Synthesize high rates natively instead of upsampling 11 kHz. The
+	 * engine holds 11 kHz output up through a converter unless EVV_UPSAMPLE
+	 * is "none", in which case rates above it are synthesized outright with
+	 * resonator tables built for the rate (klatt_buildRateTables, verified
+	 * entry by entry against IBM's own). Read once per process, so this runs
+	 * before the first engine exists. 8k and 11k are untouched either way.
+	 * Upstream's wideband companion stays out: at our rates it is
+	 * inaudible, and the flag never engages under native synthesis. */
 	setenv("EVV_UPSAMPLE", "none", 1);
-#endif
 	/* The heteronym filter stays off: its readings are `[phone]
 	 * pronunciation annotations, which this engine spells aloud instead
 	 * of honouring -- measured on both paths, not assumed. Until the

@@ -12,9 +12,6 @@ object Eci {
 	const val PARAM_REAL_WORLD_UNITS = 8
 	const val PARAM_LANGUAGE_DIALECT = 9
 	const val PARAM_NUMBER_MODE = 10
-	/** The upstream wideband voice, off unless asked. Experimental: at full
-	 *  volume its top-band spikes can clip, so the output limiter stays on. */
-	const val PARAM_WIDEBAND = 21
 
 	const val VOICE_GENDER = 0
 	const val VOICE_HEAD_SIZE = 1

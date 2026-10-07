@@ -57,3 +57,6 @@ monya
 moonya
 
 muñeca
+
+persona
+personas
