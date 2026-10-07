@@ -1,10 +1,9 @@
-enus: produce out, open fix kept; nina entry removed; persona reads pers-SON-a
+enus: produce out, open fix kept; nina entry removed
 
 All produce entries leave the word list; the users own produce reading
 stands in the forced table instead. open keeps o p X n. The eng_words
 nina entry goes away with the rest of our enye rules; the users file
 reads enye words now. address/visual/quality/candidate stay out.
-persona says p X r s o n x with the stress it always had.
 dict.py build laid it down and read its own work back word for word.
 Applied at build time so CI builds the same tree.
 diff --git a/lang/enus/delta_consts_enus.c b/lang/enus/delta_consts_enus.c
@@ -8696,7 +8695,7 @@ index 6a62e5d..fc88193 100644
  
  /* The streams the language can open by name, and the
 diff --git a/lang/enus/enus.dict b/lang/enus/enus.dict
-index da42226..37cc725 100644
+index da42226..fc7b27d 100644
 --- a/lang/enus/enus.dict
 +++ b/lang/enus/enus.dict
 @@ -38,7 +38,6 @@
@@ -8857,15 +8856,6 @@ index da42226..37cc725 100644
    openwave 255 255 214 says o p x n w e v
    oral 255 255 215 says o r x l
    orestes 255 255 216 says c r E s t i z
-@@ -3145,7 +3126,7 @@ dictionary pnames4 statement 1 width 0 records sound
-   perpich 255 255 295 says p R p X k
-   perrier 255 255 296 says p E r i e
-   persephone 255 255 297 says p x r s E f x n i
--  persona 255 255 298 says p R s o n a
-+  persona 255 255 298 says p X r s o n x
-   pesci 255 255 299 says p E S i
-   peshawar 255 255 300 says p E S x w a r
-   petit 255 255 301 says p x t i t
 @@ -3224,7 +3205,6 @@ dictionary pnames4 statement 1 width 0 records sound
    previn 255 255 367 says p r E v x n
    prima 255 255 368 says p r i m a
