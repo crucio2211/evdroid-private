@@ -30,9 +30,8 @@ package org.evvdroid
 object TextPieces {
 
 	/** How far a piece runs before it ends at whitespace for want of a
-	 *  sentence end. Twenty characters keeps every swipe stoppable: the
-	 *  engine cannot abandon an utterance, so the wait is one piece. */
-	const val PIECE_CAP = 20
+	 *  sentence end. */
+	const val PIECE_CAP = 500
 
 	/** Closing marks that may sit after the punctuation that ends a sentence. */
 	private const val CLOSERS = "\"')]}»”’"

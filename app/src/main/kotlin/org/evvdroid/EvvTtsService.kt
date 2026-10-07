@@ -268,8 +268,7 @@ class EvvTtsService : TextToSpeechService() {
 	override fun onSynthesizeText(request: SynthesisRequest?, callback: SynthesisCallback?) {
 		if (request == null || callback == null) return
 		stopped = false
-		val s = settings
-		val found = matchLanguage(request.language, request.country)
+		val s = settings		val found = matchLanguage(request.language, request.country)
 		if (found == null) {
 			callback.error(TextToSpeech.ERROR_NOT_INSTALLED_YET)
 			return
@@ -287,6 +286,11 @@ class EvvTtsService : TextToSpeechService() {
 			callback.error(TextToSpeech.ERROR_SERVICE)
 			return
 		}
+		// Stopped first, NVDA-style: its driver cancels before every speak,
+		// flushing whatever a previous utterance left behind when the reader
+		// moved on without saying stop. eciStop on an idle engine is safe
+		// here (upstream's fix for that wedge is in this tree).
+		target.stop()
 		if (s != null && s.revision != appliedRevision) applySettings(target)
 		// Re-sent every time rather than once, because it is the one setting
 		// with no way of telling whether something else has moved it.

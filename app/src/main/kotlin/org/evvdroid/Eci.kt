@@ -87,15 +87,15 @@ object Eci {
 	}
 
 	/** The rates the app offers, in hertz. 8k and 11k use IBM's own tables;
-	 *  everything above is synthesized natively with resonator tables built
-	 *  for the rate (the bridge sets EVV_UPSAMPLE=none, so nothing is
-	 *  upsampled). 48000 is left out: the engine refuses anything above
-	 *  44100. Higher rates cost proportionally more CPU per second of speech.
+	 *  16k is synthesized natively with resonator tables built for the
+	 *  rate (the bridge sets EVV_UPSAMPLE=none, so nothing is upsampled).
+	 *  Higher rates cost proportionally more CPU per second of speech and
+	 *  buy nothing the ears can hear, so only these three are offered.
 	 *
 	 *  The engine's own numbering is NOT positional -- 16000 is code 3, not
 	 *  2 -- so [RATE_CODES] maps explicitly and must stay explicit. Appending
 	 *  here and indexing positionally would ask for the wrong rate. */
-	val SAMPLE_RATES = intArrayOf(8000, 11025, 16000, 22050, 32000, 44100)
+	val SAMPLE_RATES = intArrayOf(8000, 11025, 16000)
 
 	private val RATE_CODES = mapOf(
 		8000 to 0, 11025 to 1, 22050 to 2, 16000 to 3, 32000 to 4, 44100 to 5

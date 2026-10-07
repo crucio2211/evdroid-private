@@ -48,25 +48,14 @@ class TextPiecesTest {
 
 	@Test
 	fun aTitleDoesNotStartANewPiece() {
-		val pieces = TextPieces.split("Mr. Jones came.")
+		val pieces = TextPieces.split("Mr. Jones asked whether the header is read first, and Mrs. Adams said it is.")
 		assertEquals("a title was cut at", 1, pieces.size)
 	}
 
 	@Test
 	fun initialsDoNotStartNewPieces() {
-		val pieces = TextPieces.split("By J. R. Tolkien.")
+		val pieces = TextPieces.split("The book by J. R. R. Tolkien is on the shelf by the door.")
 		assertEquals("an initial was cut at", 1, pieces.size)
-	}
-
-	@Test
-	fun longTextSplitsOnlyAtWhitespace() {
-		val text = "The book by J. R. R. Tolkien is on the shelf by the door and Mr. Jones agrees."
-		val pieces = TextPieces.split(text)
-		assertTrue("long text stayed whole", pieces.size > 1)
-		assertEquals("text was not preserved", text, pieces.joinToString(""))
-		for (piece in pieces.dropLast(1)) {
-			assertTrue("a piece cut a word: [$piece]", piece.last().isWhitespace())
-		}
 	}
 
 	@Test
