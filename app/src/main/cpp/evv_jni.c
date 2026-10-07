@@ -201,11 +201,13 @@ JNIEXPORT jlong JNICALL Java_org_evvdroid_EvvNative_create(JNIEnv* env, jclass c
 	 * Upstream's wideband companion stays out: at our rates it is
 	 * inaudible, and the flag never engages under native synthesis. */
 	setenv("EVV_UPSAMPLE", "none", 1);
-	/* The heteronym filter stays off: its readings are `[phone]
-	 * pronunciation annotations, which this engine spells aloud instead
-	 * of honouring -- measured on both paths, not assumed. Until the
-	 * bracket pronunciation path exists, installing it would read every
-	 * covered word as garbage. */
+	/* The heteronym filter stays on: its forced readings are written in
+	 * the words' place when they match and honoured literally, stress
+	 * marks and all -- measured in the oracle, where persona answers
+	 * [.0pXr.1so.0nx] mark for mark. Only whole words ever match, so an
+	 * inflection keeps its own ending for the rules. Read once per
+	 * process, beside the above. A refusal is not fatal. */
+	setenv("EVV_HETERO", "on", 1);
 	in = (instance*)calloc(1, sizeof *in);
 	if (in == NULL)
 		return 0;

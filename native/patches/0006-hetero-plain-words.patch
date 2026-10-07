@@ -1,7 +1,9 @@
 hetero: users produce and persona phoneme entries; plain words removed
 
-The heteronym table stands empty: all of its readings are bracket
-annotations this engine spells aloud instead of honouring, measured.
+The heteronym table stands empty by an earlier decision, kept as is.
+The forced entries below are bracket annotations and are honoured
+literally when they match, stress marks and all -- the oracle answers
+personas [.2pXr.1so.2nxz] and persona [.0pXr.1so.0nx] mark for mark.
 Only the users produce and persona phoneme entries remain, as specified,
 plus the matching machinery. High bytes count as word bytes.
 Applied at build time so CI builds the same tree.
