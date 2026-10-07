@@ -268,7 +268,8 @@ class EvvTtsService : TextToSpeechService() {
 	override fun onSynthesizeText(request: SynthesisRequest?, callback: SynthesisCallback?) {
 		if (request == null || callback == null) return
 		stopped = false
-		val s = settings		val found = matchLanguage(request.language, request.country)
+		val s = settings
+		val found = matchLanguage(request.language, request.country)
 		if (found == null) {
 			callback.error(TextToSpeech.ERROR_NOT_INSTALLED_YET)
 			return
