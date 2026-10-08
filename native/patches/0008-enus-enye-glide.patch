@@ -1,11 +1,10 @@
-engine: excitement for !/? plus the enye glide
+engine: baseline lift for !/? plus the enye glide
 
-Utterance-final ! raises pitch baseline and widens its excursions,
-? lifts them less -- ETI shouts hello! where we read it flat.
+Utterance-final ! raises the pitch baseline, ? less so; inflection(fluctuation) is never touched. ETI shouts hello! where we read it flat.
 Enye in either English goes in as ny (eeny after i, oony after u).
 All languages shout. Applied at build time so CI builds the same tree.
 diff --git a/src/eci/synth/eci_synthtext.c b/src/eci/synth/eci_synthtext.c
-index fb97f8e..911d869 100644
+index fb97f8e..90cb7f9 100644
 --- a/src/eci/synth/eci_synthtext.c
 +++ b/src/eci/synth/eci_synthtext.c
 @@ -339,6 +339,182 @@ static int utf8ToWestern(const char *text, uint32_t len, char *out,
@@ -16,16 +15,16 @@ index fb97f8e..911d869 100644
 +
 +/* The engine reads every sentence end the same: hello! comes out flat
 +   where ETI shouts it, because the mark never reaches intonation. An
-+   exclamation raises the pitch baseline and widens its excursions, and
-+   a question lifts them a little less; that is what the two readings
-+   below say, in the same shape the caller-facing prosody already sends
-+   every utterance, so a malformed one cannot slip in.
++   exclamation raises the pitch baseline, a question less so; the
++   excursions around it -- the inflection -- are left exactly as they
++   are, in the same `vb shape the caller-facing prosody already sends
++   every utterance, so a malformed one cannot slip in and the next
++   utterance's own numbers put everything back.
 + *
 + * Only the last mark of the text counts, past trailing space and
-+   closers, and only for the utterance as a whole: a later utterance
-+   brings the caller's own voice numbers, which put everything back.
-+   Answers a new buffer holding prefix plus text, or nought when the
-+   text ends in anything else. All languages shout. */
++   closers, and only for the utterance as a whole. Answers a new buffer
++   holding prefix plus text, or nought when the text ends in anything
++   else. All languages shout. */
 +static char *excite_rewrite(const char *text, uint32_t len, uint32_t *newlen)
 +{
 +    uint32_t end = len;
@@ -47,11 +46,11 @@ index fb97f8e..911d869 100644
 +    if (end == 0)
 +        return 0;
 +    if (text[end - 1] == '!') {
-+        prefix = "`vb65 `vf75 ";
-+        pn = 12;
++        prefix = "`vb65 ";
++        pn = 6;
 +    } else if (text[end - 1] == '?') {
-+        prefix = "`vb58 `vf70 ";
-+        pn = 12;
++        prefix = "`vb58 ";
++        pn = 6;
 +    } else {
 +        return 0;
 +    }
