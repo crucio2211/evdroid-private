@@ -73,3 +73,9 @@ hello world this is a test of the phrase prediction system
 
 this car is red
 that dog runs
+
+hello!
+hello?
+hello.
+really?!
+go!
