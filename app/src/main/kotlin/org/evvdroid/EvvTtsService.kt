@@ -29,14 +29,15 @@ class EvvTtsService : TextToSpeechService() {
 
 	private var loadedDictionaries: Map<Int, String> = emptyMap()
 	private var loadedDictionaryLangs: Map<Int, Int> = emptyMap()
+	private var loadedEngine: EvvEngine? = null
 
 	/** Picked files as read: engine language to lowercase word, key as
 	 *  written and what to say. Files for one language read as one map,
 	 *  so a word is taught to the engine that will speak it. Taught words
 	 *  live on the engine instance, so [taughtWords] starts over with
-	 *  every new one. */
+	 *  every new one. Shared with the background teacher below. */
 	private var wordMaps: Map<Int, Map<String, Pair<String, String>>> = emptyMap()
-	private val taughtWords = HashSet<Pair<Int, String>>()
+	private val taughtWords = java.util.concurrent.ConcurrentHashMap.newKeySet<Pair<Int, String>>()
 
 	/** Words as the engine meets them: letters and digits carrying their
 	 *  apostrophes and hyphens, so billets-doux looks up whole. */
@@ -212,34 +213,65 @@ class EvvTtsService : TextToSpeechService() {
 		}
 	}
 
-	/** Reads the picked files into memory when they change. Teaching tens
-	 *  of thousands of words one by one blocks the synthesis thread past
-	 *  any reasonable wait, so nothing here touches the engine: words are
-	 *  taught as they are spoken instead. */
+	/** Reads the picked files into memory when they change, and teaches
+	 *  the speaking language's words on a background thread: teaching
+	 *  tens of thousands of words one by one blocks the synthesis thread
+	 *  past any reasonable wait, but lazy teaching alone misses words in
+	 *  block reading, so everything registered goes in up front and the
+	 *  per-word path stays as backup for stragglers. */
 	private fun loadDictionaries(target: EvvEngine, s: Settings) {
 		val want = s.dictionaryPaths().filterKeys { s.useDictionary(it) }
 		val langs = want.keys.associateWith { s.dictionaryLanguageResolved(it, EvvEngine.available) }
-		if (want == loadedDictionaries && langs == loadedDictionaryLangs) return
+		if (want == loadedDictionaries && langs == loadedDictionaryLangs && target === loadedEngine) return
 		target.forgetDictionaries()
-		val read = LinkedHashMap<Int, LinkedHashMap<String, Pair<String, String>>>()
-		for ((volume, path) in want) {
-			try {
-				val file = java.io.File(path)
-				if (!file.exists()) continue
-				val entries = Dictionaries.parse(file)
-				Log.i(TAG, "volume $volume: ${entries.size} entries from ${file.name}")
-				val into = read.getOrPut(langs[volume] ?: target.language) { LinkedHashMap() }
-				into.putAll(entries)
-			} catch (failed: Exception) {
-				// One bad volume must not take the utterance, or every
-				// utterance after it, down with it.
-				Log.e(TAG, "volume $volume not read", failed)
+		if (want != loadedDictionaries || langs != loadedDictionaryLangs) {
+			val read = LinkedHashMap<Int, LinkedHashMap<String, Pair<String, String>>>()
+			for ((volume, path) in want) {
+				try {
+					val file = java.io.File(path)
+					if (!file.exists()) continue
+					val entries = Dictionaries.parse(file)
+					Log.i(TAG, "volume $volume: ${entries.size} entries from ${file.name}")
+					val into = read.getOrPut(langs[volume] ?: target.language) { LinkedHashMap() }
+					into.putAll(entries)
+				} catch (failed: Exception) {
+					// One bad volume must not take the utterance, or every
+					// utterance after it, down with it.
+					Log.e(TAG, "volume $volume not read", failed)
+				}
 			}
+			wordMaps = read
 		}
-		wordMaps = read
 		taughtWords.clear()
 		loadedDictionaries = want
 		loadedDictionaryLangs = langs
+		loadedEngine = target
+		teachAllWords(target)
+	}
+
+	/** Every registered word into the engine up front, off the synthesis
+	 *  thread. Stops early if the engine moved on underneath it; the lazy
+	 *  path teaches whatever is still missing when it is spoken. */
+	private fun teachAllWords(target: EvvEngine) {
+		val entries = wordMaps[target.language] ?: return
+		val mine = entries.values.toList()
+		Thread({
+			for (entry in mine) {
+				if (engine !== target) return@Thread
+				for (volume in Eci.DICT_VOLUMES) {
+					val key = volume to entry.first
+					if (key in taughtWords) continue
+					try {
+						val rc = target.teachWord(volume, entry.first, entry.second)
+						taughtWords.add(key)
+						if (rc != 0) Log.e(TAG, "volume $volume refused ${entry.first}")
+					} catch (failed: Exception) {
+						Log.e(TAG, "volume $volume would not take ${entry.first}", failed)
+						taughtWords.add(key)
+					}
+				}
+			}
+		}, "evvdroid-teach").apply { isDaemon = true }.start()
 	}
 
 	/** Teaches the words in [text] the engine does not know yet. An
