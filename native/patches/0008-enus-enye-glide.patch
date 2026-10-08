@@ -1,16 +1,70 @@
-enye: read the palatal nasal the way canyon spells it, in either English
+engine: excitement for !/? plus the enye glide
 
-In-word enye goes in as ny (eeny after i, oony after u) the way
-canyon and Kenya spell it; standing alone it is the letter's name
-already. Gated on enus and engb; other languages keep their bytes.
+Utterance-final ! raises pitch baseline and widens its excursions,
+? lifts them less -- ETI shouts hello! where we read it flat.
+Enye in either English goes in as ny (eeny after i, oony after u).
+All languages shout. Applied at build time so CI builds the same tree.
 diff --git a/src/eci/synth/eci_synthtext.c b/src/eci/synth/eci_synthtext.c
-index fb97f8e..ba18893 100644
+index fb97f8e..911d869 100644
 --- a/src/eci/synth/eci_synthtext.c
 +++ b/src/eci/synth/eci_synthtext.c
-@@ -339,6 +339,129 @@ static int utf8ToWestern(const char *text, uint32_t len, char *out,
+@@ -339,6 +339,182 @@ static int utf8ToWestern(const char *text, uint32_t len, char *out,
      return 1;
  }
  
++/* ---- excitement for ! and ? ------------------------------------------ */
++
++/* The engine reads every sentence end the same: hello! comes out flat
++   where ETI shouts it, because the mark never reaches intonation. An
++   exclamation raises the pitch baseline and widens its excursions, and
++   a question lifts them a little less; that is what the two readings
++   below say, in the same shape the caller-facing prosody already sends
++   every utterance, so a malformed one cannot slip in.
++ *
++ * Only the last mark of the text counts, past trailing space and
++   closers, and only for the utterance as a whole: a later utterance
++   brings the caller's own voice numbers, which put everything back.
++   Answers a new buffer holding prefix plus text, or nought when the
++   text ends in anything else. All languages shout. */
++static char *excite_rewrite(const char *text, uint32_t len, uint32_t *newlen)
++{
++    uint32_t end = len;
++    const char *prefix = 0;
++    uint32_t pn = 0;
++    char *out;
++
++    if (text == 0 || len == 0)
++        return 0;
++    while (end > 0) {
++        unsigned char c = (unsigned char)text[end - 1];
++
++        if (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '"'
++            || c == '\'' || c == ')' || c == ']' || c == '}')
++            end--;
++        else
++            break;
++    }
++    if (end == 0)
++        return 0;
++    if (text[end - 1] == '!') {
++        prefix = "`vb65 `vf75 ";
++        pn = 12;
++    } else if (text[end - 1] == '?') {
++        prefix = "`vb58 `vf70 ";
++        pn = 12;
++    } else {
++        return 0;
++    }
++    out = (char *)malloc(len + pn + 1);
++    if (out == 0)
++        return 0;
++    memcpy(out, prefix, pn);
++    memcpy(out + pn, text, len);
++    out[pn + len] = 0;
++    *newlen = pn + len;
++    return out;
++}
++
 +/* ---- enye in English words ------------------------------------------- */
 +
 +/* Whether this Western byte can stand inside a word: letters and digits in
@@ -137,18 +191,31 @@ index fb97f8e..ba18893 100644
  /* Recode the text if the SSML filter is in the way, and answer whichever
     buffer the caller should go on with. Either of the two out parameters may
     come back holding something that has to be given back afterwards. */
-@@ -401,6 +524,7 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -401,6 +577,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
      char *wide_out = 0;
      char *mbcs_out = 0;
      char *mapped_out = 0;
 +    char *enye_out = 0;
++    char *excite_out = 0;
      const char *source;
      char *filtered;
      uint32_t asked = len;
-@@ -423,6 +547,21 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -423,6 +601,33 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
  
      recodeForSSML(t, text, len, &mbcs_out, &mapped_out);
  
++    /* A final ! or ? lifts the whole utterance the way ETI shouts it;
++       a later utterance brings the caller's own numbers back. */
++    {
++        uint32_t excite_len = 0;
++
++        excite_out = excite_rewrite(text, len, &excite_len);
++        if (excite_out != 0) {
++            text = excite_out;
++            len = excite_len;
++        }
++    }
++
 +    /* Either English reads an in-word enye the way canyon spells it; the
 +       Spanish pair and the rest keep their bytes, theirs reading already. */
 +    {
@@ -167,30 +234,36 @@ index fb97f8e..ba18893 100644
      /* And the way in for a language whose letters are not in the byte set
         this engine was built around.
  
-@@ -483,6 +622,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -483,6 +688,10 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
  
      if (rz_addText(ST_ROMAN(t), filtered, (int32_t)len, last) == -1) {
          stb_postRomanizerError(t, 0);
 +        if (enye_out)
 +            free(enye_out);
++        if (excite_out)
++            free(excite_out);
          return;
      }
  
-@@ -494,6 +635,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -494,6 +703,10 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
  
          if (n == -1) {
              stb_postRomanizerError(t, 0);
 +            if (enye_out)
 +                free(enye_out);
++            if (excite_out)
++                free(excite_out);
              return;
          }
          if (n == 0)
-@@ -505,6 +648,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -505,6 +718,10 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
          free(wide_out);
      if (mbcs_out)
          cpp_delete(mbcs_out);
 +    if (enye_out)
 +        free(enye_out);
++    if (excite_out)
++        free(excite_out);
  
  counted:
      lock = ST_LOCK(t);
