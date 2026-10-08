@@ -37,7 +37,11 @@ class EvvTtsService : TextToSpeechService() {
 
 	/** Words as the engine meets them: letters and digits carrying their
 	 *  apostrophes and hyphens, so billets-doux looks up whole. */
-	private val WORD = Regex("""[A-Za-z0-9]+(?:['-][A-Za-z0-9]+)*""")
+	/** Words as the teaching pass sees them. The high half holds the
+	 *  accented letters (everything but the multiply and divide signs),
+	 *  so a key like ni\u00F1a is taught rather than walked past: the old
+	 *  ASCII-only set silently skipped every imported entry above 127. */
+	private val WORD = Regex("""[A-Za-z0-9À-ÖØ-öø-ÿ]+(?:['-][A-Za-z0-9À-ÖØ-öø-ÿ]+)*""")
 
 	private var loadedRegex: RegexDictionaries.Loaded? = null
 	private var regexEnabled = false
