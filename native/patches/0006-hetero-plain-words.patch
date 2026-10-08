@@ -1,14 +1,11 @@
-hetero: users produce and persona phoneme entries; plain words removed
+hetero: ETI-spelled produce/persona forced readings
 
-The heteronym table stands empty by an earlier decision, kept as is.
-The forced entries below are bracket annotations and are honoured
-literally when they match, stress marks and all -- the oracle answers
-persona [.0pxrs.1onx] mark for mark.
-Only the users produce and persona phoneme entries remain, as specified,
-plus the matching machinery. High bytes count as word bytes.
+Forced readings use ETI 6.1 phone spellings from the issue-32 battery:
+produce [.0pro.1du.0Te], persona [.0pXr.1so.0na]. The users own
+undotted spellings are superseded. Main table stays empty by decision.
 Applied at build time so CI builds the same tree.
 diff --git a/src/eci/hetero/eci_hetero.c b/src/eci/hetero/eci_hetero.c
-index e9e6f85..c3b5a0d 100644
+index e9e6f85..f350f2a 100644
 --- a/src/eci/hetero/eci_hetero.c
 +++ b/src/eci/hetero/eci_hetero.c
 @@ -73,20 +73,37 @@ typedef struct {
@@ -50,8 +47,8 @@ index e9e6f85..c3b5a0d 100644
 +} Forced;
 +
 +static const Forced forced[] = {
-+    { "produce",   "`[.0prU.1dus]" },
-+    { "persona",   "`[.0pxrs.1onx]" },
++    { "produce",   "`[.0pro.1du.0Te]" },
++    { "persona",   "`[.0pXr.1so.0na]" },
 +};
 +
 +#define FORCED (int)(sizeof forced / sizeof forced[0])
