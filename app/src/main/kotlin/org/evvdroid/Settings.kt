@@ -273,11 +273,33 @@ class Settings(context: Context) {
 	fun setDictionary(volume: Int, path: String?, name: String?) {
 		val edit = prefs.edit()
 		if (path == null) {
-			edit.remove("dict_path_$volume").remove("dict_name_$volume")
+			edit.remove("dict_path_$volume").remove("dict_name_$volume").remove("dict_lang_$volume")
 		} else {
 			edit.putString("dict_path_$volume", path).putString("dict_name_$volume", name)
 		}
 		edit.apply()
+	}
+
+	/** Which engine language the file picked for [volume] is taught to.
+	 *  Asked at import, not guessed afterwards: -1 means nothing was ever
+	 *  chosen, and then the file's own name answers if it can. */
+	fun dictionaryLanguage(volume: Int): Int = prefs.getInt("dict_lang_$volume", -1)
+
+	fun setDictionaryLanguage(volume: Int, language: Int) {
+		prefs.edit().putInt("dict_lang_$volume", language).apply()
+	}
+
+	/** The language the file for [volume] goes to: the choice at import
+	 *  when it names a linked engine, else what its own filename says,
+	 *  else the first engine linked. One place, so the settings screen
+	 *  and the service never disagree. */
+	fun dictionaryLanguageResolved(volume: Int, available: IntArray): Int {
+		val stored = dictionaryLanguage(volume)
+		if (stored in available) return stored
+		val guess = dictionaryName(volume)?.substringBefore(", ")?.let {
+			Dictionaries.engineForFile(it, available)
+		}
+		return guess ?: available.firstOrNull() ?: 0x00010000
 	}
 
 	fun dictionaryPaths(): Map<Int, String> {

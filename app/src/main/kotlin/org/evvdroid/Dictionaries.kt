@@ -147,6 +147,23 @@ object Dictionaries {
 	 *  language tag, then which volume it is. */
 	private val FILE_VOLUME = Regex("""^([a-z]{3})(main|root|abbr|abbrev|abbreviation)\b""", RegexOption.IGNORE_CASE)
 
+	/** The engine language a shared file names, if its tag is one this app
+	 *  both speaks and links: enumain is American English and so on. Answers
+	 *  null when the name says nothing usable, and then the importer asks. */
+	fun engineForFile(name: String, available: IntArray): Int? {
+		val match = FILE_VOLUME.find(name.trim()) ?: return null
+		val engine = TAG_ENGINE[match.groupValues[1].lowercase()] ?: return null
+		return engine.takeIf { it in available }
+	}
+
+	private val TAG_ENGINE = mapOf(
+		"enu" to 0x00010000, "eng" to 0x00010001,
+		"esp" to 0x00020000, "esm" to 0x00020001,
+		"fra" to 0x00030000, "frc" to 0x00030001,
+		"deu" to 0x00040000, "ita" to 0x00050000,
+		"jpn" to 0x00080000, "pol" to 0x00110000, "plp" to 0x00110000
+	)
+
 	private val LANGUAGE_NAMES = mapOf(
 		"enu" to "American English",
 		"eng" to "British English",

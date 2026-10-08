@@ -28,10 +28,13 @@ class EvvTtsService : TextToSpeechService() {
 	private var appliedRevision = -1
 
 	private var loadedDictionaries: Map<Int, String> = emptyMap()
+	private var loadedDictionaryLangs: Map<Int, Int> = emptyMap()
 
-	/** Picked files as read: volume to lowercase word, key as written and
-	 *  what to say. Taught words live on the engine instance, so [taughtWords]
-	 *  starts over with every new one. */
+	/** Picked files as read: engine language to lowercase word, key as
+	 *  written and what to say. Files for one language read as one map,
+	 *  so a word is taught to the engine that will speak it. Taught words
+	 *  live on the engine instance, so [taughtWords] starts over with
+	 *  every new one. */
 	private var wordMaps: Map<Int, Map<String, Pair<String, String>>> = emptyMap()
 	private val taughtWords = HashSet<Pair<Int, String>>()
 
@@ -215,16 +218,18 @@ class EvvTtsService : TextToSpeechService() {
 	 *  taught as they are spoken instead. */
 	private fun loadDictionaries(target: EvvEngine, s: Settings) {
 		val want = s.dictionaryPaths().filterKeys { s.useDictionary(it) }
-		if (want == loadedDictionaries) return
+		val langs = want.keys.associateWith { s.dictionaryLanguageResolved(it, EvvEngine.available) }
+		if (want == loadedDictionaries && langs == loadedDictionaryLangs) return
 		target.forgetDictionaries()
-		val read = LinkedHashMap<Int, Map<String, Pair<String, String>>>()
+		val read = LinkedHashMap<Int, LinkedHashMap<String, Pair<String, String>>>()
 		for ((volume, path) in want) {
 			try {
 				val file = java.io.File(path)
 				if (!file.exists()) continue
 				val entries = Dictionaries.parse(file)
 				Log.i(TAG, "volume $volume: ${entries.size} entries from ${file.name}")
-				read[volume] = entries
+				val into = read.getOrPut(langs[volume] ?: target.language) { LinkedHashMap() }
+				into.putAll(entries)
 			} catch (failed: Exception) {
 				// One bad volume must not take the utterance, or every
 				// utterance after it, down with it.
@@ -234,6 +239,7 @@ class EvvTtsService : TextToSpeechService() {
 		wordMaps = read
 		taughtWords.clear()
 		loadedDictionaries = want
+		loadedDictionaryLangs = langs
 	}
 
 	/** Teaches the words in [text] the engine does not know yet. An
@@ -242,10 +248,13 @@ class EvvTtsService : TextToSpeechService() {
 	 *  word of it, never the one that picks it. */
 	private fun teachUnknownWords(target: EvvEngine, text: String) {
 		if (wordMaps.isEmpty() || text.isEmpty()) return
+		val entries = wordMaps[target.language] ?: return
 		for (raw in WORD.findAll(text)) {
 			val word = raw.value.lowercase()
-			for ((volume, entries) in wordMaps) {
-				val entry = entries[word] ?: continue
+			val entry = entries[word] ?: continue
+			// Every volume takes it, so a built-in main never shouts
+			// over a taught root: main, root and abbreviations alike.
+			for (volume in Eci.DICT_VOLUMES) {
 				val key = volume to entry.first
 				if (key in taughtWords) continue
 				try {

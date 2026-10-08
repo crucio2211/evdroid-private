@@ -245,6 +245,16 @@ fun SettingsScreen(state: SettingsModel) {
 			onChange = state::chooseRegexDictionaryEnabled
 		)
 		ActionRow(stringResource(R.string.dictionary_remove), state::removeDictionaries)
+		if (state.pendingDictSlot != null) {
+			val langs = state.dictLanguages
+			LanguageDialog(
+				title = stringResource(R.string.dictionary_language_title),
+				options = langs.map { Eci.displayName(it) },
+				chosen = langs.indexOf(state.pendingDictLang).coerceAtLeast(0),
+				onChoose = { state.choosePendingDictionaryLanguage(langs[it]) },
+				onDismiss = state::dismissPendingDictionary
+			)
+		}
 
 		Gap()
 		ChoiceRow(
@@ -434,6 +444,56 @@ private fun ChoiceRow(
 			}
 		)
 	}
+}
+
+/**
+ * Which engine language a picked dictionary file goes to. Asked at
+ * import rather than guessed afterwards: the filename starts selected
+ * and the choice is stored with the file, so entries are taught to the
+ * engine that will speak them. Shaped like [ChoiceRow]'s dialog, and
+ * one stop the way every row here is.
+ */
+@Composable
+private fun LanguageDialog(
+	title: String,
+	options: List<String>,
+	chosen: Int,
+	onChoose: (Int) -> Unit,
+	onDismiss: () -> Unit
+) {
+	AlertDialog(
+		onDismissRequest = onDismiss,
+		title = { Text(title) },
+		text = {
+			Column(modifier = Modifier.selectableGroup()) {
+				options.forEachIndexed { at, option ->
+					Row(
+						modifier = Modifier
+							.fillMaxWidth()
+							.selectable(
+								selected = at == chosen,
+								onClick = { onChoose(at) },
+								role = Role.RadioButton
+							)
+							.padding(vertical = 12.dp),
+						verticalAlignment = Alignment.CenterVertically
+					) {
+						RadioButton(selected = at == chosen, onClick = null)
+						Text(
+							text = option,
+							modifier = Modifier.padding(start = 12.dp),
+							style = MaterialTheme.typography.bodyLarge
+						)
+					}
+				}
+			}
+		},
+		confirmButton = {
+			TextButton(onClick = onDismiss) {
+				Text(stringResource(R.string.cancel))
+			}
+		}
+	)
 }
 
 @Composable

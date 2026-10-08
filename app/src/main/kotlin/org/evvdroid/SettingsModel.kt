@@ -184,7 +184,11 @@ class SettingsModel(context: Context) {
 	}
 
 	/** What the row for [volume] says: the file picked for it, or nothing. */
-	fun dictionaryName(volume: Int): String = dictionaries[volume] ?: app.getString(R.string.dictionary_none)
+	fun dictionaryName(volume: Int): String {
+		val said = dictionaries[volume] ?: return app.getString(R.string.dictionary_none)
+		val lang = settings.dictionaryLanguageResolved(volume, EvvEngine.available)
+		return "$said (${Eci.displayName(lang)})"
+	}
 
 	/** What the regex dictionary row says: the file picked for it, or nothing. */
 	var regexDictionary: String by mutableStateOf(
@@ -244,13 +248,49 @@ class SettingsModel(context: Context) {
 			settings.setDictionary(routed, null, null)
 			return
 		}
-		val file = java.io.File(into, "volume-$routed.dic")
+		// The language is asked, not assumed: the guess from the filename
+		// starts selected, and the choice is stored with the file.
+		pendingDictSlot = routed
+		pendingDictName = name
+		pendingDictLang = Dictionaries.engineForFile(name, EvvEngine.available)
+			?: EvvEngine.available.firstOrNull() ?: 0x00010000
+	}
+
+	/** A file waiting for its language: the slot it will fill, the name
+	 *  picked, and the choice in force. Null slot while nothing waits. */
+	var pendingDictSlot: Int? by mutableStateOf(null)
+		private set
+	var pendingDictName: String by mutableStateOf("")
+		private set
+	var pendingDictLang: Int by mutableStateOf(0x00010000)
+
+	/** The engines a picked file can go to, in their own order. */
+	val dictLanguages: List<Int> get() = EvvEngine.available.toList()
+
+	fun choosePendingDictionaryLanguage(language: Int) {
+		val slot = pendingDictSlot ?: return
+		pendingDictLang = language
+		val into = java.io.File(app.filesDir, "dictionaries")
+		val pending = java.io.File(into, "pending.dic")
+		if (!pending.exists()) {
+			pendingDictSlot = null
+			return
+		}
+		val entries = Dictionaries.count(pending)
+		val file = java.io.File(into, "volume-$slot.dic")
 		pending.copyTo(file, overwrite = true)
 		pending.delete()
-		val said = app.getString(R.string.dictionary_entries, name, entries)
-		settings.setDictionary(routed, file.absolutePath, said)
-		dictionaries = dictionaries + (routed to said)
-		chooseUseDictionary(routed, true)
+		val said = app.getString(R.string.dictionary_entries, pendingDictName, entries)
+		settings.setDictionary(slot, file.absolutePath, said)
+		settings.setDictionaryLanguage(slot, language)
+		dictionaries = dictionaries + (slot to said)
+		chooseUseDictionary(slot, true)
+		pendingDictSlot = null
+	}
+
+	fun dismissPendingDictionary() {
+		java.io.File(java.io.File(app.filesDir, "dictionaries"), "pending.dic").delete()
+		pendingDictSlot = null
 	}
 
 	fun removeDictionaries() {
