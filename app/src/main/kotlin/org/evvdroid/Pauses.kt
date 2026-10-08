@@ -34,8 +34,12 @@ object Pauses {
 
 	/** A mark that is really punctuation rather than part of a number: after a
 	 *  letter, digit or space, and before whitespace, a slash or the end. The
-	 *  third group takes a run of the same mark, so "wait..." is one pause. */
-	private val AT_A_MARK = Regex("([A-Za-z0-9]|\\s)([$MARKS])(\\2*?)(\\s|[\\\\/]|$)")
+	 *  third group takes a run of marks, which may mix ("?!"), so every one
+	 *  of them is shortened rather than only runs of the same mark. Closing
+	 *  quotes and brackets may stand between the run and the boundary
+	 *  ("Go!" she said), and digits on both sides still protect a decimal
+	 *  point or colon. */
+	private val AT_A_MARK = Regex("([A-Za-z0-9]|\\s)([$MARKS])([$MARKS]*?)([\"')\\]}»”’]*(\\s|[\\\\/]|\$))")
 
 	private const val BRIEF = "`p1"
 

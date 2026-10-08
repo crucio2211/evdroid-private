@@ -36,6 +36,17 @@ class PausesTest {
 		assertEquals("Wait `p1... Now", Pauses.apply("Wait... Now", Pauses.ALL, false))
 	}
 
+	@Test
+	fun mixedMarkRunsAreOnePause() {
+		assertEquals("Really `p1?! Yes", Pauses.apply("Really?! Yes", Pauses.ALL, false))
+		assertEquals("Wow `p1! Really `p1?", Pauses.apply("Wow! Really?", Pauses.ALL, false))
+	}
+
+	@Test
+	fun closersDoNotHideAMark() {
+		assertEquals("\"Go `p1!\" she said", Pauses.apply("\"Go!\" she said", Pauses.ALL, false))
+	}
+
 	/** The whole reason the rule looks at what is on either side. */
 	@Test
 	fun numbersAreLeftAlone() {
