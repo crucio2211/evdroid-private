@@ -1,14 +1,15 @@
-hetero: ETI-spelled produce/persona/personas forced readings
+hetero: ETI readings plus this at emphasis zero
 
 Forced readings use ETI 6.1 phone spellings from the issue-32 battery:
 produce [.0pro.1du.0Te], persona [.0pXr.1so.0na], personas with z.
-The users own undotted spellings are superseded. Main table stays
-empty by decision. Applied at build time so CI builds the same tree.
+this carries its ETI emphasis, level zero, ahead of unchanged phones.
+Main table stays empty by decision.
+Applied at build time so CI builds the same tree.
 diff --git a/src/eci/hetero/eci_hetero.c b/src/eci/hetero/eci_hetero.c
-index e9e6f85..734733f 100644
+index e9e6f85..8261504 100644
 --- a/src/eci/hetero/eci_hetero.c
 +++ b/src/eci/hetero/eci_hetero.c
-@@ -73,20 +73,38 @@ typedef struct {
+@@ -73,20 +73,39 @@ typedef struct {
  } Hetero;
  
  static const Hetero words[] = {
@@ -50,6 +51,7 @@ index e9e6f85..734733f 100644
 +    { "produce",   "`[.0pro.1du.0Te]" },
 +    { "persona",   "`[.0pXr.1so.0na]" },
 +    { "personas",  "`[.0pXr.1so.0naz]" },
++    { "this",      "`0 `[.1DIs]" },
 +};
 +
 +#define FORCED (int)(sizeof forced / sizeof forced[0])
@@ -57,7 +59,7 @@ index e9e6f85..734733f 100644
  /* What the word before says about what this one is.
   *
   * The engine's own test looks no further than one word back and neither does
-@@ -120,8 +138,12 @@ static int among(const char *word, size_t n, const char *const *list)
+@@ -120,8 +139,12 @@ static int among(const char *word, size_t n, const char *const *list)
  
  static int is_word_byte(char c)
  {
@@ -72,7 +74,7 @@ index e9e6f85..734733f 100644
  }
  
  /* Which of the table this word is, or -1. */
-@@ -136,6 +158,19 @@ static int which(const char *at, size_t n)
+@@ -136,6 +159,19 @@ static int which(const char *at, size_t n)
      return -1;
  }
  
@@ -92,7 +94,7 @@ index e9e6f85..734733f 100644
  /* The word before the one at `at', as an offset and a length. Answers 0 when
     there is none. */
  static const char *word_before(const char *text, const char *at, size_t *n)
-@@ -168,6 +203,12 @@ static size_t room_for(const char *text)
+@@ -168,6 +204,12 @@ static size_t room_for(const char *text)
          if (b > most)
              most = b;
      }
@@ -105,7 +107,7 @@ index e9e6f85..734733f 100644
      return strlen(text) * (most + 2) + 1;
  }
  
-@@ -213,6 +254,18 @@ char *hetero_rewrite(const char *text)
+@@ -213,6 +255,18 @@ char *hetero_rewrite(const char *text)
                  continue;
              }
          }
