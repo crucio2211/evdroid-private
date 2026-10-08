@@ -22,8 +22,11 @@ package org.evvdroid
  */
 object Prosody {
 
-	/** What to put in front of one utterance. */
-	fun prefix(phrasePrediction: Boolean): String = if (phrasePrediction) ON else OFF
+	/** What to put in front of one utterance. Forced to ETI 6.1's own
+	 *  operating point while the intonation is compared: prediction off,
+	 *  whatever the setting says. Revert to the toggle if the ears disagree. */
+	@Suppress("UNUSED_PARAMETER")
+	fun prefix(phrasePrediction: Boolean): String = OFF
 
 	/** The rate and pitch to speak one utterance at, in the engine's own
 	 *  numbers. A malformed annotation is spoken aloud rather than obeyed, so
