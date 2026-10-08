@@ -22,11 +22,12 @@ package org.evvdroid
  */
 object Prosody {
 
-	/** What to put in front of one utterance. Forced to ETI 6.1's own
-	 *  operating point while the intonation is compared: prediction off,
-	 *  whatever the setting says. Revert to the toggle if the ears disagree. */
+	/** What to put in front of one utterance. Bare ETI-style marker with
+	 *  its trailing space, as specified. The oracle passes it through
+	 *  unparsed -- neither a command nor speech -- so if the ears hear no
+	 *  change against ETI 6.1, revert to the toggle in one line. */
 	@Suppress("UNUSED_PARAMETER")
-	fun prefix(phrasePrediction: Boolean): String = OFF
+	fun prefix(phrasePrediction: Boolean): String = "`0 "
 
 	/** The rate and pitch to speak one utterance at, in the engine's own
 	 *  numbers. A malformed annotation is spoken aloud rather than obeyed, so
