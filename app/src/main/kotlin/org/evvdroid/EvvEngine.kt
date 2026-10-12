@@ -75,6 +75,16 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		if (closed) return
 		val index = Eci.sampleRateIndex(hz)
 		EvvNative.setParam(handle, Eci.PARAM_SAMPLE_RATE, index)
+		// Believed only when read back: a refused rate must never leave
+		// the engine and the player disagreeing, which is speech at the
+		// wrong speed. Fall back to 11025 rather than play there.
+		val landed = Eci.sampleRateIndex(Eci.sampleRateHz(EvvNative.getParam(handle, Eci.PARAM_SAMPLE_RATE)))
+		if (landed != index) {
+			Log.e(TAG, "the engine refused $hz Hz, staying at 11025")
+			EvvNative.setParam(handle, Eci.PARAM_SAMPLE_RATE, Eci.sampleRateIndex(11025))
+			sampleRateHz = 11025
+			return
+		}
 		sampleRateHz = Eci.sampleRateHz(index)
 	}
 

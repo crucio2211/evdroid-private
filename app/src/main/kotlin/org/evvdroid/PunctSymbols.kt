@@ -20,7 +20,7 @@ object PunctSymbols {
 		Entry(34, "quote", 2, 0),
 		Entry(36, "dollar sign", 3, 2),
 		Entry(37, "percent", 1, 0),
-		Entry(38, "ampersand", 1, 0),
+		Entry(38, "and", 1, 0),
 		Entry(39, "apostrophe", 3, 0),
 		Entry(40, "left paren", 2, 3),
 		Entry(41, "right paren", 2, 3),

@@ -1,13 +1,12 @@
-wideband: companion above 16k with the holding off too
+wideband: companion for everything above 16k, holding or not
 
-The auto-wideband gate only saw the held rate. With EVV_UPSAMPLE=none
-a rate past outright synthesis (48k past 44.1k) comes back as nought,
-so the gate counts nought the same as eleven thousand: sixteen thousand
-itself stays native outright, everything above takes the companion,
-whatever the holding says. Forty-eight thousand rides the companion
-up from twenty-two thousand and fifty.
+The auto-wideband gate only saw the held rate, so with the holding off
+the rates above sixteen thousand synthesised outright and dull, and
+forty-eight thousand was refused outright. The gate reads the wanted
+rate now: sixteen thousand itself stays native outright, everything
+above takes the companion, whatever the holding says.
 diff --git a/src/eci/synth/eci_synthwork.c b/src/eci/synth/eci_synthwork.c
-index 80aa213..415b915 100644
+index 80aa213..0b1c6e4 100644
 --- a/src/eci/synth/eci_synthwork.c
 +++ b/src/eci/synth/eci_synthwork.c
 @@ -640,8 +640,14 @@ THIS int32_t stw_createAudioConverter(SynthThread *t, SampleFormat *fmt)
@@ -16,12 +15,12 @@ index 80aa213..415b915 100644
         sixteen thousand itself is native outright and never took the
 -       companion. No setting; the rate the caller asked for decides. */
 -    wide = native == RATE_11025 && wanted > RATE_16000;
-+       companion. No setting; the rate the caller asked for decides. With
-+       the holding off a rate past what the engine synthesises outright
-+       comes back as nought instead of eleven thousand and twenty five --
-+       forty-eight thousand is past forty-four one -- and the companion
-+       makes that too, so nought counts the same way. */
-+    wide = wanted > RATE_16000 && (native == RATE_11025 || native == 0);
++       companion. No setting; the rate the caller asked for decides,
++       whatever the holding says -- with it off the engine would otherwise
++       synthesise these rates outright and dull, and forty-eight thousand,
++       past what it synthesises outright at all, comes back as nought.
++       Sixteen thousand itself stays native outright. */
++    wide = wanted > RATE_16000;
 +    if (native == 0 && !wide)
 +        return ERR_BAD_RATE;
      if (wide)
