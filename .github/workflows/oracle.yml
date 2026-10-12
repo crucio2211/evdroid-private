@@ -95,7 +95,7 @@ jobs:
           for case in 'hey!' 'hey?' 'hey.'; do
             echo "== $case"
             printf '%s\n' "$case" > /tmp/one.txt
-            DELTA_RULE_TRACE=200000 EVV_HETERO=on EVV_ANNO=1 "$bin" /tmp/one.txt 2>&1 | grep -E "# store 1 at|# store 2 at" | sort | uniq -c | sort -rn | head -30
+            DELTA_RULE_TRACE=200000 EVV_HETERO=on EVV_ANNO=1 "$bin" /tmp/one.txt 2>&1 | grep -E "# store [124] at" | sort | uniq -c | sort -rn | head -40
           done
 
       - name: Show what the hetero filter writes
