@@ -415,7 +415,12 @@ class EvvTtsService : TextToSpeechService() {
 			}
 		}
 		remember(pace)
-		if (opening.began) callback.done()
+		if (stopped) {
+			// Over, not done: finishing the callback flushes the tail it
+			// is still holding, and that tail sounds at the head of
+			// whatever comes next. A stopped utterance is left unfinished;
+			// TalkBack asked for silence, not for completion.
+		} else if (opening.began) callback.done()
 		else {
 			callback.start(target.sampleRateHz, AudioFormat.ENCODING_PCM_16BIT, 1)
 			callback.done()
@@ -530,9 +535,7 @@ class EvvTtsService : TextToSpeechService() {
 
 		const val TAG = "evvdroid"
 		const val MIN_CHUNK = 1024
-		/** Small, so the most audio that can be committed past a stop is a
-		 *  sliver rather than a syllable: anything handed over plays. */
-		const val MAX_CHUNK = 4096
+		const val MAX_CHUNK = 8192
 		const val BYTES_PER_SAMPLE = 2
 		/** How much audio may sit ahead of the speech, so that the track never
 		 *  runs dry while the engine is held back. */
