@@ -95,10 +95,13 @@ jobs:
           for case in 'hey!' 'hey?' 'hey.'; do
             echo "== $case"
             printf '%s\n' "$case" > /tmp/one.txt
-            DELTA_RULE_TRACE=200000 EVV_HETERO=on EVV_ANNO=1 "$bin" /tmp/one.txt 2>&1 | grep "# store" > /tmp/stores.txt
+            DELTA_RULE_TRACE=200000 EVV_HETERO=on EVV_ANNO=1 "$bin" /tmp/one.txt > /tmp/full.txt 2>&1
+            grep "# store" /tmp/full.txt > /tmp/stores.txt
             grep -E "= 000000(37|55|0a|46|5a|19|14|50|64)$" /tmp/stores.txt | sort | uniq -c
             grep -E "= ffffff(e7|ec|f6)$" /tmp/stores.txt | sort | uniq -c
             grep -E "# store 4 at [0-9a-f]+ = 00000005$" /tmp/stores.txt | sort | uniq -c
+            echo "-- insert_f0 calls (first arg = s4 addr; s6=s4-2, s2=s4+2):"
+            grep -oE "insert_f0\(@[0-9a-f]+, @[0-9a-f]+, @[0-9a-f]+" /tmp/full.txt | sort | uniq -c
           done
 
       - name: Show what the hetero filter writes
