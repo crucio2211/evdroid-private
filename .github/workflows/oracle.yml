@@ -93,7 +93,7 @@ jobs:
           done
           echo "== trace: where exclam_phrase goes on hey!"
           printf 'hey!\n' > /tmp/one.txt
-          DELTA_RULE_TRACE=200000 EVV_HETERO=on EVV_ANNO=1 "$bin" /tmp/one.txt 2>&1 | grep -A45 "exclam_phrase(" | head -60
+          DELTA_RULE_TRACE=200000 EVV_HETERO=on EVV_ANNO=1 "$bin" /tmp/one.txt 2>&1 | grep -A120 "exclam_phrase(" | head -130
 
       - name: Show what the hetero filter writes
         working-directory: native/openevv
