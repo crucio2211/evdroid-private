@@ -42,10 +42,14 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Route the private engine fork over SSH
+        run: git config --global url."git@github.com:".insteadOf "https://github.com/"
+
       - name: Check out with the engine submodule
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          ssh-key: ${{ secrets.OPENVV16K_DEPLOY_KEY }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5

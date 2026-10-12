@@ -119,6 +119,10 @@ for abi in $ABIS; do
 	# -fPIC, because the objects end up inside a shared object, which none of
 	# the engine's own builds are.
 	#
+	# -fno-strict-aliasing, because the 6.1 rules type-pun: the fork builds
+	# everything with it, and without it the optimizer may miscompile the
+	# rule tables it punned through.
+	#
 	# What is deliberately absent is --gc-sections, with the -ffunction-sections
 	# and -fdata-sections that feed it. The engine reaches a language's rules,
 	# constants and tables through tables of addresses rather than by name, so
@@ -134,7 +138,7 @@ for abi in $ABIS; do
 		LANGS="$LANGS"
 		BUILD="$build"
 		CC="$clang --target=$triple"
-		CFLAGS="-fPIC -fvisibility=hidden -fsigned-char"
+		CFLAGS="-fPIC -fvisibility=hidden -fsigned-char -fno-strict-aliasing"
 	)
 	make "${common[@]}" -j"$JOBS" android-objects
 	objdir=$(make "${common[@]}" -s android-objdir)
@@ -154,7 +158,7 @@ for abi in $ABIS; do
 	esac
 	mkdir -p "$OUT/$abi"
 	( cd "$engine" && "$clang" --target="$triple" \
-		-O2 -std=gnu99 -w -fPIC -fvisibility=hidden -fsigned-char \
+		-O2 -std=gnu99 -w -fPIC -fvisibility=hidden -fsigned-char -fno-strict-aliasing \
 		-Werror=int-conversion -Werror=incompatible-pointer-types \
 		$arena -DECI_STATIC $incs \
 		-shared \
