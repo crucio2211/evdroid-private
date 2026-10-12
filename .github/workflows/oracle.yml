@@ -73,6 +73,22 @@ jobs:
           [ -x "$bin" ] || bin="./build/phonemes"
           "$bin" "$cases"
 
+      - name: Trace which phrase rules dispatch
+        working-directory: native/openevv
+        # DELTA_RULE_TRACE=1 logs every rule that reaches backtracking as
+        # "# <rule> dispatches". Grep keeps only the phrase classifiers, so
+        # the log stays small: exclam firing mid-sentence but not finally
+        # (or at all) names the layer the fix belongs in.
+        env:
+          EVV_HETERO: "on"
+          EVV_ANNO: "1"
+          DELTA_RULE_TRACE: "1"
+        run: |
+          printf '%s\n' 'hey! listen' 'listen hey!' 'hey!' 'hey? listen' 'hey. listen' > /tmp/excl.txt
+          bin="./build/phonemes-enus"
+          [ -x "$bin" ] || bin="./build/phonemes"
+          "$bin" /tmp/excl.txt 2>&1 | grep -E "# (exclam|question|period|comma)_phrase dispatches" | sort | uniq -c
+
       - name: Show what the hetero filter writes
         working-directory: native/openevv
         # Calls the rewriting directly, past install questions: a wrong
