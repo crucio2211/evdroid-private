@@ -525,15 +525,9 @@ class SettingsModel(context: Context) {
 			sampleRateHz,
 			settings.audioSnapshot(),
 			ratePercent = 100.takeIf { forceRate },
-			pitchPercent = 100.takeIf { forcePitch },
-			onLanded = { landedRateHz = it }
+			pitchPercent = 100.takeIf { forcePitch }
 		)
 	}
-
-	/** The rate the engine actually landed on at the last sample: what was
-	 *  asked, unless it refused and fell back. Nought before any sample. */
-	var landedRateHz by mutableStateOf(0)
-		private set
 
 	private fun adoptVoice() {
 		val own = preview?.presetShape(settings.voice) ?: return

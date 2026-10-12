@@ -126,22 +126,6 @@ fun SettingsScreen(state: SettingsModel) {
 		}
 		Gap()
 		ActionRow(stringResource(R.string.speak_label), state::say)
-		// What the engine actually landed on at the last sample, so a
-		// refused rate is seen rather than guessed at. Read-only: one
-		// stop that says the label and the rate, nothing to activate.
-		if (state.landedRateHz > 0) {
-			Text(
-				text = stringResource(
-					R.string.labelled_value,
-					stringResource(R.string.engine_rate_label),
-					stringResource(R.string.hertz, state.landedRateHz)
-				),
-				style = MaterialTheme.typography.bodyLarge,
-				modifier = Modifier
-					.fillMaxWidth()
-					.padding(horizontal = 16.dp, vertical = 14.dp)
-			)
-		}
 		ActionRow(stringResource(R.string.reset_label), state::resetVoice)
 
 		Gap()

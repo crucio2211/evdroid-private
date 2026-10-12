@@ -379,14 +379,14 @@ JNIEXPORT void JNICALL Java_org_evvdroid_EvvNative_stop(JNIEnv* env, jclass cls,
 	pthread_cond_broadcast(&in->room);
 	pthread_cond_broadcast(&in->filled);
 	pthread_mutex_unlock(&in->lock);
-	/* eciStop is deliberately not called, here or anywhere else on this path.
-	   The flag makes the callback answer eciDataAbort the next time the engine
-	   offers samples, and that unwinds it from inside its own call and leaves
-	   it fit for the next utterance. eciStop does not: about eighty of them on
-	   one instance and the engine either goes silent or jumps into its own
-	   data. openevv's own harnesses show both halves of that -- the one that
-	   aborts from the callback runs clean for hundreds of turns, the one that
-	   calls eciStop dies around turn eighty. */
+	/* And the engine's own queue goes too, or the tail of the stopped
+	 * utterance is still in it and speaks first inside the next one --
+	 * the tiny stale chunk riding the next swipe. eciStop clears the
+	 * romanizer and engine queues and resets the counts; calling it on
+	 * an idle engine wedged it once, and upstream fixed that, so it is
+	 * safe on every path here. Buffers still in flight answer
+	 * eciDataAbort off the flag above and never reach the ring. */
+	eciStop(in->eci);
 }
 
 /* The instance's own dictionary set, made the first time one is wanted. An

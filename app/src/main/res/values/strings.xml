@@ -18,7 +18,6 @@
 	<string name="volume_label">Volume</string>
 
 	<string name="speak_label">Speak a sample</string>
-	<string name="engine_rate_label">Engine rate</string>
 	<string name="reset_label">Reset voice to defaults</string>
 
 	<string name="force_rate_label">Force speech rate</string>
