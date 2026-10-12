@@ -22,10 +22,9 @@ class EvvTtsService : TextToSpeechService() {
 	private var engine: EvvEngine? = null
 	private var settings: Settings? = null
 
-	@Volatile
-	/** Written on one binder thread and read on another, so volatile:
-	 *  a stop the pump never sees is audio committed past it, and that
-	 *  is the stale sliver at the head of the next utterance. */
+	/** Written on one binder thread and read on another: a stop the pump
+	 *  never sees is audio committed past it, and that is the stale sliver
+	 *  at the head of the next utterance. */
 	@Volatile
 	private var stopped = false
 
