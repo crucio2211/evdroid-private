@@ -1,0 +1,72 @@
+intonation: keep the exclamation over the sentence-final stamp
+
+assign_major_phr_features in upper form, standing in for the lifted
+rule: after the current-phrase values are in, an exclamation the
+dispatch matched gets its pitch values back over the declarative
+stamp. A frame local records the match because the current-phrase
+rules move the scan a second mark test would read. Mid-sentence the
+stamp never lands, so only final marks change. Battery and ear hold it.
+diff --git a/lang/enus/rules/ut_inton.up b/lang/enus/rules/ut_inton.up
+new file mode 100644
+index 0000000..6482a31
+--- /dev/null
++++ b/lang/enus/rules/ut_inton.up
+@@ -0,0 +1,58 @@
++# assign_major_phr_features with the exclamation kept.
++#
++# The lifted rule calls exclam_phrase for a phrase ending in `!' and then
++# lets assign_sent_final_features stamp the declarative values over what it
++# set, so a final hey! reads flat where ETI shouts it. Mid-sentence the
++# stamp never lands and the exclamation stands, which is why only the final
++# mark goes missing.
++#
++# This records whether the exclamation matched and, after the current-phrase
++# values are in, writes its values back over the stamped ones. The test the
++# dispatcher ran is not run again: assign_currPhr_vals moves the scan, so a
++# second test would read the wrong place. A frame local carries the answer
++# across the calls instead.
++rule assign_major_phr_features takes 3
++  instead
++  local exhit bytes 4
++  set exhit to 0
++  call ZZget_parm_ptr2 arg 2 arg 1 arg 1 arg 2
++  call ZZfence_null
++  call ZZstarttest1
++  call period_phrase arg 1 arg 2
++  if answer is 0
++    go to tail
++  end
++  call ZZstarttest3
++  call comma_phrase
++  if answer is 0
++    go to tail
++  end
++  call ZZstarttest4
++  call question_phrase arg 1 arg 2
++  if answer is 0
++    go to tail
++  end
++  call ZZstarttest5
++  call exclam_phrase arg 1
++  if answer is 0
++    set exhit to 1
++    go to tail
++  end
++  call ZZstarttest2
++  call semicolon_phrase
++  place tail
++  call ZZstarttest6
++  call assign_sent_final_features
++  call ZZstarttest7
++  call assign_currPhr_vals arg 2
++  call ZZstarttest8
++  call assign_phr_final_anno_features
++  if exhit is 0
++    go to noex
++  end
++  set global half 2386 to global half 2116
++  set global half 2040 to global half 2048
++  place noex
++  and 0 into global half 1514
++  match
++end
