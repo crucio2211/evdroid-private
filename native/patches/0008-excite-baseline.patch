@@ -1,0 +1,122 @@
+engine: baseline lift for final !/?
+
+Utterance-final ! raises the pitch baseline, ? less so; inflection(fluctuation) is never touched. ETI shouts hello! where we read it flat.
+All languages shout. Applied at build time so CI builds the same tree.
+diff --git a/src/eci/synth/eci_synthtext.c b/src/eci/synth/eci_synthtext.c
+index fb97f8e..2407fea 100644
+--- a/src/eci/synth/eci_synthtext.c
++++ b/src/eci/synth/eci_synthtext.c
+@@ -339,6 +339,59 @@ static int utf8ToWestern(const char *text, uint32_t len, char *out,
+     return 1;
+ }
+ 
++/* ---- excitement for ! and ? ------------------------------------------ */
++
++/* The engine reads every sentence end the same: hello! comes out flat
++   where ETI shouts it, because the mark never reaches intonation. An
++   exclamation raises the pitch baseline, a question less so; the
++   excursions around it -- the inflection -- are left exactly as they
++   are, in the same `vb shape the caller-facing prosody already sends
++   every utterance, so a malformed one cannot slip in and the next
++   utterance's own numbers put everything back.
++ *
++ * Only the last mark of the text counts, past trailing space and
++   closers, and only for the utterance as a whole. Answers a new buffer
++   holding prefix plus text, or nought when the text ends in anything
++   else. All languages shout. */
++static char *excite_rewrite(const char *text, uint32_t len, uint32_t *newlen)
++{
++    uint32_t end = len;
++    const char *prefix = 0;
++    uint32_t pn = 0;
++    char *out;
++
++    if (text == 0 || len == 0)
++        return 0;
++    while (end > 0) {
++        unsigned char c = (unsigned char)text[end - 1];
++
++        if (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '"'
++            || c == '\'' || c == ')' || c == ']' || c == '}')
++            end--;
++        else
++            break;
++    }
++    if (end == 0)
++        return 0;
++    if (text[end - 1] == '!') {
++        prefix = "`vb65 ";
++        pn = 6;
++    } else if (text[end - 1] == '?') {
++        prefix = "`vb58 ";
++        pn = 6;
++    } else {
++        return 0;
++    }
++    out = (char *)malloc(len + pn + 1);
++    if (out == 0)
++        return 0;
++    memcpy(out, prefix, pn);
++    memcpy(out + pn, text, len);
++    out[pn + len] = 0;
++    *newlen = pn + len;
++    return out;
++}
++
+ /* Recode the text if the SSML filter is in the way, and answer whichever
+    buffer the caller should go on with. Either of the two out parameters may
+    come back holding something that has to be given back afterwards. */
+@@ -401,6 +454,7 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+     char *wide_out = 0;
+     char *mbcs_out = 0;
+     char *mapped_out = 0;
++    char *excite_out = 0;
+     const char *source;
+     char *filtered;
+     uint32_t asked = len;
+@@ -423,6 +477,18 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+ 
+     recodeForSSML(t, text, len, &mbcs_out, &mapped_out);
+ 
++    /* A final ! or ? lifts the whole utterance the way ETI shouts it;
++       a later utterance brings the caller's own numbers back. */
++    {
++        uint32_t excite_len = 0;
++
++        excite_out = excite_rewrite(text, len, &excite_len);
++        if (excite_out != 0) {
++            text = excite_out;
++            len = excite_len;
++        }
++    }
++
+     /* And the way in for a language whose letters are not in the byte set
+        this engine was built around.
+ 
+@@ -483,6 +549,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+ 
+     if (rz_addText(ST_ROMAN(t), filtered, (int32_t)len, last) == -1) {
+         stb_postRomanizerError(t, 0);
++        if (excite_out)
++            free(excite_out);
+         return;
+     }
+ 
+@@ -494,6 +562,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+ 
+         if (n == -1) {
+             stb_postRomanizerError(t, 0);
++            if (excite_out)
++                free(excite_out);
+             return;
+         }
+         if (n == 0)
+@@ -505,6 +575,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+         free(wide_out);
+     if (mbcs_out)
+         cpp_delete(mbcs_out);
++    if (excite_out)
++        free(excite_out);
+ 
+ counted:
+     lock = ST_LOCK(t);
