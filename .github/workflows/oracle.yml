@@ -91,6 +91,9 @@ jobs:
             printf '%s\n' "$case" > /tmp/one.txt
             "$bin" /tmp/one.txt 2>&1 | grep -E "# (exclam|question|period|comma)_phrase dispatches" | sort | uniq -c
           done
+          echo "== trace: where exclam_phrase goes on hey!"
+          printf 'hey!\n' > /tmp/one.txt
+          DELTA_RULE_TRACE=200000 EVV_HETERO=on EVV_ANNO=1 "$bin" /tmp/one.txt 2>&1 | grep -A45 "exclam_phrase(" | head -60
 
       - name: Show what the hetero filter writes
         working-directory: native/openevv
