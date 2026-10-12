@@ -23,6 +23,10 @@ class EvvTtsService : TextToSpeechService() {
 	private var settings: Settings? = null
 
 	@Volatile
+	/** Written on one binder thread and read on another, so volatile:
+	 *  a stop the pump never sees is audio committed past it, and that
+	 *  is the stale sliver at the head of the next utterance. */
+	@Volatile
 	private var stopped = false
 
 	private var appliedRevision = -1
@@ -429,6 +433,13 @@ class EvvTtsService : TextToSpeechService() {
 		while (!stopped) {
 			val n = target.read(buffer)
 			if (n <= 0) break
+			// A chunk taken before the stop landed dies here, unplayed:
+			// handing it over gives the framework audio for an utterance
+			// already over, and it sounds at the head of the next one.
+			if (stopped) {
+				target.stop()
+				return false
+			}
 			chain.process(buffer, n)
 			if (!opening.open()) {
 				target.stop()
@@ -520,7 +531,9 @@ class EvvTtsService : TextToSpeechService() {
 
 		const val TAG = "evvdroid"
 		const val MIN_CHUNK = 1024
-		const val MAX_CHUNK = 8192
+		/** Small, so the most audio that can be committed past a stop is a
+		 *  sliver rather than a syllable: anything handed over plays. */
+		const val MAX_CHUNK = 4096
 		const val BYTES_PER_SAMPLE = 2
 		/** How much audio may sit ahead of the speech, so that the track never
 		 *  runs dry while the engine is held back. */
