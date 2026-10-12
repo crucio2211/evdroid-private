@@ -75,7 +75,8 @@ class EvvPreview(private val language: Int) {
 		rateHz: Int,
 		audio: AudioOutput.Snapshot = AudioOutput.Snapshot(),
 		ratePercent: Int? = null,
-		pitchPercent: Int? = null
+		pitchPercent: Int? = null,
+		onLanded: ((Int) -> Unit)? = null
 	) {
 		// Whatever is being said stops first, and the turn this utterance
 		// belongs to is taken after that -- stopping is what moves the count
@@ -87,6 +88,13 @@ class EvvPreview(private val language: Int) {
 			if (mine != generation) return@post
 			val e = engine ?: EvvEngine.open(language)?.also { engine = it } ?: return@post
 			e.setSampleRate(rateHz)
+			// What the engine actually landed on, which is not always what
+			// was asked: a refused rate falls back rather than disagreeing
+			// with the player. Reported on the main thread for the screen.
+			onLanded?.let { report ->
+				val landed = e.sampleRateHz
+				Handler(android.os.Looper.getMainLooper()).post { report(landed) }
+			}
 			e.applyVoice(voice, shape)
 			ratePercent?.let { e.setRatePercent(it) }
 			pitchPercent?.let { e.setPitchPercent(it) }
