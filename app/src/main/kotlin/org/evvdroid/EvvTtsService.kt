@@ -535,7 +535,10 @@ class EvvTtsService : TextToSpeechService() {
 
 		const val TAG = "evvdroid"
 		const val MIN_CHUNK = 1024
-		const val MAX_CHUNK = 8192
+		/** Small commits for a screen reader: what is handed over plays,
+		 *  so a stop waits out at most this much, and speech starts in
+		 *  slivers rather than after whole mouthfuls. */
+		const val MAX_CHUNK = 4096
 		const val BYTES_PER_SAMPLE = 2
 		/** How much audio may sit ahead of the speech, so that the track never
 		 *  runs dry while the engine is held back. */
