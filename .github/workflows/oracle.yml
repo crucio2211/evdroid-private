@@ -91,12 +91,12 @@ jobs:
             printf '%s\n' "$case" > /tmp/one.txt
             "$bin" /tmp/one.txt 2>&1 | grep -E "# (exclam|question|period|comma)_phrase dispatches" | sort | uniq -c
           done
-          echo "== trace: where exclam_phrase goes on hey!"
-          printf 'hey!\n' > /tmp/one.txt
-          DELTA_RULE_TRACE=200000 EVV_HETERO=on EVV_ANNO=1 "$bin" /tmp/one.txt 2>&1 | grep -A120 "exclam_phrase(" | head -130
-          echo "== question values for comparison"
-          printf 'hey?\n' > /tmp/one.txt
-          DELTA_RULE_TRACE=200000 EVV_HETERO=on EVV_ANNO=1 "$bin" /tmp/one.txt 2>&1 | grep -A120 "question_phrase(" | head -130
+          echo "== tone fields: hey! vs hey? vs hey."
+          for case in 'hey!' 'hey?' 'hey.'; do
+            echo "== $case"
+            printf '%s\n' "$case" > /tmp/one.txt
+            DELTA_RULE_TRACE=200000 EVV_HETERO=on EVV_ANNO=1 "$bin" /tmp/one.txt 2>&1 | grep -E "# store 1 at|# store 2 at" | sort | uniq -c | sort -rn | head -30
+          done
 
       - name: Show what the hetero filter writes
         working-directory: native/openevv
