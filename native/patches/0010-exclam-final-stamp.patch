@@ -1,0 +1,36 @@
+intonation: keep final exclamations over the sentence-final stamp
+
+assign_major_phr_features records an exclam_phrase match in its scratch
+slot and, after the current-phrase values are in, writes the
+exclamation pitch values back over the declarative stamp. Mid-sentence
+the stamp never lands, so only final marks change; phones do not move.
+Lower-form insertion: no plants, frames or depths touched.
+diff --git a/lang/enus/rules/ut_inton.dr b/lang/enus/rules/ut_inton.dr
+index ab2d2d9..0b51d7a 100644
+--- a/lang/enus/rules/ut_inton.dr
++++ b/lang/enus/rules/ut_inton.dr
+@@ -6517,6 +6517,9 @@ label L2 was at_0x58
+   call exclam_phrase arity 2 depth 3
+   popn 3
+   cmp testl reg r0 reg r0
++  branch jne to L12
++  store movl imm 1 slot -20
++label L12
+   branch je to L3
+   push reg r6
+   call ZZstarttest2 arity 1 depth 1
+@@ -6535,6 +6538,14 @@ label L3 was at_0xdf
+   push slotaddr -16
+   push reg r6
+   call assign_currPhr_vals arity 2 depth 5
++  load movl slot -20 into r0
++  cmp testl reg r0 reg r0
++  branch je to L13
++  load movw ind reg r6 2116 into r0w
++  store movw reg r0w ind reg r6 2386
++  load movw ind reg r6 2048 into r0w
++  store movw reg r0w ind reg r6 2040
++label L13
+   push reg r6
+   call ZZstarttest8 arity 1 depth 6
+   push reg r6
