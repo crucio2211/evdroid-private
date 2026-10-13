@@ -1,0 +1,46 @@
+DIAGNOSTIC: move exclam first in the dispatcher (no duplicate)
+
+Replaces 0020's duplicate-first probe: the duplicate added stack depth
+and a second starttest5 call, either of which could fail exclam's head
+silently (no backtrack, no dispatches, flat F0) and fake a negative.
+This moves the original exclam block untouched ahead of period, so the
+verdict is fully visible with the only working instruments:
+exclam dispatches = its tests fail on virgin state, F0 moved = match.
+Revert after measuring.
+
+diff --git a/lang/enus/rules/ut_inton.dr b/lang/enus/rules/ut_inton.dr
+index ab2d2d9..68bd199 100644
+--- a/lang/enus/rules/ut_inton.dr
++++ b/lang/enus/rules/ut_inton.dr
+@@ -6481,6 +6481,15 @@ label L2 was at_0x58
+   call ZZfence_null arity 1 depth 6
+   push reg r6
+   call ZZstarttest1 arity 1 depth 7
++  push reg r6
++  call ZZstarttest5 arity 1 depth 1
++  load movl slotaddr -8 into r0
++  push slotaddr -8
++  push reg r6
++  call exclam_phrase arity 2 depth 3
++  popn 3
++  cmp testl reg r0 reg r0
++  branch je to L3
+   load movl slotaddr -8 into r0
+   push slotaddr -8
+   load movl slotaddr -16 into r0
+@@ -6510,15 +6519,6 @@ label L2 was at_0x58
+   cmp testl reg r0 reg r0
+   branch je to L3
+   push reg r6
+-  call ZZstarttest5 arity 1 depth 1
+-  load movl slotaddr -8 into r0
+-  push slotaddr -8
+-  push reg r6
+-  call exclam_phrase arity 2 depth 3
+-  popn 3
+-  cmp testl reg r0 reg r0
+-  branch je to L3
+-  push reg r6
+   call ZZstarttest2 arity 1 depth 1
+   push reg r6
+   call semicolon_phrase arity 1 depth 2
