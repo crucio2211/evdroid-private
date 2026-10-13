@@ -106,7 +106,7 @@ jobs:
         # numbers, per final mark, on every build.
         run: |
           make probe LANGS="lang/enus" RULES="bytecode" -j"$(nproc)"
-          for case in 'hey!' 'hey?' 'hey.'; do
+          for case in 'hey!' 'hey?' 'hey.' 'hello!' 'hello?' 'hello.' 'I went home!' 'I went home?' 'I went home.'; do
             printf '%s\n' "$case" > /tmp/f0case.txt
             rm -f /tmp/f0tap.tsv
             EVV_KLATT_TAP=/tmp/f0tap.tsv EVV_HETERO=on ./build/probe @/tmp/f0case.txt /tmp/f0case.wav
