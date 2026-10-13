@@ -97,6 +97,9 @@ jobs:
             printf '%s\n' "$case" > /tmp/one.txt
             DELTA_RULE_TRACE=1 EVV_HETERO=on EVV_ANNO=1 "$bin" /tmp/one.txt 2>&1 | grep -E "# [a-z_0-9]+ dispatches" | sort | uniq -c | sort -rn
           done
+          echo "== small-value stores, one process, three marks (stable heap)"
+          printf '%s\n' 'hey!' 'hey?' 'hey.' > /tmp/three.txt
+          DELTA_RULE_TRACE=200000 EVV_HETERO=on EVV_ANNO=1 "$bin" /tmp/three.txt 2>&1 | grep -E "# store [24] at [0-9a-f]+ = 000000[0-3][0-9a-f]|\[\.1he" | head -150
 
       - name: Measure F0 contours
         working-directory: native/openevv
