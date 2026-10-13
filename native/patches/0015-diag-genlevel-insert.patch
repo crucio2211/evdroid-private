@@ -1,0 +1,24 @@
+DIAGNOSTIC: phrase-final tones at generate level, not nested
+
+The nucl_f0-nested staple proved the forced chain never reaches F0,
+likely unwound or depth-failed. This calls insert_phrase_final_tones
+from generate_intonation's L14 arm instead, the same depth the winning
+case-15 call uses, with 0013 forcing gates and s2=150. F0 numbers
+judge: movement proves the path viable at normal depth. Revert after.
+diff --git a/lang/enus/rules/us_inton.dr b/lang/enus/rules/us_inton.dr
+index 28711df..eddbb1f 100644
+--- a/lang/enus/rules/us_inton.dr
++++ b/lang/enus/rules/us_inton.dr
+@@ -3475,6 +3475,12 @@ label L14 was at_0x1a1
+   call ZZstarttest8 arity 1 depth 1
+   push reg r6
+   call nucl_f0 arity 1 depth 2
++  push reg r6
++  call ZZstarttest17 arity 1 depth 1
++  push reg r6
++  call insert_phrase_final_tones arity 1 depth 2
++  popreg r1
++  popreg r1
+ label L15 was at_0x1ad
+   popreg r1
+   popreg r1
