@@ -1,0 +1,25 @@
+DIAGNOSTIC: staple phrase-final tones onto the nuclear path
+
+generate_intonation case 15 (insert_phrase_final_tones) never fires
+for bang, so the whole boundary chain stays dark for hey!. This calls
+insert from nucl_f0 right after nucl_high_tone, which DOES fire for
+hey!. With 0013 forcing boundary gates and s2=150, F0 numbers judge:
+any movement in hey! slope proves the path viable; bit-identical
+proves it dead. Revert after measuring.
+diff --git a/lang/enus/rules/us_inton.dr b/lang/enus/rules/us_inton.dr
+index 28711df..5f1cba2 100644
+--- a/lang/enus/rules/us_inton.dr
++++ b/lang/enus/rules/us_inton.dr
+@@ -1990,6 +1990,12 @@ label L2 was $X2$100002
+   call ZZstarttest4 arity 1 depth 1
+   push reg r6
+   call nucl_high_tone arity 1 depth 2
++  push reg r6
++  call ZZstarttest16 arity 1 depth 1
++  push reg r6
++  call insert_phrase_final_tones arity 1 depth 2
++  popreg r1
++  popreg r1
+ label L3 was at_0xaf
+   popreg r1
+   popreg r1
