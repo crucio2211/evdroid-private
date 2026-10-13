@@ -1,16 +1,16 @@
-engine: final bang over as question plus baseline lift
+engine: high fall for final bang, lift only
 
-The intonation rules test for question records and never for bang,
-so a final bang took declarative defaults and read flat. Until the
-rules learn the mark, a final bang is handed over as a question mark:
-same phones, working rise, with a higher baseline lift than a real
-question. Mid-sentence bangs keep their bytes. All languages shout.
+The intonation rules test for question records and never for bang.
+Borrowing the question rise reads patanong, so the bang keeps its
+own falling shape and is raised instead: vb70 baseline lift, inflection
+untouched, next utterance's own numbers put everything back. Loudness
+lives app-side off the same final mark. Mid-sentence bangs untouched.
 Applied at build time so CI builds the same tree.
 diff --git a/src/eci/synth/eci_synthtext.c b/src/eci/synth/eci_synthtext.c
-index fb97f8e..d5ccd75 100644
+index fb97f8e..210e1f5 100644
 --- a/src/eci/synth/eci_synthtext.c
 +++ b/src/eci/synth/eci_synthtext.c
-@@ -339,6 +339,69 @@ static int utf8ToWestern(const char *text, uint32_t len, char *out,
+@@ -339,6 +339,65 @@ static int utf8ToWestern(const char *text, uint32_t len, char *out,
      return 1;
  }
  
@@ -19,21 +19,21 @@ index fb97f8e..d5ccd75 100644
 +/* The engine reads every sentence end the same: hello! comes out flat
 +   where ETI shouts it, because the mark never reaches intonation -- the
 +   intonation rules test for question records and never for bang, so a
-+   final bang takes the declarative defaults. Until the rules learn the
-+   mark, a final bang is handed over as a question: the question machinery
-+   is proven (it rises), the phones do not move, and only the last mark
-+   counts, past trailing space and closers. Mid-sentence bangs, which the
-+   rules already shape, are left alone.
++   final bang takes the declarative defaults. A shout is not a question:
++   borrowing the question rise reads patanong, so the bang keeps its own
++   falling shape and is raised and played louder instead -- a high fall.
++   Mid-sentence bangs, which the rules already shape, are left alone.
 + *
-+ * An exclamation raises the pitch baseline on top of that, a question
-+   less so; the excursions around it -- the inflection -- are left
-+   exactly as they are, in the same `vb shape the caller-facing prosody
-+   already sends every utterance, so a malformed one cannot slip in and
-+   the next utterance's own numbers put everything back.
++ * The baseline lift uses the same `vb shape the caller-facing prosody
++   already sends every utterance -- the inflection is never touched --
++   so a malformed one cannot slip in and the next utterance's own
++   numbers put everything back. The loudness half lives app-side, keyed
++   off the same final mark.
 + *
-+ * Only the last mark of the text counts, and only for the utterance as
-+   a whole. Answers a new buffer holding prefix plus text, or nought
-+   when the text ends in anything else. All languages shout. */
++ * Only the last mark of the text counts, past trailing space and
++   closers, and only for the utterance as a whole. Answers a new buffer
++   holding prefix plus text, or nought when the text ends in anything
++   else. All languages shout. */
 +static char *excite_rewrite(const char *text, uint32_t len, uint32_t *newlen)
 +{
 +    uint32_t end = len;
@@ -55,7 +55,7 @@ index fb97f8e..d5ccd75 100644
 +    if (end == 0)
 +        return 0;
 +    if (text[end - 1] == '!') {
-+        prefix = "`vb65 ";
++        prefix = "`vb70 ";
 +        pn = 6;
 +    } else if (text[end - 1] == '?') {
 +        prefix = "`vb58 ";
@@ -69,10 +69,6 @@ index fb97f8e..d5ccd75 100644
 +    memcpy(out, prefix, pn);
 +    memcpy(out + pn, text, len);
 +    out[pn + len] = 0;
-+    /* A final bang goes over as a question mark: same phones, working
-+       rise. Both marks are one ASCII byte, so the swap is in place. */
-+    if (text[end - 1] == '!')
-+        out[pn + end - 1] = '?';
 +    *newlen = pn + len;
 +    return out;
 +}
@@ -80,7 +76,7 @@ index fb97f8e..d5ccd75 100644
  /* Recode the text if the SSML filter is in the way, and answer whichever
     buffer the caller should go on with. Either of the two out parameters may
     come back holding something that has to be given back afterwards. */
-@@ -401,6 +464,7 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -401,6 +460,7 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
      char *wide_out = 0;
      char *mbcs_out = 0;
      char *mapped_out = 0;
@@ -88,7 +84,7 @@ index fb97f8e..d5ccd75 100644
      const char *source;
      char *filtered;
      uint32_t asked = len;
-@@ -423,6 +487,18 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -423,6 +483,18 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
  
      recodeForSSML(t, text, len, &mbcs_out, &mapped_out);
  
@@ -107,7 +103,7 @@ index fb97f8e..d5ccd75 100644
      /* And the way in for a language whose letters are not in the byte set
         this engine was built around.
  
-@@ -483,6 +559,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -483,6 +555,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
  
      if (rz_addText(ST_ROMAN(t), filtered, (int32_t)len, last) == -1) {
          stb_postRomanizerError(t, 0);
@@ -116,7 +112,7 @@ index fb97f8e..d5ccd75 100644
          return;
      }
  
-@@ -494,6 +572,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -494,6 +568,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
  
          if (n == -1) {
              stb_postRomanizerError(t, 0);
@@ -125,7 +121,7 @@ index fb97f8e..d5ccd75 100644
              return;
          }
          if (n == 0)
-@@ -505,6 +585,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
+@@ -505,6 +581,8 @@ THIS void addTextRun(SynthThread *t, char *text, uint32_t len, int32_t seq,
          free(wide_out);
      if (mbcs_out)
          cpp_delete(mbcs_out);
