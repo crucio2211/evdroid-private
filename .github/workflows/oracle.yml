@@ -158,8 +158,6 @@ jobs:
           "
           done
 
-          done
-
       - name: Validate the autocorrelation estimator
         working-directory: native/openevv
         # The local ETI rig measures F0 by autocorrelation; it must first
