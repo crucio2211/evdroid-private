@@ -1,0 +1,18 @@
+DIAGNOSTIC: log token ids per mark
+
+Logs r3w (token id) beside tag 125 in reset_token_vars so the mark
+ids for bang, question and period read straight out of the trace.
+Scratch slots, no behavior change. Revert after reading.
+diff --git a/lang/enus/rules/ut_norm.dr b/lang/enus/rules/ut_norm.dr
+index 3ba9fae..8e21b72 100644
+--- a/lang/enus/rules/ut_norm.dr
++++ b/lang/enus/rules/ut_norm.dr
+@@ -88,6 +88,8 @@ label L7 was at_0xd8
+   store movw reg r3w ind reg r6 1842
+   store movw reg r3w ind reg r6 1774
+   store movw reg r3w ind reg r6 1514
++  store movw reg r3w slot -120
++  store movw imm 125 slot -124
+   store movw reg r3w ind reg r6 1750
+   store movw reg r3w ind reg r6 1594
+   store movw reg r3w ind reg r6 1502
