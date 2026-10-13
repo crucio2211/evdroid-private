@@ -1,0 +1,52 @@
+DIAGNOSTIC: force the boundary value path for every final phrase
+
+Three parts: insert_phrase_final_tones always calls boundary_tone,
+boundary_tone jumps straight to eng_boundary_tone, eng_boundary_tone
+starts with s2=150. F0 numbers (not ears) judge: if final hey! flips
+from fall to rise while phones stay put, the value path renders and
+only routing/values for bang are missing. Revert after measuring.
+diff --git a/lang/enus/rules/es_inton.dr b/lang/enus/rules/es_inton.dr
+index 169a662..cdf0fd9 100644
+--- a/lang/enus/rules/es_inton.dr
++++ b/lang/enus/rules/es_inton.dr
+@@ -1059,7 +1059,7 @@ label L0 was _eng_boundary_tone
+   load movl slotaddr -20 into r0
+   push slotaddr -20
+   push state 0
+-  store movw imm 0 slot -2
++  store movw imm 150 slot -2
+   store movw imm 65532 slot -4
+   store movw imm 0 slot -6
+   store movw imm 65532 slot -8
+diff --git a/lang/enus/rules/u_integ.dr b/lang/enus/rules/u_integ.dr
+index 8762b74..4d08d87 100644
+--- a/lang/enus/rules/u_integ.dr
++++ b/lang/enus/rules/u_integ.dr
+@@ -5247,6 +5247,7 @@ label L0 was _boundary_tone
+   popn 6
+   cmp testl reg r0 reg r0
+   branch jne to L7
++  jump to L3
+   push state 0
+   call ZZfence_null arity 1 depth 1
+   push state 0
+diff --git a/lang/enus/rules/us_inton.dr b/lang/enus/rules/us_inton.dr
+index 28711df..2bb39f3 100644
+--- a/lang/enus/rules/us_inton.dr
++++ b/lang/enus/rules/us_inton.dr
+@@ -3186,7 +3186,6 @@ label L2 was at_0x55
+   cmp cmpw ind reg r6 398 reg r0w
+   popreg r1
+   popreg r1
+-  branch jne to L3
+   push reg r6
+   call ZZstarttest2 arity 1 depth 1
+   push reg r6
+@@ -3200,7 +3199,6 @@ label L2 was at_0x55
+   load movw ind reg r6 586 into r0w
+   popn 5
+   cmp cmpw ind reg r6 506 reg r0w
+-  branch jne to L3
+   push reg r6
+   call ZZstarttest1 arity 1 depth 1
+   push reg r6
