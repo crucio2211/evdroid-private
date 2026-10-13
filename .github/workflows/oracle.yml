@@ -158,6 +158,43 @@ jobs:
           "
           done
 
+          done
+
+      - name: Validate the autocorrelation estimator
+        working-directory: native/openevv
+        # The local ETI rig measures F0 by autocorrelation; it must first
+        # prove itself on known truth (our tap says hey? rises, hey. falls)
+        # before any ETI number is believed.
+        run: |
+          for case in 'hey?' 'hey.'; do
+            printf '%s\n' "$case" > /tmp/val.txt
+            rm -f /tmp/val.wav
+            EVV_HETERO=on ./build/probe @/tmp/val.txt /tmp/val.wav
+            python3 -c "
+          import wave, struct
+          RATE = 11025; FL = int(0.02 * RATE)
+          def f0_of(frame):
+              n = len(frame)
+              e0 = sum(s * s for s in frame)
+              if e0 == 0: return 0
+              best, bestlag = 0.0, 0
+              for lag in range(RATE // 420, RATE // 50 + 1):
+                  e = sum(frame[i] * frame[i + lag] for i in range(n - lag))
+                  r = e / e0
+                  if r > best: best, bestlag = r, lag
+              return RATE / bestlag if best >= 0.3 else 0
+          w = wave.open('/tmp/val.wav', 'rb'); n = w.getnframes()
+          raw = w.readframes(n); w.close()
+          ss = struct.unpack('<%dh' % (len(raw) // 2), raw)
+          fr = [ss[j:j + FL] for j in range(0, len(ss) - FL + 1, FL // 2)]
+          curve = [f for f in (f0_of(f) for f in fr) if f]
+          q = max(1, len(curve) // 4)
+          f1 = sum(curve[:q]) / q; f2 = sum(curve[-q:]) / q
+          print('$case: estimator slope=%+.0f dir=%s' % (
+              f2 - f1, 'RISE' if f2 > f1 * 1.1 else ('FALL' if f1 > f2 * 1.1 else 'flat')))
+          "
+          done
+
       - name: Show what the hetero filter writes
         working-directory: native/openevv
         # Calls the rewriting directly, past install questions: a wrong
