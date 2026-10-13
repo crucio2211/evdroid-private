@@ -103,4 +103,18 @@ class AudioOutputTest {
 		AudioOutput.Chain(AudioOutput.Snapshot(volume = 200)).process(buffer, buffer.size)
 		assertEquals(0x56.toByte(), buffer[2])
 	}
+
+	@Test
+	fun boostMultipliesPastTheVolumeCap() {
+		val plain = alternating(40, 10000)
+		AudioOutput.Chain(AudioOutput.Snapshot(volume = 100)).process(plain, plain.size)
+		val boosted = alternating(40, 10000)
+		AudioOutput.Chain(AudioOutput.Snapshot(volume = 100, boost = 1.8f)).process(boosted, boosted.size)
+		val plainPeaks = settled(plain).filterIndexed { at, _ -> at % 2 == 0 }
+		val boostedPeaks = settled(boosted).filterIndexed { at, _ -> at % 2 == 0 }
+		assertTrue(plainPeaks.isNotEmpty() && boostedPeaks.isNotEmpty())
+		// 100% of 10000 is 10000; boosted 1.8x is 18000, both under the knee.
+		boostedPeaks.forEach { assertEquals(18000.0, it.toDouble(), 300.0) }
+		assertTrue(boostedPeaks.average() > plainPeaks.average() * 1.5)
+	}
 }

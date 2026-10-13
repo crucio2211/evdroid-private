@@ -23,15 +23,20 @@ object AudioOutput {
 	const val VOLUME_MAX = 200
 	const val DEFAULT_VOLUME = 130
 
-	/** What the settings screen chose, read back for one utterance. */
+	/** What the settings screen chose, read back for one utterance. [boost]
+	 *  multiplies on top of [volume] past the setting's own maximum: an
+	 *  exclamation shouts with the same rows, and the limiter below keeps
+	 *  the extra headroom rounded instead of clipped. One per utterance,
+	 *  never stored. */
 	data class Snapshot(
 		val volume: Int = DEFAULT_VOLUME,
-		val limiter: Boolean = true
+		val limiter: Boolean = true,
+		val boost: Float = 1f
 	)
 
 	class Chain(s: Snapshot) {
 
-		private val volume = s.volume.coerceIn(VOLUME_MIN, VOLUME_MAX) / 100f
+		private val volume = s.volume.coerceIn(VOLUME_MIN, VOLUME_MAX) / 100f * s.boost.coerceAtLeast(0f)
 		private val limiter = s.limiter
 
 		private var dcX = 0f

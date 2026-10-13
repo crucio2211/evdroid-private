@@ -378,6 +378,12 @@ class EvvTtsService : TextToSpeechService() {
 		// found by looking at the end of a word.
 		val pauses = settings?.pauses ?: Pauses.ALL
 		val prosody = Prosody.prefix(settings?.phrasePrediction ?: false)
+		// An exclamation shouts the whole utterance, not only its last
+		// piece: the engine lifts and rises it (excite), and the output
+		// stage plays it louder, both keyed off the raw final mark so a
+		// rewrite downstream can never desynchronize the two.
+		val baseAudio = s?.audioSnapshot() ?: AudioOutput.Snapshot()
+		val audio = if (isExclamation(raw)) baseAudio.copy(boost = SHOUT_BOOST) else baseAudio
 		for ((ri, rawPiece) in rawPieces.withIndex()) {
 			if (stopped) break
 			val fixed = TextPipeline.process(
@@ -408,7 +414,7 @@ class EvvTtsService : TextToSpeechService() {
 			callback.error(TextToSpeech.ERROR_SYNTHESIS)
 			return
 		}
-		if (!pump(target, callback, pace, opening, s?.audioSnapshot() ?: AudioOutput.Snapshot())) {
+		if (!pump(target, callback, pace, opening, audio)) {
 					remember(pace)
 					return
 				}
@@ -540,6 +546,20 @@ class EvvTtsService : TextToSpeechService() {
 		 *  slivers rather than after whole mouthfuls. */
 		const val MAX_CHUNK = 4096
 		const val BYTES_PER_SAMPLE = 2
+		/** How much louder an exclamation plays, measured against the
+		 *  engine's own headroom (~6 dB peak): clearly a shout, still
+		 *  under the limiter's rounding rather than past it. */
+		const val SHOUT_BOOST = 1.8f
+		/** Closing marks that may trail the final bang. */
+		private const val SHOUT_CLOSERS = "\"')]}»”’"
+
+		/** Whether [text] ends in an exclamation, past trailing space
+		 *  and closers: the engine's excite rewrite reads the same mark,
+		 *  so the two stay in step by construction. */
+		private fun isExclamation(text: String): Boolean {
+			val tail = text.trimEnd { it.isWhitespace() || it in SHOUT_CLOSERS }
+			return tail.endsWith('!')
+		}
 		/** How much audio may sit ahead of the speech, so that the track never
 		 *  runs dry while the engine is held back. */
 		const val LEAD_MS = 300L
