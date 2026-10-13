@@ -1,0 +1,24 @@
+DIAGNOSTIC: boundary tone at the winning-path tail
+
+Calls eng_boundary_tone directly at generate_intonation L20, after
+every arm joins and before succeed, so its writes land last. The scan
+inside accepts bang (0016); period and question records take the same
+no-op/value arms they always did. F0 numbers judge whether the value
+path renders at all when reached. Revert after measuring.
+diff --git a/lang/enus/rules/us_inton.dr b/lang/enus/rules/us_inton.dr
+index 28711df..56be47f 100644
+--- a/lang/enus/rules/us_inton.dr
++++ b/lang/enus/rules/us_inton.dr
+@@ -3513,6 +3513,12 @@ label L19 was $X17$99576
+   popreg r1
+   popreg r1
+ label L20 was $X18$99578
++  push reg r6
++  call ZZstarttest19 arity 1 depth 1
++  push reg r6
++  call eng_boundary_tone arity 1 depth 2
++  popreg r1
++  popreg r1
+   push reg r6
+   call succeed arity 1 depth 1
+   popreg r1
