@@ -1,0 +1,44 @@
+intonation: the boundary scan accepts bang as well as question
+
+eng_boundary_tone's scan only matched question records, so a final
+bang fell through to the no-op arms and read flat. A lower-form twin
+wrapper tests type 5 and the scan takes either mark to the same
+boundary treatment. Question, period and unmarked paths are untouched:
+the question test runs first and matches exactly as before.
+diff --git a/lang/enus/rules/es_inton.dr b/lang/enus/rules/es_inton.dr
+index 169a662..7af5d4c 100644
+--- a/lang/enus/rules/es_inton.dr
++++ b/lang/enus/rules/es_inton.dr
+@@ -1125,7 +1125,13 @@ label L3 was $X8$100770
+   call ZZtestFldeq5_1_3 arity 1 depth 1
+   cmp testl reg r0 reg r0
+   popreg r1
++  branch je to L20
++  push reg r6
++  call ZZtestFldeq5_1_5 arity 1 depth 1
++  cmp testl reg r0 reg r0
++  popreg r1
+   branch jne to L1
++label L20
+   push reg r6
+   call advance_tok arity 1 depth 1
+   cmp testl reg r0 reg r0
+diff --git a/lang/enus/rules/glob.dr b/lang/enus/rules/glob.dr
+index 4a9336b..a8ab6a2 100644
+--- a/lang/enus/rules/glob.dr
++++ b/lang/enus/rules/glob.dr
+@@ -30958,3 +30958,14 @@ label L1 was at_0x1d
+   return imm 1
+ end
+ 
++rule ZZtestFldeq5_1_5 from glob.obj
++shape frame 0 argbase 8 params 1
++label L0 was _ZZtestFldeq5_1_5
++  push imm 5
++  push imm 1
++  push imm 5
++  push param 0
++  call testFldeq arity 4 depth 4
++  popn 4
++  return reg r0
++end
