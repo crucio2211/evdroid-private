@@ -132,6 +132,32 @@ jobs:
           "
           done
 
+      - name: Measure loudness headroom
+        working-directory: native/openevv
+        # How loud each mark renders (WAV RMS/peak) and what the voices
+        # ship at: sizes the coming exclamation boost from data.
+        run: |
+          ./build/openevv-say --voices 2>&1 | head -20
+          for case in 'hey!' 'hey?' 'hey.'; do
+            printf '%s\n' "$case" > /tmp/loud.txt
+            rm -f /tmp/loud.wav
+            EVV_HETERO=on ./build/probe @/tmp/loud.txt /tmp/loud.wav
+            python3 -c "
+          import wave, struct, math
+          w = wave.open('/tmp/loud.wav', 'rb')
+          n = w.getnframes()
+          raw = w.readframes(n)
+          w.close()
+          fmt = '<%dh' % (len(raw) // 2)
+          ss = struct.unpack(fmt, raw)
+          peak = max(abs(s) for s in ss) if ss else 0
+          rms = math.sqrt(sum(s * s for s in ss) / len(ss)) if ss else 0
+          print('$case: peak=%d (%.1fdBFS) rms=%.0f (%.1fdBFS)' % (
+              peak, 20 * math.log10(peak / 32768) if peak else -99,
+              rms, 20 * math.log10(rms / 32768) if rms else -99))
+          "
+          done
+
       - name: Show what the hetero filter writes
         working-directory: native/openevv
         # Calls the rewriting directly, past install questions: a wrong
