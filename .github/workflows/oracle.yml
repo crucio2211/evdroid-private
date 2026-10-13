@@ -99,7 +99,7 @@ jobs:
           done
           echo "== small-value stores, one process, three marks (stable heap)"
           printf '%s\n' 'hey!' 'hey?' 'hey.' > /tmp/three.txt
-          stdbuf -o0 -e0 env DELTA_RULE_TRACE=200000 EVV_HETERO=on EVV_ANNO=1 "$bin" /tmp/three.txt 2>&1 | grep -E "# store [24] at|\[\.1he[\]\?\!\.]" | grep -B1 -E "0000007d|\[\.1he" | head -80
+          stdbuf -o0 -e0 env DELTA_RULE_TRACE=200000 EVV_HETERO=on EVV_ANNO=1 "$bin" /tmp/three.txt 2>&1 | grep -E "# store [24] at|\[\.1he[\]\?\!\.]" | grep -B1 -E "0000007d|0000007e|\[\.1he" | head -100
 
       - name: Measure F0 contours
         working-directory: native/openevv
