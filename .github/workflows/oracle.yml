@@ -97,9 +97,15 @@ jobs:
             printf '%s\n' "$case" > /tmp/one.txt
             DELTA_RULE_TRACE=1 EVV_HETERO=on EVV_ANNO=1 "$bin" /tmp/one.txt 2>&1 | grep -E "# [a-z_0-9]+ dispatches" | sort | uniq -c | sort -rn
           done
-          echo "== entry markers + small-value stores, one process, three marks (stable heap)"
+          echo "== entry markers per mark (no truncation: markers only)"
+          for mark in 'hey!' 'hey?' 'hey.'; do
+            echo "== $mark"
+            printf '%s\n' "$mark" > /tmp/one.txt
+            stdbuf -o0 -e0 env DELTA_RULE_TRACE=200000 EVV_HETERO=on EVV_ANNO=1 "$bin" /tmp/one.txt 2>&1 | grep -E "# store 4 at .*0000007[bcde]"
+          done
+          echo "== small-value stores, one process, three marks (stable heap)"
           printf '%s\n' 'hey!' 'hey?' 'hey.' > /tmp/three.txt
-          stdbuf -o0 -e0 env DELTA_RULE_TRACE=200000 EVV_HETERO=on EVV_ANNO=1 "$bin" /tmp/three.txt 2>&1 | grep -E "# store [24] at|\[\.1he[\]\?\!\.]" | grep -B1 -E "0000007b|0000007c|0000007d|0000007e|\[\.1he" | head -100
+          stdbuf -o0 -e0 env DELTA_RULE_TRACE=200000 EVV_HETERO=on EVV_ANNO=1 "$bin" /tmp/three.txt 2>&1 | grep -E "# store [24] at|\[\.1he[\]\?\!\.]" | grep -B1 -E "0000007d|0000007e|\[\.1he" | head -100
 
       - name: Measure F0 contours
         working-directory: native/openevv
