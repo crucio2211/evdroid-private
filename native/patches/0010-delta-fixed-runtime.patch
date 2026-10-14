@@ -5,7 +5,9 @@ scale: a fifth global-variable kind DG_FIXED (-5, a whole number of
 ten-thousandths in an eight-byte cell), DELTA_FIXED_UNSET (the smallest
 double), delta_fixed_int/delta_int_fixed converters, the delta_muldiv
 helper (a*b/c in 64 bits, rounded or truncated), and the OP_MULDIV
-interpreter op that runs it. delta_new / delta_delete / initGlobalVars
+interpreter op that runs it. The helpers are plain static, not static
+inline: under gnu99 no out-of-line copy is emitted for the latter, and
+a caller the compiler will not inline then fails to link. delta_new / delta_delete / initGlobalVars
 learn the fixed cells, reusing the two words IBM left unused (nfixed
 at 0x000c, fixed at 0x0024). No behaviour change on its own: no rule
 in this tree names a fixed variable yet, and OP_MULDIV is appended
@@ -48,12 +50,12 @@ index 75d58ee..14f3abb 100644
 +
 +/* A fixed value to a whole number as cvttsd2si does it, towards nought, and
 +   back. */
-+static inline int32_t delta_fixed_int(int32_t v)
++static int32_t delta_fixed_int(int32_t v)
 +{
 +    return v / DELTA_FIXED_ONE;
 +}
 +
-+static inline int32_t delta_int_fixed(int32_t v)
++static int32_t delta_int_fixed(int32_t v)
 +{
 +    return v * DELTA_FIXED_ONE;
 +}
@@ -65,7 +67,7 @@ index 75d58ee..14f3abb 100644
 +   doubles; truncated towards nought where it truncated one to a whole
 +   number. A division by nought answers nought, since there is no whole
 +   number for the infinity the original would have held. */
-+static inline int32_t delta_muldiv(int32_t a, int32_t b, int32_t c, int round)
++static int32_t delta_muldiv(int32_t a, int32_t b, int32_t c, int round)
 +{
 +    int64_t n = (int64_t)a * b;
 +    int64_t an = n < 0 ? -n : n;
