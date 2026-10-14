@@ -29,11 +29,10 @@ env:
   # arm64 for phones, 32-bit ARM for older phones and watches. x86_64 is
   # emulator-only and nobody installs there, so it does not ship.
   EVVDROID_ABIS: arm64-v8a,armeabi-v7a
-  # Every language the engine ships except Korean and Chinese, which were
-  # never in the SDK it is transcribed from. Finnish and Brazilian
-  # Portuguese ride along lifted whole from ETI's 6.1. Japanese travels as
+  # Every language the engine ships except Korean, Chinese and Portuguese,
+  # which were never in the SDK it is transcribed from. Japanese travels as
   # UTF-16 through a path of its own; the rest travel as bytes.
-  EVVDROID_LANGS: lang/enus lang/engb lang/dede lang/eses lang/esus lang/frfr lang/frca lang/itit lang/plpl lang/jajp lang/fifi lang/ptbr
+  EVVDROID_LANGS: lang/enus lang/engb lang/dede lang/eses lang/esus lang/frfr lang/frca lang/itit lang/plpl lang/jajp
 
 jobs:
   build:
