@@ -56,6 +56,16 @@ jobs:
         working-directory: native/openevv
         run: make phonemes-bin LANGS="${{ inputs.lang }}" RULES="bytecode" -j"$(nproc)"
 
+      - name: Bake dictionaries from text
+        # The .dict text is the source; the engine runs off arms baked out
+        # of it. Without this the probes read the last bake, not the tree.
+        working-directory: native/openevv
+        run: python3 tools/module/dict.py build
+
+      - name: Rebuild the harness with baked dictionaries
+        working-directory: native/openevv
+        run: make phonemes-bin LANGS="${{ inputs.lang }}" RULES="bytecode" -j"$(nproc)"
+
       - name: Say what our engine hears
         working-directory: native/openevv
         # With the hetero filter on, exactly like the app runs it: forced
