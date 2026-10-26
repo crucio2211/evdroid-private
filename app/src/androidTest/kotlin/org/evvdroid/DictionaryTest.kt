@@ -146,19 +146,52 @@ class DictionaryTest {
 	}
 
 	@Test
-	fun parsedEntriesComeBackByLowercaseKey() {
+	fun parsedEntriesComeBackByTheirExactKey() {
 		val file = write("DOJ\tdee oe jeigh\nLOL\tell oe ell\nno tab here\n")
 		val entries = Dictionaries.parse(file)
 		assertEquals(2, entries.size)
-		assertEquals("DOJ", entries["doj"]?.first)
-		assertEquals("dee oe jeigh", entries["doj"]?.second)
-		assertEquals("ell oe ell", entries["lol"]?.second)
+		assertEquals("DOJ", entries["DOJ"]?.first)
+		assertEquals("dee oe jeigh", entries["DOJ"]?.second)
+		assertEquals("ell oe ell", entries["LOL"]?.second)
+		assertNull("the key was folded to lowercase", entries["doj"])
 	}
 
 	@Test
-	fun laterDuplicatesWin() {
+	fun laterDuplicatesOfTheSameKeyWin() {
 		val file = write("DOJ\tfirst\nDOJ\tsecond\n")
-		assertEquals("second", Dictionaries.parse(file)["doj"]?.second)
+		assertEquals("second", Dictionaries.parse(file)["DOJ"]?.second)
+	}
+
+	@Test
+	fun entriesThatDifferOnlyInCaseAreKeptApart() {
+		val file = write("US\tyou ess\nus\tuss\nUs\tuhss\n")
+		val entries = Dictionaries.parse(file)
+		assertEquals(3, entries.size)
+		assertEquals("you ess", entries["US"]?.second)
+		assertEquals("uss", entries["us"]?.second)
+		assertEquals("uhss", entries["Us"]?.second)
+	}
+
+	@Test
+	fun windowsWesternLettersInTheC1RangeAreUsable() {
+		// 0x92 is a curly apostrophe and 0x9C is oe in the engine's code set.
+		assertTrue(Dictionaries.isUsable("l\u0092heure", "leur"))
+		assertTrue(Dictionaries.isUsable("c\u009Cur", "keur"))
+		assertFalse(Dictionaries.isUsable("a\u0001b", "ab"))
+		assertFalse(Dictionaries.isUsable("a\u007Fb", "ab"))
+	}
+
+	@Test
+	fun theEngineMatchesAKeyInTheCaseItWasTaught() {
+		val e = open()
+		try {
+			val before = samples(e, "Fatima")
+			assertEquals(0, e.teachWord(Eci.DICT_MAIN, "fatima", "one two three four five"))
+			assertTrue("the key did not touch its own case", samples(e, "fatima") != before)
+			assertEquals("a key in one case touched another", before, samples(e, "Fatima"))
+		} finally {
+			e.close()
+		}
 	}
 
 	@Test

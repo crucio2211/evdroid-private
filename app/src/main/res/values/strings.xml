@@ -55,9 +55,12 @@
 	<string name="dictionary_abbreviation">Abbreviation dictionary</string>
 	<string name="dictionary_none">None</string>
 	<string name="dictionary_entries">%1$s, %2$d words</string>
+	<string name="dictionary_binary">%1$s, engine format</string>
 	<string name="dictionary_remove">Remove dictionaries</string>
 	<string name="use_dictionary">Use %1$s</string>
 	<string name="dictionary_language_title">Which language is this dictionary for?</string>
+	<string name="dictionary_importing">Importing dictionary</string>
+	<string name="dictionary_importing_message">Please wait while the dictionary is copied and read.</string>
 
 	<string name="regex_dictionary_label">Regex dictionary</string>
 	<string name="regex_dictionary_use_label">Use regex dictionary</string>

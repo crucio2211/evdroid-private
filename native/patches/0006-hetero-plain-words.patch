@@ -41,7 +41,7 @@ index d75b837..cbddd34 100644
 +} Forced;
 +
 +static const Forced forced[] = {
-+    { "produce",   "`[.0pro.1du.0Te]" },
++    { "produce",   "`[.0prx.1dus]" },
 +    { "persona",   "`[.0pXr.1so.0na]" },
 +    { "personas",  "`[.0pXr.1so.0naz]" },
 +};
