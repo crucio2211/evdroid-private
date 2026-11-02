@@ -1,0 +1,94 @@
+name: Windows 16kHz DLLs (all languages)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout tree (patches already migrated in)
+        uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mingw-w64 python3 zip gdb
+
+      - name: Apply the built-in English pronunciation dictionary
+        run: |
+          set -eux
+          make rulecode LANGS="lang/enus"
+          EVV_LANG_DIR=lang/enus python3 tools/module/dict.py build
+
+      - name: Smoke-test Finnish and Brazilian Portuguese language switching
+        run: |
+          set -eux
+          LANGS="lang/enus lang/fifi lang/ptbr"
+          make so RULES=c EVVPLAIN=1 LANGS="$LANGS" -j2
+          if ! python3 -u test/lib/switchlangs.py build/libeci.so; then
+            echo "Language smoke test failed; rerunning under GDB for diagnostics."
+            gdb --batch -ex run -ex "thread apply all bt full" --args python3 -u test/lib/switchlangs.py build/libeci.so || true
+            exit 1
+          fi
+
+      - name: Build eci.dll 64-bit (RULES=c, all languages)
+        run: |
+          set -eux
+          LANGS="lang/enus lang/engb lang/eses lang/esus lang/dede lang/frfr lang/frca lang/itit lang/plpl lang/jajp lang/fifi lang/ptbr"
+          make build/eci.dll RULES=c LANGS="$LANGS" -j2
+          ls -la build/eci.dll
+
+      - name: Build eci32.dll 32-bit (RULES=c, all languages)
+        run: |
+          set -eux
+          LANGS="lang/enus lang/engb lang/eses lang/esus lang/dede lang/frfr lang/frca lang/itit lang/plpl lang/jajp lang/fifi lang/ptbr"
+          make build/eci32.dll RULES=c LANGS="$LANGS" -j2
+          ls -la build/eci32.dll
+
+      - name: Package NVDA add-on
+        run: |
+          set -eux
+          VERSION="1.3.7-main-${GITHUB_SHA::7}"
+          python3 nvda/build.py --version "$VERSION"
+          ls -lh build/openevv-${VERSION}.nvda-addon
+
+      - name: Upload NVDA add-on artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openevv-nvda-addon-main-${{ github.sha }}
+          path: build/openevv-1.3.7-main-*.nvda-addon
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Zip DLLs
+        run: |
+          mkdir -p out
+          cp build/eci.dll build/eci32.dll out/
+          cd out && zip -9 openevv-16k-dlls.zip eci.dll eci32.dll
+          ls -la
+
+      - name: Upload as GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: windows-16k-${{ github.run_number }}
+          name: OpenEVV 16kHz custom (run ${{ github.run_number }})
+          body: |
+            Custom 16kHz RULES=c build, all 12 languages (incl. Japanese, Finnish, Brazilian Portuguese):
+            - automatic wideband companion above 16 kHz (8-formant upper band, partner-paced at 22.05 kHz)
+            - hetero: quality, persona, address (+ plurals)
+            - punct: bare marks removed from eng_char_name
+            - poor/poors phones fixed
+            - 0.20.0 driver set (boost, dicts, IBMTTS fixes, PIECE_CAP=20)
+            Files: eci.dll (64-bit), eci32.dll (32-bit)
+          files: out/openevv-16k-dlls.zip
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

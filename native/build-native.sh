@@ -76,13 +76,13 @@ if [ ! -x "$clang" ]; then
 	exit 1
 fi
 if [ ! -f "$engine/Makefile" ]; then
-	echo "native/openevv is empty; run: git submodule update --init --recursive" >&2
+	echo "native/openevv is missing its Makefile" >&2
 	exit 1
 fi
 
 # What the engine needs before it is right on this architecture. Each is a bug
 # in openevv rather than a change for Android, and each is written up in its
-# own file; the submodule stays as upstream left it.
+# own file; the vendored engine stays as it was imported.
 #
 # Applied with GNU patch --forward, not git apply: git apply run from
 # inside the engine directory proved untrustworthy here, reporting

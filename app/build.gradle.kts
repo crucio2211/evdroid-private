@@ -28,13 +28,13 @@ val buildNative by tasks.registering(Exec::class) {
 	// task declaring them would be rewriting its own inputs every time it ran
 	// and would never settle -- which showed up as the first build after any
 	// change failing and the next one succeeding. What actually decides the
-	// output is the submodule's commit, the patches laid on it, and the two
+	// output is the vendored engine revision, the patches laid on it, and the two
 	// files here. Editing native/openevv by hand wants --rerun-tasks.
 	// A file tree rather than a directory, because there is nothing to patch at
 	// the moment and git does not carry an empty one.
 	inputs.files(rootProject.fileTree("native/patches"))
 	inputs.file(rootProject.layout.projectDirectory.file("native/android.mk"))
-	inputs.file(rootProject.layout.projectDirectory.file(".gitmodules"))
+	inputs.file(rootProject.layout.projectDirectory.file("native/openevv.rev"))
 	inputs.file(script)
 	inputs.file(layout.projectDirectory.file("src/main/cpp/evv_jni.c"))
 	inputs.property("abis", abis)
@@ -54,7 +54,7 @@ val buildNative by tasks.registering(Exec::class) {
 	environment("OUT", nativeOut.get().asFile.absolutePath)
 	doFirst {
 		if (!engine.file("Makefile").asFile.exists()) {
-			throw GradleException("native/openevv is empty. Run: git submodule update --init --recursive")
+			throw GradleException("native/openevv is missing its Makefile")
 		}
 	}
 }

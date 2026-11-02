@@ -4,8 +4,8 @@ Eloquence as a text-to-speech engine for Android and Wear OS.
 
 The speech comes from [openevv](https://github.com/Mudb0y/openevv), a C rebuild
 of IBM's Embedded ViaVoice. This repo cross-compiles that engine for Android,
-wraps it in JNI, and puts a `TextToSpeechService` around it. openevv is a
-submodule and is not edited in place.
+wraps it in JNI, and puts a `TextToSpeechService` around it. The engine is
+vendored under `native/openevv` and is not edited in place.
 
 ## Unofficial
 
@@ -55,7 +55,6 @@ Needs the Android SDK, NDK r23 or later, JDK 17, Python 3, and bash. No Android
 Studio. No Gradle install, the wrapper fetches its own.
 
 ```
-git submodule update --init --recursive
 export ANDROID_NDK_HOME=/path/to/ndk
 ./gradlew installDebug
 ./gradlew connectedDebugAndroidTest
@@ -317,7 +316,7 @@ adb -s SERIAL shell getprop ro.product.cpu.abilist
 ## Layout
 
 ```
-native/openevv          the engine, a submodule, untouched
+native/openevv          the engine, vendored in this repo, untouched
 native/android.mk       two make targets openevv has no reason to carry
 native/build-native.sh  cross-compiles the engine, links libevvjni.so
 native/tools            drives openevv's own test gate over adb
@@ -335,8 +334,8 @@ files named `lib*.so`, and openevv's own library records a soname of
 
 ## Engine patches
 
-A fix to openevv that upstream has not taken yet goes in `native/patches` and is applied at build time. There are
-none, so the submodule builds as upstream left it. The frame-alignment fix went that way with the rest when both
+A fix to openevv that upstream has not taken yet goes in `native/patches` and is applied at build time. The vendored
+engine is left as imported; patches apply on top of it. The frame-alignment fix went that way with the rest when both
 landed upstream, after the adjacent-stores one before it.
 
 `native/tools/probe-on-device.sh` makes the two device rows possible. It stands
@@ -347,8 +346,8 @@ in for openevv's probe so the gate drives a build over adb unchanged.
 MIT for the Kotlin, the C bridge, the build, the tests and the patches. See
 LICENSE.
 
-Not the engine. openevv is MIT under its own copyright and is fetched from
-upstream, not copied here.
+The engine sources under `native/openevv` are openevv's, MIT, under its own
+copyright. They are copied into this repo so a build does not need another checkout.
 
 Not the language data openevv carries. That is transcribed from IBM's Embedded
 ViaVoice objects and is IBM's. `native/openevv/NOTICE` says what it is and
