@@ -23,11 +23,12 @@ redistributing anything.
 
 ## What works
 
-* Ten languages: US and British English, Castilian and Latin American
-  Spanish, French and Canadian French, German, Italian, Polish and
-  Japanese. "Force language" in the settings speaks every utterance in one
-  of them no matter what the caller asked for. Japanese travels to the
-  engine Shift-JIS encoded; everything else travels in the Western set.
+* Twelve languages: US and British English, Castilian and Latin American
+  Spanish, French and Canadian French, German, Italian, Polish, Japanese,
+  Finnish and Brazilian Portuguese. "Force language" in the settings speaks
+  every utterance in one of them no matter what the caller asked for.
+  Japanese travels to the engine Shift-JIS encoded; Polish keeps its own
+  letters; everything else travels in the Western set.
 * Eight preset voices: Reed, Shelley, Bobby, Rocko, Glen, Sandy, Grandma,
   Grandpa. Offered through the Android voice API, so they appear separately.
 * All seven voice parameters: speed, pitch, inflection, head size, roughness,

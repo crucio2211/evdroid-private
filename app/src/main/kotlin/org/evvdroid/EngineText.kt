@@ -3,7 +3,7 @@ package org.evvdroid
 /**
  * Android text turned into the bytes the language in force reads.
  *
- * Eight of the ten modules read the Windows Western byte set and [WesternText]
+ * Every module but two reads the Windows Western byte set and [WesternText]
  * is the whole of what they want. Two do not.
  *
  * Polish has eight letters that set has no room for, so the module declares
