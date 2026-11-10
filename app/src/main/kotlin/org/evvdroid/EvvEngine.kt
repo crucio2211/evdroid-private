@@ -62,8 +62,8 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 				return null
 			}
 		return EvvEngine(handle, language).apply { configure() }
+		}
 	}
-}
 
 	private fun configure() {
 		EvvNative.setParam(handle, Eci.PARAM_LANGUAGE_DIALECT, language)
@@ -74,15 +74,18 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		// that is malformed is spoken rather than obeyed, so ordinary text
 		// carrying a backtick is read out as it stands.
 		setAnnotations(true)
+		// Pause annotations are applied to text in the service. Keep the native
+		// pause mode disabled so it does not add a second, conflicting policy.
 		EvvNative.setParam(handle, Eci.PARAM_PAUSES, Eci.PAUSES_NONE)
 		setSampleRate(Eci.sampleRateHz(EvvNative.getParam(handle, Eci.PARAM_SAMPLE_RATE)))
 	}
 
 	fun setPauseMode(mode: Int) = synchronized(guard) {
-		// Native pause mode is kept at PAUSES_NONE so OpenEVV native C does not
-		// interfere or inject commands. Pauses are handled at the text level
-		// identically to NVDA IBMTTS.
-		pauseMode = mode
+		// Pauses are handled at the text level identically to NVDA IBMTTS.
+		// Do not write the native parameter here; configure() deliberately keeps
+		// native pause processing disabled to avoid duplicate pause commands.
+		if (closed) return
+		pauseMode = mode.coerceIn(Pauses.KEEP, Pauses.ALL)
 	}
 
 	fun setSampleRate(hz: Int) = synchronized(guard) {
