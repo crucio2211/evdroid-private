@@ -347,7 +347,7 @@ class EvvTtsService : TextToSpeechService() {
 		s?.let { target.setAbbreviations(it.abbreviations) }
 		s?.let { target.setPauseMode(it.pauses) }
 		// A forced rate or pitch is the voice's own Speed or Pitch row: the
-		// voice is applied absolutely below, so 100 here leaves it alone and
+		// voice is applied absolutely below, so 100 here leaves it alone, and
 		// whatever TalkBack asked for is ignored. Unforced, TalkBack's numbers
 		// multiply the voice as before.
 		target.setRatePercent(if (s != null && s.forceRate) 100 else request.speechRate)
@@ -406,10 +406,6 @@ class EvvTtsService : TextToSpeechService() {
 				return
 			}
 			if (!pump(target, callback, pace, opening, audio)) {
-				if (!stopped) {
-					Log.e(TAG, "failed to hand over audio for a spoken piece")
-					callback.error(TextToSpeech.ERROR_SYNTHESIS)
-				}
 				remember(pace)
 				return
 			}
@@ -444,16 +440,12 @@ class EvvTtsService : TextToSpeechService() {
 			}
 			chain.process(buffer, n)
 			if (!opening.open()) {
-				Log.e(TAG, "Android refused to start the utterance callback")
-				callback.error(TextToSpeech.ERROR_SYNTHESIS)
 				target.stop()
 				return false
 			}
 			if (callback.audioAvailable(buffer, 0, n) != TextToSpeech.SUCCESS) {
 				// The framework has torn the callback down already, so done()
 				// is neither wanted nor listened to.
-				Log.e(TAG, "Android rejected a chunk of synthesised audio")
-				callback.error(TextToSpeech.ERROR_SYNTHESIS)
 				target.stop()
 				return false
 			}
