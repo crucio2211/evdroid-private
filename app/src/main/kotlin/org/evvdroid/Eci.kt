@@ -1,7 +1,7 @@
 package org.evvdroid
 
 /** The numbers the published ECI interface takes, and the few tables that turn
- *  them into something Android understands. */
+ * them into something Android understands. */
 object Eci {
 
 	const val PARAM_SYNTH_MODE = 0
@@ -12,12 +12,12 @@ object Eci {
 	const val PARAM_REAL_WORLD_UNITS = 8
 	const val PARAM_LANGUAGE_DIALECT = 9
 	const val PARAM_NUMBER_MODE = 10
-	const val PARAM_PAUSES = 33
+	const val PARAM_PAUSES = 22
 
 	const val PAUSES_NONE = 0
 	const val PAUSES_AT_END = 1
 	const val PAUSES_ALWAYS = 2
-	const val PAUSES_DEFAULT = PAUSES_NONE
+	const val PAUSES_DEFAULT = PAUSES_AT_END
 
 	const val VOICE_GENDER = 0
 	const val VOICE_HEAD_SIZE = 1
@@ -131,8 +131,8 @@ object Eci {
 	const val JAPANESE = 0x00080000
 	const val POLISH = 0x00110000
 
-	/** A language word is the family in the top half, the code set in the third
-	 *  byte and the dialect in the bottom one. */
+	/** A language is a family in the top half, the code set in the third byte
+	 *  and the dialect in the bottom one. */
 	fun family(language: Int): Int = language and 0xFFFF0000.toInt()
 
 	fun baseLanguage(language: Int): Int = language and UNICODE_CODE_SET.inv()
