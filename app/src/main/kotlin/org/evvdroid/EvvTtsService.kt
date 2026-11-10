@@ -372,7 +372,6 @@ class EvvTtsService : TextToSpeechService() {
 		// what made dragging across a launcher go quiet. RHVoice opens the same
 		// way, from inside its player rather than ahead of it.
 		val opening = Opening(callback, target.sampleRateHz)
-		opening.open()
 		val pace = Pace(target.sampleRateHz * BYTES_PER_SAMPLE)
 		// Piece by piece, so that asking for silence waits out a piece rather
 		// than the whole message: the engine cannot abandon what it is saying.
@@ -417,9 +416,7 @@ class EvvTtsService : TextToSpeechService() {
 			// is still holding, and that tail sounds at the head of
 			// whatever comes next. A stopped utterance is left unfinished;
 			// TalkBack asked for silence, not for completion.
-		} else if (opening.began) callback.done()
-		else {
-			callback.start(target.sampleRateHz, AudioFormat.ENCODING_PCM_16BIT, 1)
+		} else if (opening.began) {
 			callback.done()
 		}
 	}
@@ -453,12 +450,42 @@ class EvvTtsService : TextToSpeechService() {
 				return false
 			}
 			pace.handed(n)
+			hold(pace)
 		}
-		return true
+		return !stopped
 	}
 
 	private fun remember(pace: Pace) {
 		if (pace.handedMs() > mostAudioHandedMs) mostAudioHandedMs = pace.handedMs()
+	}
+
+	/**
+	 * Waits until the audio already handed over has nearly caught up.
+	 *
+	 * This engine is far faster than the speech it makes -- a second and a
+	 * third of audio comes out in twelve milliseconds -- and Android takes
+	 * every byte of it without complaint and queues it. So a reader swiping
+	 * quickly has five or six items synthesised and queued while the first is
+	 * still being spoken, and when it then asks for silence the whole queue
+	 * goes, which is items that were never heard at all. Running no further
+	 * ahead than [LEAD_MS] keeps at most one utterance in flight, so silence
+	 * arrives where the reader actually is.
+	 *
+	 * The wait is in slices so that a stop is noticed at once rather than at
+	 * the end of it. The slices are short on purpose: every slice is the
+	 * longest a stop can wait unnoticed while audio is being paced.
+	 */
+	private fun hold(pace: Pace) {
+		while (!stopped) {
+			val ahead = pace.ahead() - LEAD_MS
+			if (ahead <= 0) return
+			try {
+				Thread.sleep(minOf(ahead, SLICE_MS))
+			} catch (stopping: InterruptedException) {
+				Thread.currentThread().interrupt()
+				return
+			}
+		}
 	}
 
 	/** Tells the framework an utterance has begun, once, and not before there
@@ -478,6 +505,7 @@ class EvvTtsService : TextToSpeechService() {
 	/** How far the audio handed over has run ahead of the time it takes to
 	 *  play it. */
 	private class Pace(private val bytesPerSecond: Int) {
+		private val from = System.nanoTime()
 		private var bytes = 0L
 
 		fun handed(more: Int) {
@@ -486,6 +514,7 @@ class EvvTtsService : TextToSpeechService() {
 
 		fun handedMs(): Long = if (bytesPerSecond <= 0) 0 else bytes * 1000L / bytesPerSecond
 
+		fun ahead(): Long = handedMs() - (System.nanoTime() - from) / 1_000_000L
 	}
 
 	internal companion object {
@@ -505,5 +534,9 @@ class EvvTtsService : TextToSpeechService() {
 		 *  slivers rather than after whole mouthfuls. */
 		const val MAX_CHUNK = 4096
 		const val BYTES_PER_SAMPLE = 2
+		/** How much audio may sit ahead of the speech, so that the track never
+		 *  runs dry while the engine is held back. */
+		const val LEAD_MS = 250L
+		const val SLICE_MS = 15L
 	}
 }
