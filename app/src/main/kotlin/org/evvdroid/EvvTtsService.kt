@@ -406,6 +406,10 @@ class EvvTtsService : TextToSpeechService() {
 				return
 			}
 			if (!pump(target, callback, pace, opening, audio)) {
+				if (!stopped) {
+					Log.e(TAG, "failed to hand over audio for a spoken piece")
+					callback.error(TextToSpeech.ERROR_SYNTHESIS)
+				}
 				remember(pace)
 				return
 			}
@@ -440,12 +444,16 @@ class EvvTtsService : TextToSpeechService() {
 			}
 			chain.process(buffer, n)
 			if (!opening.open()) {
+				Log.e(TAG, "Android refused to start the utterance callback")
+				callback.error(TextToSpeech.ERROR_SYNTHESIS)
 				target.stop()
 				return false
 			}
 			if (callback.audioAvailable(buffer, 0, n) != TextToSpeech.SUCCESS) {
 				// The framework has torn the callback down already, so done()
 				// is neither wanted nor listened to.
+				Log.e(TAG, "Android rejected a chunk of synthesised audio")
+				callback.error(TextToSpeech.ERROR_SYNTHESIS)
 				target.stop()
 				return false
 			}
