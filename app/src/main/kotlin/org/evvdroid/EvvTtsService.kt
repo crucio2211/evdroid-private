@@ -52,12 +52,6 @@ class EvvTtsService : TextToSpeechService() {
 		// would otherwise land on the first utterance. Warm it here, off
 		// every thread that speaks.
 		Thread({ EmojiNames.STARTERS.size }, "emoji-warmup").start()
-		// Warm up default engine and dictionaries in background so TalkBack does not block on restart
-		val s = settings
-		val defaultLang = s?.let { resolveLanguage(it, it.voice) } ?: EvvEngine.available.firstOrNull() ?: 0
-		if (defaultLang != 0) {
-			requestEngine(defaultLang)
-		}
 	}
 
 	/** Prepare native dictionary cache files after service startup, without

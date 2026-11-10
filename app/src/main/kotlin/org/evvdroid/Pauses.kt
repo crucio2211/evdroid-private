@@ -16,14 +16,14 @@ object Pauses {
 	const val ALL = 2
 
 	/** The marks the engine pauses at. Matching NVDA IBMTTS: -,.:;)(?! plus dashes. */
-	private const val MARKS = "-,.:;)(?!–—\u0096\u0097"
+	private const val MARKS = "-,.:;)(?!–—"
 
-	/** Closing quotes/brackets that can follow a mark. */
-	private const val CLOSERS = "\"')]}»”’"
+	private const val PUNCT_CLOSERS = "-,.:;)(?!–—\"')]}»”’"
 
 	/** A punctuation mark that counts: follows a letter, digit or space,
-	 *  and followed by whitespace, slash, or the end. */
-	private val AT_A_MARK = Regex("([A-Za-z0-9]|\\s)([$MARKS])([$MARKS]*?)([$CLOSERS]*(\\s|[\\\\/]|\$))")
+	 *  and followed by whitespace, slash, or the end. Closing quotes and
+	 *  brackets may stand after the mark. */
+	private val AT_A_MARK = Regex("([A-Za-z0-9]|\\s)([$MARKS])([$MARKS]*?)([\"')\\]}»”’]*(\\s|[\\\\/]|\$))")
 
 	private const val BRIEF = "`p1"
 
@@ -42,7 +42,7 @@ object Pauses {
 		// punctuation, append `p1.
 		if (last) {
 			val trimmed = out.trimEnd()
-			if (trimmed.isNotEmpty() && trimmed.last() !in MARKS && trimmed.last() !in CLOSERS) {
+			if (trimmed.isNotEmpty() && trimmed.last() !in PUNCT_CLOSERS) {
 				out = "$out $BRIEF"
 			}
 		}

@@ -671,9 +671,12 @@ THIS void stw_processRemaining(SynthThread *t)
     made = finishStretch(t, left);
     ST_TAIL(t) = TAIL_NONE;
 
-    command = (EngCommand)ENG_CALL(t, ENG_COMMAND);
-    if (command(ST_ENGINE(t), made ? made : left))
-        stb_postEngineError(t);
+    const char *cmd = made ? made : left;
+    if (cmd && *cmd) {
+        command = (EngCommand)ENG_CALL(t, ENG_COMMAND);
+        if (command(ST_ENGINE(t), cmd))
+            stb_postEngineError(t);
+    }
     if (made)
         cpp_delete(made);
 

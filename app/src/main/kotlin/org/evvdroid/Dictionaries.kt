@@ -186,7 +186,7 @@ object Dictionaries {
 	 *  loader indexes the whole file in one call, avoiding one JNI dictionary
 	 *  update for each entry at speech time. The source hash makes this a reusable
 	 *  cache; imports with the same path but new contents get a fresh file. */
-	fun prepareForEngine(file: File, language: Int): File {
+	fun prepareForEngine(file: File, language: Int): File = synchronized(this) {
 		val parent = file.parentFile ?: throw java.io.IOException("dictionary has no parent directory")
 		val sourceTag = file.nameWithoutExtension.replace(Regex("[^A-Za-z0-9_-]"), "_").take(24)
 		val stamp = "${file.length()}-${file.lastModified()}"
@@ -223,7 +223,7 @@ object Dictionaries {
 			temporary.delete()
 			throw failed
 		}
-		return cached
+		cached
 	}
 
 	/** One key and what to say, or null when it is no entry.
