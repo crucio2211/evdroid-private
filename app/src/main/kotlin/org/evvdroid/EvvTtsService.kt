@@ -235,8 +235,6 @@ class EvvTtsService : TextToSpeechService() {
 		engine = null
 		val made = EvvEngine.open(language)
 		engine = made
-		// A new engine owns a fresh native dictionary set.
-		taughtWords.clear()
 		if (made != null) applySettings(made)
 		return made
 	}
