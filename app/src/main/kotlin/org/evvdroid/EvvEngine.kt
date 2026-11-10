@@ -74,15 +74,15 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		// that is malformed is spoken rather than obeyed, so ordinary text
 		// carrying a backtick is read out as it stands.
 		setAnnotations(true)
-		setPauseMode(Eci.PAUSES_DEFAULT)
+		EvvNative.setParam(handle, Eci.PARAM_PAUSES, Eci.PAUSES_NONE)
 		setSampleRate(Eci.sampleRateHz(EvvNative.getParam(handle, Eci.PARAM_SAMPLE_RATE)))
 	}
 
 	fun setPauseMode(mode: Int) = synchronized(guard) {
-		if (closed) return
-		val clamped = mode.coerceIn(Eci.PAUSES_NONE, Eci.PAUSES_ALWAYS)
-		EvvNative.setParam(handle, Eci.PARAM_PAUSES, clamped)
-		pauseMode = clamped
+		// Native pause mode is kept at PAUSES_NONE so OpenEVV native C does not
+		// interfere or inject commands. Pauses are handled at the text level
+		// identically to NVDA IBMTTS.
+		pauseMode = mode
 	}
 
 	fun setSampleRate(hz: Int) = synchronized(guard) {

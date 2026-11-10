@@ -17,7 +17,7 @@ object Eci {
 	const val PAUSES_NONE = 0
 	const val PAUSES_AT_END = 1
 	const val PAUSES_ALWAYS = 2
-	const val PAUSES_DEFAULT = PAUSES_AT_END
+	const val PAUSES_DEFAULT = PAUSES_NONE
 
 	const val VOICE_GENDER = 0
 	const val VOICE_HEAD_SIZE = 1
