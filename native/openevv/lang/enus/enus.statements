@@ -16,7 +16,7 @@
 # backslash: those two are written `\s' and `\\', and a line saying `hole'
 # is an entry the table leaves empty rather than a name.
 #
-# Written by tools/delta-link.py.
+# Written by tools/module/link.py.
 
 
 statement char_count
@@ -63,7 +63,7 @@ statement inp
   variants 00 00 00 00 00 00 00 00 05 00 00 05 00 00 03 00 00 03 00 00 03 00 00 00 00 00 00 00 00 00 00 00
   variants 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
   variants 00 00 00 00 00 00 00 05 00 00 05 00 00 05 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05
-  variants 00 00 05 00 00 00 00 00 00 00 00 00 00 00 00 00
+  variants 00 00 05 00 00 00 00 00 00 00 00 00 00
   field name
     where 3 3 1
     what -1 1 0
@@ -329,15 +329,14 @@ statement phone
   variants 02 00 01 00 04 03 00 00 02 00 01 01 01 03 00 00 02 01 01 01 01 03 00 00 02 00 01 01 00 03 00 00
   variants 02 01 01 01 00 03 00 00 02 00 01 01 02 03 00 00 02 01 01 01 02 03 00 00 02 00 01 01 03 03 00 00
   variants 02 01 01 01 03 03 00 00 02 00 01 02 03 03 00 00 02 01 01 02 03 03 00 00 02 01 01 0a 08 03 00 00
-  variants 02 00 01 04 00 03 00 00 02 00 01 04 02 03 00 00 02 00 01 04 04 03 00 00 02 00 01 01 04 03 00 00
-  variants 02 00 00 03 08 03 00 00 02 00 00 03 08 03 00 00 02 00 00 05 03 03 00 00 02 00 00 05 00 03 00 00
-  variants 01 00 00 06 05 00 00 00 01 00 00 0a 05 00 00 00 01 00 00 06 06 00 00 00 01 00 00 0a 06 00 00 00
-  variants 01 00 00 0a 07 00 00 00 01 00 00 07 05 01 00 00 01 00 00 07 05 01 00 00 01 00 00 0a 06 01 00 00
-  variants 01 00 00 07 06 01 00 00 01 00 00 06 06 01 00 00 01 00 00 0a 07 01 00 00 01 00 00 0a 07 02 00 00
-  variants 01 00 00 0a 08 01 00 00 01 00 00 0a 08 01 00 00 01 00 00 0a 08 01 00 00 01 00 00 0a 08 01 00 00
-  variants 01 00 00 0a 07 01 00 00 01 00 00 06 05 02 00 00 01 00 00 0a 05 02 00 00 01 00 00 06 06 02 00 00
-  variants 01 00 00 0a 07 02 00 00 01 00 00 06 07 03 00 00 01 00 00 06 07 03 00 00 01 00 00 06 07 03 00 00
-  variants 00 01 01 0a 08 03 01 00
+  variants 02 00 01 04 00 03 00 00 02 00 01 04 02 03 00 00 02 00 01 04 04 03 00 00 02 00 00 03 08 03 00 00
+  variants 02 00 00 03 08 03 00 00 02 00 00 05 03 03 00 00 02 00 00 05 00 03 00 00 01 00 00 06 05 00 00 00
+  variants 01 00 00 0a 05 00 00 00 01 00 00 06 06 00 00 00 01 00 00 0a 06 00 00 00 01 00 00 0a 07 00 00 00
+  variants 01 00 00 07 05 01 00 00 01 00 00 07 05 01 00 00 01 00 00 0a 06 01 00 00 01 00 00 07 06 01 00 00
+  variants 01 00 00 06 06 01 00 00 01 00 00 0a 07 01 00 00 01 00 00 0a 07 02 00 00 01 00 00 0a 08 01 00 00
+  variants 01 00 00 0a 08 01 00 00 01 00 00 0a 08 01 00 00 01 00 00 0a 08 01 00 00 01 00 00 0a 07 01 00 00
+  variants 01 00 00 06 05 02 00 00 01 00 00 0a 05 02 00 00 01 00 00 06 06 02 00 00 01 00 00 0a 07 02 00 00
+  variants 01 00 00 06 07 03 00 00 01 00 00 06 07 03 00 00 01 00 00 06 07 03 00 00 00 01 01 0a 08 03 01 00
   field name
     where 8 8 1
     what -1 1 0
@@ -365,7 +364,6 @@ statement phone
     value m
     value n
     value G
-    value Q
     value r
     value l
     value y
@@ -579,6 +577,7 @@ statement word
     value noun_verb
     value noun_adj
     value verb_adj
+    value noun_verb_adj
     end
   field subcat
     where 3 3 1
@@ -660,13 +659,14 @@ statement word
     value pl
     value ambig
     end
-  field plural
+  field pl_type
     where 7 7 1
     what -1 0 0
     format %d
     value sing
     value s
     value es
+    value not_s
     end
   field stress_level
     where 8 8 2
@@ -776,13 +776,14 @@ statement inton_phr
 end
 
 statement klatt
-  length 32
+  length 48
   stride 0
   varlen 0
   whole 0
   marks 39 39 0 0
   numbers 0 0 1 0
-  fresh 00 00 64 00 64 00 11 2b 00 00 32 00 00 00 00 00 ca 00 1e 00 a5 04 00 00 f1 d8 f1 d8 f1 d8 f1 d8
+  fresh 00 00 64 00 64 00 11 2b 00 00 32 00 00 00 00 00 e8 4e 00 00 00 00 00 00 1e 00 00 00 00 00 00 00
+  fresh 2c 73 b5 00 00 00 00 00 f1 d8 f1 d8 f1 d8 f1 d8
   field name
     where 0 0 2
     what -4 1 0
@@ -824,58 +825,43 @@ statement klatt
     format %d
     end
   field PSgain
-    where 16 16 2
-    what -4 0 0
-    format %d
+    where 16 16 4
+    what -5 0 0
+    format %g
     end
   field Rangeval
-    where 18 18 2
-    what -4 0 0
-    format %d
-    end
-  field Midline
-    where 20 20 4
-    what -3 0 0
-    format %ld
-    end
-  field BDeclnLevel
     where 24 24 2
     what -4 0 0
     format %d
     end
+  field Midline
+    where 32 32 4
+    what -5 0 0
+    format %g
+    end
+  field BDeclnLevel
+    where 40 40 2
+    what -4 0 0
+    format %d
+    end
   field BDeclnScale
-    where 26 26 2
+    where 42 42 2
     what -4 0 0
     format %d
     end
   field ADeclnLevel
-    where 28 28 2
+    where 44 44 2
     what -4 0 0
     format %d
     end
   field ADeclnScale
-    where 30 30 2
+    where 46 46 2
     what -4 0 0
     format %d
     end
 end
 
 statement syllable
-  length 2
-  stride 0
-  varlen 0
-  whole 0
-  marks 39 39 0 0
-  numbers 0 0 1 0
-  fresh 00 00
-  field name
-    where 0 0 2
-    what -4 1 0
-    format %d
-    end
-end
-
-statement F0
   length 2
   stride 0
   varlen 0

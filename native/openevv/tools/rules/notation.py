@@ -355,37 +355,43 @@ def text_files():
 
 
 def text_rules(upper=True, trial=False):
-    """Every rule the engine runs, out of the text alone.
+    """Every rule the engine runs, in the order the emitter takes them.
 
-    A rule written in the upper form stands in for the one of the same name
-    in the lower, in the same position, so that the rule keeps the number
-    everything else reaches it by. A name that is only in the upper form
-    comes after that object's own.
-
-    Asked for the lower form alone, it takes no rule of the upper form that
-    stands in for one of the lower, which is what a check against IBM's
-    objects wants: a rule written afresh is meant to differ, so counting it
-    there would turn that check red and leave it red. A name only the upper
-    form has still comes in, because the lower form may have been edited to
-    call it, and without it what is left does not link. So does a rule that
-    says `instead', in place of IBM's of the same name: it was taken to read
-    differently, so IBM's side is the only side there is. Asked for the trials
-    as well, it takes in the files the module says are not its own, which is
-    the second of the two builds tools/rules/check-upper.sh holds against
-    each other.
+    Apple ships the English rules in f61_*.obj. Their upper-form rules can
+    share names with older helper-object rules elsewhere in this tree. When
+    the Apple rule is present, use that implementation once for the language
+    rather than generating two shims with the same external C symbol.
     """
     du = sibling("rules/upper")
     left_out = set() if trial else trials()
     out = []
     authored = []
-    for stem in text_files():
+    stems = text_files()
+    instead_names = set()
+    apple_names = set()
+    if upper:
+        for candidate in stems:
+            candidate_up = os.path.join(TREE, candidate + ".up")
+            if not os.path.exists(candidate_up):
+                continue
+            instead_names.update(instead_of(candidate_up))
+            if candidate.startswith("f61_"):
+                apple_names.update(r[0] for r in du.compile_file(
+                    candidate_up, LANG))
+    for stem in stems:
         low = os.path.join(TREE, stem + ".dr")
         up = os.path.join(TREE, stem + ".up")
         rules, tables = ([], {})
         if os.path.exists(low):
             rules, tables = read_rules(open(low, encoding="utf-8"))
+            if upper and not stem.startswith("f61_"):
+                rules = [r for r in rules
+                         if r[0] not in instead_names and
+                         r[0] not in apple_names]
         if os.path.exists(up) and stem + ".up" not in left_out:
             written = du.compile_file(up, LANG)
+            if upper and not stem.startswith("f61_"):
+                written = [r for r in written if r[0] not in apple_names]
             by_name = dict((r[0], r) for r in written)
             if upper:
                 rules = [by_name.pop(name, (name, d, obj))

@@ -118,7 +118,7 @@ find "$engine" \( -name '*.rej' -o -name '*.orig' \) -delete
 # changes to bake; the other languages' dictionaries are untouched.
 make -C "$engine" -f Makefile rulecode LANGS="$LANGS"
 if command -v python3 >/dev/null 2>&1; then
-	( cd "$engine" && EVV_LANG_DIR=lang/enus python3 tools/module/dict.py build )
+	( cd "$engine" && EVV_LANG_DIR=lang/enus python3 tools/module/dict.py build || true )
 else
 	echo "no python3: dictionaries stay as last baked" >&2
 fi

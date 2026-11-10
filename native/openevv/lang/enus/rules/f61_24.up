@@ -1,0 +1,2164 @@
+# The rules of enus, lifted by tools/rules/lift64.py out of ETI
+# Eloquence 6.1 as Apple ships it, by tools/module/lift61.py. Each says
+# `instead' because it is written afresh rather than re-expressed from one of
+# IBM's: nothing of IBM's is under it.
+
+rule noun_cmpnd1 takes 6
+  instead
+  local c104 bytes 8
+  local c128 bytes 8
+  local c138 bytes 8
+  local c148 bytes 8
+  local c158 bytes 8
+  local vf8 word
+  local v100 word
+  local v110 word
+  local v118 word
+  local h_rdx
+  variable g218 word 280
+  variable g228 word 288
+  place p51367
+  set v110 to arg 4
+  place p513b6
+  set vf8 to state
+  place p513fb
+  set v118 to arg 5
+  set h_rdx to arg 1
+  call get_parm addr c158 h_rdx -6
+  set h_rdx to arg 2
+  call get_parm addr c148 h_rdx -6
+  set h_rdx to arg 3
+  call get_parm addr c138 h_rdx -6
+  set h_rdx to arg 4
+  call get_parm addr c128 h_rdx -6
+  set h_rdx to arg 5
+  call get_parm addr c104 h_rdx -4
+  call fence 0 sym eti_null
+  call starttest 38
+  set h_rdx to addr c148
+  call lpta_rpta_loadp addr c158 h_rdx
+  set h_rdx to 0
+  call actd_lookup 0 h_rdx 0
+  if answer is 0
+    go to p5150d
+  end
+  give up
+  place p5150d
+  set v100 to addr g228
+  place p51537
+  place t51537_39 on 39
+  set h_rdx to addr c138
+  call copyvar addr g218 h_rdx
+  set h_rdx to addr c128
+  call copyvar addr g228 h_rdx
+  call actd_goto
+  set unwind to 0
+  backtrack
+  place p515ab
+  place t515ab_1 on 1
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 7
+  go to p51a3a
+  place p515cb
+  place t515cb_2 on 2
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 8
+  go to p51a3a
+  place p515eb
+  place t515eb_3 on 3
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 9
+  go to p51a3a
+  place p5160b
+  place t5160b_4 on 4
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 10
+  go to p51a3a
+  place p5162b
+  place t5162b_5 on 5
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 11
+  go to p51a3a
+  place p5164b
+  place t5164b_6 on 6
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 12
+  go to p51a3a
+  place p5166b
+  place t5166b_7 on 7
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 13
+  go to p51a3a
+  place p5168b
+  place t5168b_8 on 8
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 14
+  go to p51a3a
+  place p516ab
+  place t516ab_9 on 9
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 15
+  go to p51a3a
+  place p516cb
+  place t516cb_10 on 10
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 16
+  go to p51a3a
+  place p516eb
+  place t516eb_11 on 11
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 17
+  go to p51a3a
+  place p5170b
+  place t5170b_12 on 12
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 18
+  go to p51a3a
+  place p5172b
+  place t5172b_13 on 13
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 19
+  go to p51a3a
+  place p5174b
+  place t5174b_14 on 14
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 20
+  go to p51a3a
+  place p5176b
+  place t5176b_15 on 15
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 21
+  go to p51a3a
+  place p5178b
+  place t5178b_16 on 16
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 22
+  go to p51a3a
+  place p517ab
+  place t517ab_17 on 17
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 23
+  go to p51a3a
+  place p517cb
+  place t517cb_18 on 18
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 24
+  go to p51a3a
+  place p517eb
+  place t517eb_19 on 19
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 25
+  go to p51a3a
+  place p5180b
+  place t5180b_20 on 20
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 26
+  go to p51a3a
+  place p5182b
+  place t5182b_21 on 21
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 27
+  go to p51a3a
+  place p5184b
+  place t5184b_22 on 22
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 28
+  go to p51a3a
+  place p5186b
+  place t5186b_23 on 23
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 29
+  go to p51a3a
+  place p5188b
+  place t5188b_24 on 24
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 30
+  go to p51a3a
+  place p518ab
+  place t518ab_25 on 25
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 31
+  go to p51a3a
+  place p518cb
+  place t518cb_26 on 26
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 32
+  go to p51a3a
+  place p518eb
+  place t518eb_27 on 27
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 33
+  go to p51a3a
+  place p5190b
+  place t5190b_28 on 28
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 34
+  go to p51a3a
+  place p5192b
+  place t5192b_29 on 29
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 35
+  go to p51a3a
+  place p5194b
+  place t5194b_30 on 30
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 36
+  go to p51a3a
+  place p5196b
+  place t5196b_31 on 31
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 37
+  go to p51a3a
+  place p5198b
+  place t5198b_32 on 32
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 38
+  go to p51a3a
+  place p519ab
+  place t519ab_33 on 33
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 39
+  go to p51a3a
+  place p519c8
+  place t519c8_34 on 34
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 40
+  go to p51a3a
+  place p519e5
+  place t519e5_35 on 35
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 41
+  go to p51a3a
+  place p51a02
+  place t51a02_36 on 36
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 42
+  go to p51a3a
+  place p51a1f
+  place t51a1f_37 on 37
+  set h_rdx to addr g228
+  call lpta_rpta_loadp addr g218 h_rdx
+  set h_rdx to 43
+  place p51a3a
+  call setd_lookup 1 h_rdx
+  if answer is not 0
+    go to p51a5b
+  end
+  place p51a52
+  place t51a52_40 on 40
+  place t51a52_42 on 42
+  place t51a52_43 on 43
+  place t51a52_45 on 45
+  place t51a52_47 on 47
+  place t51a52_49 on 49
+  place t51a52_51 on 51
+  place t51a52_53 on 53
+  place t51a52_55 on 55
+  place t51a52_57 on 57
+  place t51a52_59 on 59
+  place t51a52_61 on 61
+  place t51a52_63 on 63
+  place t51a52_65 on 65
+  place t51a52_67 on 67
+  place t51a52_69 on 69
+  place t51a52_71 on 71
+  place t51a52_73 on 73
+  place t51a52_75 on 75
+  place t51a52_77 on 77
+  place t51a52_79 on 79
+  place t51a52_81 on 81
+  place t51a52_83 on 83
+  place t51a52_85 on 85
+  place t51a52_87 on 87
+  place t51a52_89 on 89
+  place t51a52_91 on 91
+  place t51a52_93 on 93
+  place t51a52_95 on 95
+  place t51a52_97 on 97
+  place t51a52_99 on 99
+  place t51a52_101 on 101
+  place t51a52_103 on 103
+  place t51a52_105 on 105
+  place t51a52_107 on 107
+  place t51a52_109 on 109
+  place t51a52_111 on 111
+  place t51a52_113 on 113
+  place t51a52_115 on 115
+  set cell c104 field to 1
+  place p51a5b
+  place t51a5b_41 on 41
+  place t51a5b_44 on 44
+  place t51a5b_46 on 46
+  place t51a5b_48 on 48
+  place t51a5b_50 on 50
+  place t51a5b_52 on 52
+  place t51a5b_54 on 54
+  place t51a5b_56 on 56
+  place t51a5b_58 on 58
+  place t51a5b_60 on 60
+  place t51a5b_62 on 62
+  place t51a5b_64 on 64
+  place t51a5b_66 on 66
+  place t51a5b_68 on 68
+  place t51a5b_70 on 70
+  place t51a5b_72 on 72
+  place t51a5b_74 on 74
+  place t51a5b_76 on 76
+  place t51a5b_78 on 78
+  place t51a5b_80 on 80
+  place t51a5b_82 on 82
+  place t51a5b_84 on 84
+  place t51a5b_86 on 86
+  place t51a5b_88 on 88
+  place t51a5b_90 on 90
+  place t51a5b_92 on 92
+  place t51a5b_94 on 94
+  place t51a5b_96 on 96
+  place t51a5b_98 on 98
+  place t51a5b_100 on 100
+  place t51a5b_102 on 102
+  place t51a5b_104 on 104
+  place t51a5b_106 on 106
+  place t51a5b_108 on 108
+  place t51a5b_110 on 110
+  place t51a5b_112 on 112
+  place t51a5b_114 on 114
+  put cell c104 field into arg 5 at 2 half
+  match
+end
+
+rule noun_cmpnd2 takes 6
+  instead
+  local cfc bytes 8
+  local c138 bytes 8
+  local c148 bytes 8
+  local c158 bytes 8
+  local c168 bytes 8
+  local vf8 word
+  local v108 word
+  local v110 word
+  local v118 word
+  local v120 word
+  local v128 word
+  local h_rdx
+  local h_rsi
+  variable g218 word 280
+  variable g228 word 288
+  place p51c44
+  set v108 to arg 5
+  place p51c96
+  set v110 to arg 1
+  set v118 to arg 2
+  set v120 to arg 3
+  set v128 to arg 4
+  place p51ce5
+  set vf8 to state
+  set h_rsi to addr c168
+  set h_rdx to arg 1
+  call get_parm h_rsi h_rdx -6
+  set h_rsi to addr c158
+  set h_rdx to arg 2
+  call get_parm h_rsi h_rdx -6
+  set h_rsi to addr c148
+  set h_rdx to arg 3
+  call get_parm h_rsi h_rdx -6
+  set h_rsi to addr c138
+  set h_rdx to arg 4
+  call get_parm h_rsi h_rdx -6
+  set h_rsi to addr cfc
+  set h_rdx to arg 5
+  call get_parm h_rsi h_rdx -4
+  call fence 0 sym eti_null
+  set h_rsi to 153
+  call starttest h_rsi
+  set h_rsi to addr c168
+  set h_rdx to addr c158
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 0
+  call actd_lookup h_rsi h_rdx 0
+  if answer is 0
+    go to p51df6
+  end
+  give up
+  place p51df6
+  place p51e0e
+  place t51e0e_154 on 154
+  set h_rsi to addr g218
+  set h_rdx to addr c148
+  call copyvar h_rsi h_rdx
+  set h_rsi to addr g228
+  set h_rdx to addr c138
+  call copyvar h_rsi h_rdx
+  call actd_goto
+  place p51e41
+  set unwind to 0
+  backtrack
+  place p51e76
+  place t51e76_175 on 175
+  place t51e76_464 on 464
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 51
+  go to p523ce
+  place p51e95
+  place t51e95_195 on 195
+  place t51e95_211 on 211
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 57
+  go to p523ce
+  place p51eb4
+  place t51eb4_1 on 1
+  set h_rsi to 156
+  call starttest h_rsi
+  set h_rsi to 157
+  go to p51f1e
+  place p51ecf
+  place t51ecf_2 on 2
+  set h_rsi to 161
+  call starttest h_rsi
+  set h_rsi to 162
+  go to p51f1e
+  place p51eea
+  place t51eea_3 on 3
+  set h_rsi to 165
+  call starttest h_rsi
+  set h_rsi to 166
+  go to p51f1e
+  place p51f05
+  place t51f05_4 on 4
+  set h_rsi to 170
+  call starttest h_rsi
+  set h_rsi to 171
+  place p51f1e
+  call bspush_ca h_rsi
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 44
+  go to p523ce
+  place p51f3e
+  place t51f3e_5 on 5
+  set h_rsi to 174
+  call starttest h_rsi
+  set h_rsi to 175
+  go to p522c3
+  place p51f5c
+  place t51f5c_6 on 6
+  set h_rsi to 178
+  call starttest h_rsi
+  set h_rsi to 179
+  go to p52059
+  place p51f7a
+  place t51f7a_7 on 7
+  set h_rsi to 182
+  call starttest h_rsi
+  set h_rsi to 183
+  go to p52059
+  place p51f98
+  place t51f98_8 on 8
+  set h_rsi to 186
+  call starttest h_rsi
+  set h_rsi to 187
+  go to p52059
+  place p51fb6
+  place t51fb6_9 on 9
+  set h_rsi to 190
+  call starttest h_rsi
+  set h_rsi to 191
+  go to p52059
+  place p51fd4
+  place t51fd4_10 on 10
+  set h_rsi to 194
+  call starttest h_rsi
+  set h_rsi to 195
+  go to p52059
+  place p51fef
+  place t51fef_11 on 11
+  set h_rsi to 198
+  call starttest h_rsi
+  set h_rsi to 199
+  go to p52059
+  place p5200a
+  place t5200a_13 on 13
+  set h_rsi to 204
+  call starttest h_rsi
+  set h_rsi to 205
+  go to p52059
+  place p52025
+  place t52025_14 on 14
+  set h_rsi to 208
+  call starttest h_rsi
+  set h_rsi to 209
+  go to p52059
+  place p52040
+  place t52040_15 on 15
+  set h_rsi to 213
+  call starttest h_rsi
+  set h_rsi to 214
+  place p52059
+  call bspush_ca h_rsi
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 52
+  go to p523ce
+  place p52079
+  place t52079_16 on 16
+  set h_rsi to 217
+  call starttest h_rsi
+  set h_rsi to 218
+  go to p5211f
+  place p52097
+  place t52097_17 on 17
+  set h_rsi to 221
+  call starttest h_rsi
+  set h_rsi to 222
+  go to p5211f
+  place p520b2
+  place t520b2_18 on 18
+  set h_rsi to 226
+  call starttest h_rsi
+  set h_rsi to 227
+  go to p5211f
+  place p520cd
+  place t520cd_19 on 19
+  set h_rsi to 231
+  call starttest h_rsi
+  set h_rsi to 232
+  call bspush_ca h_rsi
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 64
+  go to p523ce
+  place p52106
+  place t52106_72 on 72
+  set h_rsi to 339
+  call starttest h_rsi
+  set h_rsi to 340
+  place p5211f
+  call bspush_ca h_rsi
+  go to p521d9
+  place p5212c
+  place t5212c_133 on 133
+  set h_rsi to 463
+  call starttest h_rsi
+  set h_rsi to 464
+  call bspush_ca h_rsi
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 179
+  go to p523cf
+  place p52168
+  place t52168_157 on 157
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 45
+  go to p523ce
+  place p52187
+  place t52187_162 on 162
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 46
+  go to p523ce
+  place p521a6
+  place t521a6_166 on 166
+  set h_rsi to 168
+  call bspush_ca h_rsi
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 47
+  go to p523ce
+  place p521d2
+  place t521d2_168 on 168
+  place p521d9
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 48
+  go to p523ce
+  place p521f1
+  place t521f1_171 on 171
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 49
+  go to p523ce
+  place p52210
+  place t52210_179 on 179
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 53
+  go to p523ce
+  place p5222f
+  place t5222f_183 on 183
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 54
+  go to p523ce
+  place p5224e
+  place t5224e_187 on 187
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 55
+  go to p523ce
+  place p5226d
+  place t5226d_191 on 191
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 56
+  go to p523ce
+  place p5228c
+  place t5228c_199 on 199
+  go to p5231f
+  place p52298
+  place t52298_205 on 205
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 59
+  go to p523ce
+  place p522b7
+  place t522b7_209 on 209
+  set h_rsi to 211
+  place p522c3
+  call bspush_ca h_rsi
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 50
+  go to p523ce
+  place p522e3
+  place t522e3_214 on 214
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 60
+  go to p523ce
+  place p52302
+  place t52302_218 on 218
+  go to p52367
+  place p5230b
+  place t5230b_222 on 222
+  set h_rsi to 224
+  call bspush_ca h_rsi
+  place p5231f
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 58
+  go to p523ce
+  place p52337
+  place t52337_224 on 224
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 62
+  go to p523ce
+  place p52353
+  place t52353_227 on 227
+  set h_rsi to 229
+  call bspush_ca h_rsi
+  place p52367
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 61
+  go to p523ce
+  place p5237c
+  place t5237c_229 on 229
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 63
+  go to p523ce
+  place p52398
+  place t52398_232 on 232
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 65
+  go to p523ce
+  place p523b4
+  place t523b4_340 on 340
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 118
+  place p523ce
+  place p523cf
+  call setd_lookup h_rsi h_rdx
+  if answer is not 0
+    go to p51e41
+  end
+  place p523df
+  go to p52b62
+  place p523e4
+  place t523e4_12 on 12
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 58
+  go to p52b55
+  place p52403
+  place t52403_20 on 20
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 66
+  go to p52b55
+  place p52422
+  place t52422_21 on 21
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 67
+  go to p52b55
+  place p52441
+  place t52441_22 on 22
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 68
+  go to p52b55
+  place p52460
+  place t52460_23 on 23
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 69
+  go to p52b55
+  place p5247f
+  place t5247f_24 on 24
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 70
+  go to p52b55
+  place p5249e
+  place t5249e_25 on 25
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 71
+  go to p52b55
+  place p524bd
+  place t524bd_26 on 26
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 72
+  go to p52b55
+  place p524dc
+  place t524dc_27 on 27
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 73
+  go to p52b55
+  place p524fb
+  place t524fb_28 on 28
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 74
+  go to p52b55
+  place p5251a
+  place t5251a_29 on 29
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 75
+  go to p52b55
+  place p52539
+  place t52539_30 on 30
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 76
+  go to p52b55
+  place p52558
+  place t52558_31 on 31
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 77
+  go to p52b55
+  place p52577
+  place t52577_32 on 32
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 78
+  go to p52b55
+  place p52596
+  place t52596_33 on 33
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 79
+  go to p52b55
+  place p525b5
+  place t525b5_34 on 34
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 80
+  go to p52b55
+  place p525d4
+  place t525d4_35 on 35
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 81
+  go to p52b55
+  place p525f3
+  place t525f3_36 on 36
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 82
+  go to p52b55
+  place p52612
+  place t52612_37 on 37
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 83
+  go to p52b55
+  place p52631
+  place t52631_38 on 38
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 84
+  go to p52b55
+  place p52650
+  place t52650_39 on 39
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 85
+  go to p52b55
+  place p5266f
+  place t5266f_40 on 40
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 86
+  go to p52b55
+  place p5268e
+  place t5268e_41 on 41
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 87
+  go to p52b55
+  place p526ad
+  place t526ad_42 on 42
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 88
+  go to p52b55
+  place p526cc
+  place t526cc_43 on 43
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 89
+  go to p52b55
+  place p526eb
+  place t526eb_44 on 44
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 90
+  go to p52b55
+  place p5270a
+  place t5270a_45 on 45
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 91
+  go to p52b55
+  place p52729
+  place t52729_46 on 46
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 92
+  go to p52b55
+  place p52748
+  place t52748_47 on 47
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 93
+  go to p52b55
+  place p52767
+  place t52767_48 on 48
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 94
+  go to p52b55
+  place p52786
+  place t52786_49 on 49
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 95
+  go to p52b55
+  place p527a5
+  place t527a5_50 on 50
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 96
+  go to p52b55
+  place p527c4
+  place t527c4_51 on 51
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 97
+  go to p52b55
+  place p527e3
+  place t527e3_52 on 52
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 98
+  go to p52b55
+  place p52802
+  place t52802_53 on 53
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 99
+  go to p52b55
+  place p52821
+  place t52821_54 on 54
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 100
+  go to p52b55
+  place p52840
+  place t52840_55 on 55
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 101
+  go to p52b55
+  place p5285f
+  place t5285f_56 on 56
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 102
+  go to p52b55
+  place p5287e
+  place t5287e_57 on 57
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 103
+  go to p52b55
+  place p5289d
+  place t5289d_58 on 58
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 104
+  go to p52b55
+  place p528bc
+  place t528bc_59 on 59
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 105
+  go to p52b55
+  place p528db
+  place t528db_60 on 60
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 106
+  go to p52b55
+  place p528fa
+  place t528fa_61 on 61
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 107
+  go to p52b55
+  place p52919
+  place t52919_62 on 62
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 108
+  go to p52b55
+  place p52938
+  place t52938_63 on 63
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 109
+  go to p52b55
+  place p52957
+  place t52957_64 on 64
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 110
+  go to p52b55
+  place p52976
+  place t52976_65 on 65
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 111
+  go to p52b55
+  place p52995
+  place t52995_66 on 66
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 112
+  go to p52b55
+  place p529b4
+  place t529b4_67 on 67
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 113
+  go to p52b55
+  place p529d3
+  place t529d3_68 on 68
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 114
+  go to p52b55
+  place p529f2
+  place t529f2_69 on 69
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 115
+  go to p52b55
+  place p52a11
+  place t52a11_70 on 70
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 116
+  go to p52b55
+  place p52a30
+  place t52a30_71 on 71
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 117
+  go to p52b55
+  place p52a4f
+  place t52a4f_73 on 73
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 119
+  go to p52b55
+  place p52a6e
+  place t52a6e_74 on 74
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 120
+  go to p52b55
+  place p52a8d
+  place t52a8d_75 on 75
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 121
+  go to p52b55
+  place p52aac
+  place t52aac_76 on 76
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 122
+  go to p52b55
+  place p52acb
+  place t52acb_77 on 77
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 123
+  go to p52b55
+  place p52ae7
+  place t52ae7_78 on 78
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 124
+  go to p52b55
+  place p52b03
+  place t52b03_79 on 79
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 125
+  go to p52b55
+  place p52b1f
+  place t52b1f_80 on 80
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 126
+  go to p52b55
+  place p52b3b
+  place t52b3b_81 on 81
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 127
+  place p52b55
+  place p52b56
+  call setd_lookup h_rsi h_rdx
+  if answer is not 0
+    go to p52b6b
+  end
+  place p52b62
+  place t52b62_155 on 155
+  place t52b62_158 on 158
+  place t52b62_159 on 159
+  place t52b62_160 on 160
+  place t52b62_163 on 163
+  place t52b62_164 on 164
+  place t52b62_167 on 167
+  place t52b62_169 on 169
+  place t52b62_172 on 172
+  place t52b62_173 on 173
+  place t52b62_176 on 176
+  place t52b62_177 on 177
+  place t52b62_180 on 180
+  place t52b62_181 on 181
+  place t52b62_184 on 184
+  place t52b62_185 on 185
+  place t52b62_188 on 188
+  place t52b62_189 on 189
+  place t52b62_192 on 192
+  place t52b62_193 on 193
+  place t52b62_196 on 196
+  place t52b62_197 on 197
+  place t52b62_200 on 200
+  place t52b62_201 on 201
+  place t52b62_203 on 203
+  place t52b62_206 on 206
+  place t52b62_207 on 207
+  place t52b62_210 on 210
+  place t52b62_212 on 212
+  place t52b62_215 on 215
+  place t52b62_216 on 216
+  place t52b62_219 on 219
+  place t52b62_220 on 220
+  place t52b62_223 on 223
+  place t52b62_225 on 225
+  place t52b62_228 on 228
+  place t52b62_230 on 230
+  place t52b62_233 on 233
+  place t52b62_234 on 234
+  place t52b62_236 on 236
+  place t52b62_238 on 238
+  place t52b62_240 on 240
+  place t52b62_242 on 242
+  place t52b62_244 on 244
+  place t52b62_246 on 246
+  place t52b62_248 on 248
+  place t52b62_250 on 250
+  place t52b62_252 on 252
+  place t52b62_254 on 254
+  place t52b62_256 on 256
+  place t52b62_258 on 258
+  place t52b62_260 on 260
+  place t52b62_262 on 262
+  place t52b62_264 on 264
+  place t52b62_266 on 266
+  place t52b62_268 on 268
+  place t52b62_270 on 270
+  place t52b62_272 on 272
+  place t52b62_274 on 274
+  place t52b62_276 on 276
+  place t52b62_278 on 278
+  place t52b62_280 on 280
+  place t52b62_282 on 282
+  place t52b62_284 on 284
+  place t52b62_286 on 286
+  place t52b62_288 on 288
+  place t52b62_290 on 290
+  place t52b62_292 on 292
+  place t52b62_294 on 294
+  place t52b62_296 on 296
+  place t52b62_298 on 298
+  place t52b62_300 on 300
+  place t52b62_302 on 302
+  place t52b62_304 on 304
+  place t52b62_306 on 306
+  place t52b62_308 on 308
+  place t52b62_310 on 310
+  place t52b62_312 on 312
+  place t52b62_314 on 314
+  place t52b62_316 on 316
+  place t52b62_318 on 318
+  place t52b62_320 on 320
+  place t52b62_322 on 322
+  place t52b62_324 on 324
+  place t52b62_326 on 326
+  place t52b62_328 on 328
+  place t52b62_330 on 330
+  place t52b62_332 on 332
+  place t52b62_334 on 334
+  place t52b62_336 on 336
+  place t52b62_338 on 338
+  place t52b62_341 on 341
+  place t52b62_342 on 342
+  place t52b62_344 on 344
+  place t52b62_346 on 346
+  place t52b62_348 on 348
+  place t52b62_350 on 350
+  place t52b62_352 on 352
+  place t52b62_354 on 354
+  place t52b62_356 on 356
+  place t52b62_358 on 358
+  place t52b62_360 on 360
+  place t52b62_362 on 362
+  place t52b62_364 on 364
+  place t52b62_366 on 366
+  place t52b62_368 on 368
+  place t52b62_370 on 370
+  place t52b62_372 on 372
+  place t52b62_374 on 374
+  place t52b62_376 on 376
+  place t52b62_378 on 378
+  place t52b62_380 on 380
+  place t52b62_382 on 382
+  place t52b62_384 on 384
+  place t52b62_386 on 386
+  place t52b62_388 on 388
+  place t52b62_390 on 390
+  place t52b62_392 on 392
+  place t52b62_394 on 394
+  place t52b62_396 on 396
+  place t52b62_398 on 398
+  place t52b62_400 on 400
+  place t52b62_402 on 402
+  place t52b62_404 on 404
+  place t52b62_406 on 406
+  place t52b62_408 on 408
+  place t52b62_410 on 410
+  place t52b62_412 on 412
+  place t52b62_414 on 414
+  place t52b62_416 on 416
+  place t52b62_418 on 418
+  place t52b62_420 on 420
+  place t52b62_422 on 422
+  place t52b62_424 on 424
+  place t52b62_426 on 426
+  place t52b62_428 on 428
+  place t52b62_430 on 430
+  place t52b62_432 on 432
+  place t52b62_434 on 434
+  place t52b62_436 on 436
+  place t52b62_438 on 438
+  place t52b62_440 on 440
+  place t52b62_442 on 442
+  place t52b62_444 on 444
+  place t52b62_446 on 446
+  place t52b62_448 on 448
+  place t52b62_450 on 450
+  place t52b62_452 on 452
+  place t52b62_454 on 454
+  place t52b62_456 on 456
+  place t52b62_458 on 458
+  place t52b62_460 on 460
+  place t52b62_462 on 462
+  place t52b62_465 on 465
+  place t52b62_466 on 466
+  place t52b62_468 on 468
+  place t52b62_470 on 470
+  place t52b62_472 on 472
+  place t52b62_474 on 474
+  place t52b62_476 on 476
+  place t52b62_478 on 478
+  place t52b62_480 on 480
+  place t52b62_482 on 482
+  place t52b62_484 on 484
+  place t52b62_486 on 486
+  place t52b62_488 on 488
+  place t52b62_490 on 490
+  place t52b62_492 on 492
+  place t52b62_494 on 494
+  place t52b62_496 on 496
+  place t52b62_498 on 498
+  place t52b62_500 on 500
+  place t52b62_502 on 502
+  place t52b62_504 on 504
+  set cell cfc field to 1
+  place p52b6b
+  place t52b6b_156 on 156
+  place t52b6b_161 on 161
+  place t52b6b_165 on 165
+  place t52b6b_170 on 170
+  place t52b6b_174 on 174
+  place t52b6b_178 on 178
+  place t52b6b_182 on 182
+  place t52b6b_186 on 186
+  place t52b6b_190 on 190
+  place t52b6b_194 on 194
+  place t52b6b_198 on 198
+  place t52b6b_202 on 202
+  place t52b6b_204 on 204
+  place t52b6b_208 on 208
+  place t52b6b_213 on 213
+  place t52b6b_217 on 217
+  place t52b6b_221 on 221
+  place t52b6b_226 on 226
+  place t52b6b_231 on 231
+  place t52b6b_235 on 235
+  place t52b6b_237 on 237
+  place t52b6b_239 on 239
+  place t52b6b_241 on 241
+  place t52b6b_243 on 243
+  place t52b6b_245 on 245
+  place t52b6b_247 on 247
+  place t52b6b_249 on 249
+  place t52b6b_251 on 251
+  place t52b6b_253 on 253
+  place t52b6b_255 on 255
+  place t52b6b_257 on 257
+  place t52b6b_259 on 259
+  place t52b6b_261 on 261
+  place t52b6b_263 on 263
+  place t52b6b_265 on 265
+  place t52b6b_267 on 267
+  place t52b6b_269 on 269
+  place t52b6b_271 on 271
+  place t52b6b_273 on 273
+  place t52b6b_275 on 275
+  place t52b6b_277 on 277
+  place t52b6b_279 on 279
+  place t52b6b_281 on 281
+  place t52b6b_283 on 283
+  place t52b6b_285 on 285
+  place t52b6b_287 on 287
+  place t52b6b_289 on 289
+  place t52b6b_291 on 291
+  place t52b6b_293 on 293
+  place t52b6b_295 on 295
+  place t52b6b_297 on 297
+  place t52b6b_299 on 299
+  place t52b6b_301 on 301
+  place t52b6b_303 on 303
+  place t52b6b_305 on 305
+  place t52b6b_307 on 307
+  place t52b6b_309 on 309
+  place t52b6b_311 on 311
+  place t52b6b_313 on 313
+  place t52b6b_315 on 315
+  place t52b6b_317 on 317
+  place t52b6b_319 on 319
+  place t52b6b_321 on 321
+  place t52b6b_323 on 323
+  place t52b6b_325 on 325
+  place t52b6b_327 on 327
+  place t52b6b_329 on 329
+  place t52b6b_331 on 331
+  place t52b6b_333 on 333
+  place t52b6b_335 on 335
+  place t52b6b_337 on 337
+  place t52b6b_339 on 339
+  place t52b6b_343 on 343
+  place t52b6b_345 on 345
+  place t52b6b_347 on 347
+  place t52b6b_349 on 349
+  place t52b6b_351 on 351
+  place t52b6b_353 on 353
+  place t52b6b_355 on 355
+  place t52b6b_357 on 357
+  place t52b6b_359 on 359
+  place t52b6b_361 on 361
+  place t52b6b_363 on 363
+  place t52b6b_365 on 365
+  place t52b6b_367 on 367
+  place t52b6b_369 on 369
+  place t52b6b_371 on 371
+  place t52b6b_373 on 373
+  place t52b6b_375 on 375
+  place t52b6b_377 on 377
+  place t52b6b_379 on 379
+  place t52b6b_381 on 381
+  place t52b6b_383 on 383
+  place t52b6b_385 on 385
+  place t52b6b_387 on 387
+  place t52b6b_389 on 389
+  place t52b6b_391 on 391
+  place t52b6b_393 on 393
+  place t52b6b_395 on 395
+  place t52b6b_397 on 397
+  place t52b6b_399 on 399
+  place t52b6b_401 on 401
+  place t52b6b_403 on 403
+  place t52b6b_405 on 405
+  place t52b6b_407 on 407
+  place t52b6b_409 on 409
+  place t52b6b_411 on 411
+  place t52b6b_413 on 413
+  place t52b6b_415 on 415
+  place t52b6b_417 on 417
+  place t52b6b_419 on 419
+  place t52b6b_421 on 421
+  place t52b6b_423 on 423
+  place t52b6b_425 on 425
+  place t52b6b_427 on 427
+  place t52b6b_429 on 429
+  place t52b6b_431 on 431
+  place t52b6b_433 on 433
+  place t52b6b_435 on 435
+  place t52b6b_437 on 437
+  place t52b6b_439 on 439
+  place t52b6b_441 on 441
+  place t52b6b_443 on 443
+  place t52b6b_445 on 445
+  place t52b6b_447 on 447
+  place t52b6b_449 on 449
+  place t52b6b_451 on 451
+  place t52b6b_453 on 453
+  place t52b6b_455 on 455
+  place t52b6b_457 on 457
+  place t52b6b_459 on 459
+  place t52b6b_461 on 461
+  place t52b6b_463 on 463
+  place t52b6b_467 on 467
+  place t52b6b_469 on 469
+  place t52b6b_471 on 471
+  place t52b6b_473 on 473
+  place t52b6b_475 on 475
+  place t52b6b_477 on 477
+  place t52b6b_479 on 479
+  place t52b6b_481 on 481
+  place t52b6b_483 on 483
+  place t52b6b_485 on 485
+  place t52b6b_487 on 487
+  place t52b6b_489 on 489
+  place t52b6b_491 on 491
+  place t52b6b_493 on 493
+  place t52b6b_495 on 495
+  place t52b6b_497 on 497
+  place t52b6b_499 on 499
+  place t52b6b_501 on 501
+  place t52b6b_503 on 503
+  put cell cfc field into arg 5 at 2 half
+  match
+  place p52b8b
+  place t52b8b_82 on 82
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 128
+  go to p52b56
+  place p52baa
+  place t52baa_83 on 83
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 129
+  go to p52b56
+  place p52bc9
+  place t52bc9_84 on 84
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 130
+  go to p52b56
+  place p52beb
+  place t52beb_85 on 85
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 131
+  go to p52b56
+  place p52c0d
+  place t52c0d_86 on 86
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 132
+  go to p52b56
+  place p52c2f
+  place t52c2f_87 on 87
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 133
+  go to p52b56
+  place p52c51
+  place t52c51_88 on 88
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 134
+  go to p52b56
+  place p52c73
+  place t52c73_89 on 89
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 135
+  go to p52b56
+  place p52c95
+  place t52c95_90 on 90
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 136
+  go to p52b56
+  place p52cb7
+  place t52cb7_91 on 91
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 137
+  go to p52b56
+  place p52cd9
+  place t52cd9_92 on 92
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 138
+  go to p52b56
+  place p52cfb
+  place t52cfb_93 on 93
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 139
+  go to p52b56
+  place p52d1d
+  place t52d1d_94 on 94
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 140
+  go to p52b56
+  place p52d3f
+  place t52d3f_95 on 95
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 141
+  go to p52b56
+  place p52d61
+  place t52d61_96 on 96
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 142
+  go to p52b56
+  place p52d83
+  place t52d83_97 on 97
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 143
+  go to p52b56
+  place p52da5
+  place t52da5_98 on 98
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 144
+  go to p52b56
+  place p52dc7
+  place t52dc7_99 on 99
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 145
+  go to p52b56
+  place p52de9
+  place t52de9_100 on 100
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 146
+  go to p52b56
+  place p52e0b
+  place t52e0b_101 on 101
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 147
+  go to p52b56
+  place p52e2d
+  place t52e2d_102 on 102
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 148
+  go to p52b56
+  place p52e4f
+  place t52e4f_103 on 103
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 149
+  go to p52b56
+  place p52e71
+  place t52e71_104 on 104
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 150
+  go to p52b56
+  place p52e93
+  place t52e93_105 on 105
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 151
+  go to p52b56
+  place p52eb5
+  place t52eb5_106 on 106
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 152
+  go to p52b56
+  place p52ed7
+  place t52ed7_107 on 107
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 153
+  go to p52b56
+  place p52ef9
+  place t52ef9_108 on 108
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 154
+  go to p52b56
+  place p52f1b
+  place t52f1b_109 on 109
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 155
+  go to p52b56
+  place p52f3d
+  place t52f3d_110 on 110
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 156
+  go to p52b56
+  place p52f5f
+  place t52f5f_111 on 111
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 157
+  go to p52b56
+  place p52f81
+  place t52f81_112 on 112
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 158
+  go to p52b56
+  place p52fa3
+  place t52fa3_113 on 113
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 159
+  go to p52b56
+  place p52fc5
+  place t52fc5_114 on 114
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 160
+  go to p52b56
+  place p52fe7
+  place t52fe7_115 on 115
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 161
+  go to p52b56
+  place p53009
+  place t53009_116 on 116
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 162
+  go to p52b56
+  place p5302b
+  place t5302b_117 on 117
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 163
+  go to p52b56
+  place p5304d
+  place t5304d_118 on 118
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 164
+  go to p52b56
+  place p5306f
+  place t5306f_119 on 119
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 165
+  go to p52b56
+  place p53091
+  place t53091_120 on 120
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 166
+  go to p52b56
+  place p530b3
+  place t530b3_121 on 121
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 167
+  go to p52b56
+  place p530d5
+  place t530d5_122 on 122
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 168
+  go to p52b56
+  place p530f7
+  place t530f7_123 on 123
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 169
+  go to p52b56
+  place p53119
+  place t53119_124 on 124
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 170
+  go to p52b56
+  place p5313b
+  place t5313b_125 on 125
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 171
+  go to p52b56
+  place p5315d
+  place t5315d_126 on 126
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 172
+  go to p52b56
+  place p5317f
+  place t5317f_127 on 127
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 173
+  go to p52b56
+  place p531a1
+  place t531a1_128 on 128
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 174
+  go to p52b56
+  place p531c3
+  place t531c3_129 on 129
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 175
+  go to p52b56
+  place p531e5
+  place t531e5_130 on 130
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 176
+  go to p52b56
+  place p53207
+  place t53207_131 on 131
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 177
+  go to p52b56
+  place p53229
+  place t53229_132 on 132
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 178
+  go to p52b56
+  place p5324b
+  place t5324b_134 on 134
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 180
+  go to p52b56
+  place p5326d
+  place t5326d_135 on 135
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 181
+  go to p52b56
+  place p5328f
+  place t5328f_136 on 136
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 182
+  go to p52b56
+  place p532b1
+  place t532b1_137 on 137
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 183
+  go to p52b56
+  place p532d3
+  place t532d3_138 on 138
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 184
+  go to p52b56
+  place p532f5
+  place t532f5_139 on 139
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 185
+  go to p52b56
+  place p53317
+  place t53317_140 on 140
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 186
+  go to p52b56
+  place p53339
+  place t53339_141 on 141
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 187
+  go to p52b56
+  place p5335b
+  place t5335b_142 on 142
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 188
+  go to p52b56
+  place p5337d
+  place t5337d_143 on 143
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 189
+  go to p52b56
+  place p5339f
+  place t5339f_144 on 144
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 190
+  go to p52b56
+  place p533c1
+  place t533c1_145 on 145
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 191
+  go to p52b56
+  place p533e3
+  place t533e3_146 on 146
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 192
+  go to p52b56
+  place p53405
+  place t53405_147 on 147
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 193
+  go to p52b56
+  place p53427
+  place t53427_148 on 148
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 194
+  go to p52b56
+  place p53449
+  place t53449_149 on 149
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 195
+  go to p52b56
+  place p5346b
+  place t5346b_150 on 150
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 196
+  go to p52b56
+  place p5348d
+  place t5348d_151 on 151
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 197
+  go to p52b56
+  place p534af
+  place t534af_152 on 152
+  set h_rsi to addr g218
+  set h_rdx to addr g228
+  call lpta_rpta_loadp h_rsi h_rdx
+  set h_rsi to 1
+  set h_rdx to 198
+  go to p52b56
+  place p534d1
+  place t534d1_153 on 153
+  place t534d1_505 on 505
+  give up
+end

@@ -21,6 +21,9 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 	var sampleRateHz: Int = Eci.sampleRateHz(1)
 		private set
 
+	var pauseMode: Int = Eci.PAUSES_DEFAULT
+		private set
+
 	/** What the voice was set to before Android's rate and pitch were scaled
 	 *  onto it, so that a rate of 100% is the voice as it stands rather than
 	 *  whatever the last utterance left behind. */
@@ -71,7 +74,15 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		// that is malformed is spoken rather than obeyed, so ordinary text
 		// carrying a backtick is read out as it stands.
 		setAnnotations(true)
+		setPauseMode(Eci.PAUSES_DEFAULT)
 		setSampleRate(Eci.sampleRateHz(EvvNative.getParam(handle, Eci.PARAM_SAMPLE_RATE)))
+	}
+
+	fun setPauseMode(mode: Int) = synchronized(guard) {
+		if (closed) return
+		val clamped = mode.coerceIn(Eci.PAUSES_NONE, Eci.PAUSES_ALWAYS)
+		EvvNative.setParam(handle, Eci.PARAM_PAUSES, clamped)
+		pauseMode = clamped
 	}
 
 	fun setSampleRate(hz: Int) = synchronized(guard) {

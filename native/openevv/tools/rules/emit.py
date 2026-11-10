@@ -99,6 +99,10 @@ def reg_code(name):
     raise ValueError("register %s" % name)
 
 
+class TooFar(Exception):
+    """A place in a rule that two bytes cannot say."""
+
+
 class Pool:
     """A list with no repeats, remembering where each thing landed."""
 
@@ -170,6 +174,21 @@ class Emitter:
         self.code[at] = v & 0xff
         self.code[at + 1] = (v >> 8) & 0xff
 
+    # A place in a rule is two bytes, and so cannot name one past 65,535. A
+    # rule longer than that has them in three, everywhere it names one: the
+    # jump, the branch and each entry of a switch. Whether a rule is one or
+    # the other is not written beside it, because it is known from its
+    # length, which every reader has: more than 65,535 bytes, and three.
+    def hole_to(self, width):
+        at = len(self.code)
+        for _ in range(width):
+            self.code.append(0)
+        return at
+
+    def patch_to(self, at, v, width):
+        for i in range(width):
+            self.code[at + i] = (v >> (8 * i)) & 0xff
+
     # ---- operands --------------------------------------------------------
 
     def operand(self, op, pbase):
@@ -217,13 +236,27 @@ class Emitter:
     # ---- one rule --------------------------------------------------------
 
     def rule(self, name, d, bytes_by_label, obj):
+        start = len(self.code)
+        try:
+            self.rule_in(name, d, bytes_by_label, obj, 2)
+            if len(self.code) - start <= 0xffff:
+                return
+        except TooFar:
+            pass
+        # Too long for two bytes to say where in it a jump goes: written
+        # again with three. What was pooled by the first go is pooled again to
+        # the same places.
+        del self.code[start:]
+        self.rule_in(name, d, bytes_by_label, obj, 3)
+
+    def rule_in(self, name, d, bytes_by_label, obj, width):
         self.obj = obj
         start = len(self.code)
         labels = {}
         fixups = []
 
         def target(text):
-            fixups.append((self.hole16(), d.resolve(text)))
+            fixups.append((self.hole_to(width), d.resolve(text)))
 
         for _label, addr, block in d.blocks:
             labels[addr] = len(self.code)
@@ -355,12 +388,14 @@ class Emitter:
             if addr not in labels:
                 raise ValueError("jump to 0x%x, which is nowhere" % (addr or 0))
             where = labels[addr] - start
-            if where > 0xffff:
+            if where >= 1 << (8 * width):
+                if width == 2:
+                    raise TooFar()
                 raise SystemExit(
                     "rules/emit: rule %s is %d bytes, and a jump names a "
-                    "place in it as sixteen bits, so it cannot reach %d"
-                    % (d.name, len(self.code) - start, where))
-            self.patch16(at, where)
+                    "place in it as %d bits, so it cannot reach %d"
+                    % (d.name, len(self.code) - start, 8 * width, where))
+            self.patch_to(at, where, width)
 
         self.rules.append((name, start, len(self.code) - start,
                            d.frame, d.pbase, d.params))

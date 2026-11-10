@@ -4,10 +4,9 @@
 # order the C holds them. What a rule gets is an offset into one of these, and
 # lang/enus/rules/symbols is what says which store and how far in.
 #
-# Written by tools/delta-consts.py out of the C in the tree, not out of IBM's
+# Written by tools/rules/consts.py out of the C in the tree, not out of IBM's
 # objects: a pronunciation edited through enus.dict is appended to one of
 # these stores, and the objects do not have it.
-
 
 store enus_evv_ea_ga_data_3
 bytes 2c 19 24 00 20 19 07 2c 04 00 00 00 2c 16 0e 04 30 04 24 14 24 01 1c 19 01 2e 08 1c 0e 1c 0e 24
@@ -768,7 +767,11 @@ bytes 24 15 00 00 0d 31 1c 18 1c 22 15 00 0d 2c 02 24 04 1c 0e 04 24 00 00 00 0d
 bytes 25 00 00 00 0d 31 04 00 0d 31 04 24 16 00 00 00 0d 1d 03 21 07 00 00 00 0d 1d 08 0c 1f 19 03 00
 bytes 0d 1d 14 01 2c 01 1b 1e 0d 1d 14 01 2c 01 1b 1c 22 15 00 00 0d 2f 04 1c 0d 2f 0c 18 24 15 00 00
 bytes 0d 2d 19 2c 11 21 07 24 19 00 00 00 0d 2d 10 00 0d 2f 0b 21 18 20 07 0e 0f 2c 00 00 0d 2d 19 2d
-bytes 0d 00 00 00 0d 2e 18 21 07 00 00 00 04 0e 0b 31 07
+bytes 0d 00 00 00 0d 2e 18 21 07 00 00 00 04 0e 0b 31 07 00 00 00 00 00 00 00 07 1f 19 04 21 07 0e 00
+bytes 13 2f 0d 1e 00 00 00 00 02 2d 18 00 00 00 00 00 02 2d 18 0d 00 00 00 00 07 20 15 03 21 03 1e 04
+bytes 00 00 00 00 00 00 00 00 0e 1f 19 04 21 07 0e 00 13 2f 0d 1e 00 00 00 00 2f 02 21 15 00 00 00 00
+bytes 02 2d 18 00 00 00 00 00 02 2d 18 0d 00 00 00 00 0c 20 03 21 14 24 00 00 17 22 15 03 23 17 00 00
+bytes 07 1e 0d 20 07 00 00 00 01 1c 03 20 0c 23 17 03 00 00 00 00 07 2b 17 15 2c 0e 04 1b 00 00 00 00
 
 store enus_evv_ea_roots_data_3
 bytes 20 01 24 19 2f 15 1c 00 1e 01 19 1c 20 01 24 18 1d 11 21 15 1c 00 00 00 24 01 0e 25 03 00 00 00
@@ -1017,7 +1020,8 @@ bytes 1d 16 00 00 1a 2d 08 2f 0e 19 2c 0b 0d 1f 19 24 04 00 00 00 0d 2f 24 19 29
 bytes 0d 2f 29 19 24 11 21 0e 04 00 00 00 0d 2f 29 19 24 11 1c 00 24 19 20 0e 03 1f 04 18 24 00 00 00
 bytes 21 15 04 1f 19 21 11 1f 15 04 0e 1c 24 00 00 00 19 24 08 2d 01 18 1c 24 0e 00 00 00 15 1a 2e 18
 bytes 29 15 0e 00 18 24 04 18 1c 04 00 00 0e 1f 02 04 1a 2d 24 11 24 15 1f 18 1c 24 15 00 04 18 24 02
-bytes 1c 0d 00 00 04 18 31 23 14 0b 24 18 24 04 00 00 1b 1f 18 1b 2e 19 0b
+bytes 1c 0d 00 00 04 18 31 23 14 0b 24 18 24 04 00 00 1b 1f 18 1b 2e 19 0b 00 02 18 2e 03 2d 0e 00 00
+bytes 0e 1f 19 04 21 07 0e 00 0c 20 03 21 14 24 00
 
 store enus_evv_ea_text_data_3
 bytes 01 0c 0c 04 05 15 1a 00 01 15 0d 04 18 18 01 15 48 0e 18 01 15 12 00 00 01 15 0d 04 18 18 01 15
@@ -1571,7 +1575,8 @@ bytes 05 00 00 00 05 01 00 00 05 01 02 00 05 15 00 00 05 16 00 00 05 16 48 1a 04
 bytes 05 19 02 00 05 04 00 00 05 04 1e 32 33 34 35 00 35 35 36 37 38 39 3a 3b 06 3c 3d 3e 3f 40 41 00
 bytes 41 41 42 43 44 45 07 00 07 19 2f 0e 07 1c 46 47 48 00 00 00 48 1a 04 48 49 00 00 00 49 19 4a 4b
 bytes 4c 4e 4f 08 08 18 1e 24 14 00 00 00 08 1f 04 0e 08 2e 03 50 51 56 57 58 59 09 00 00 09 1e 18 0c
-bytes 30 18 60 61 62 63
+bytes 30 18 60 61 62 63 00 00 07 1f 19 04 21 07 0e 00 0e 1f 19 04 21 07 0e 00 0e 1f 19 04 21 07 00 00
+bytes 0e 1f 19 04 24 07 0e 00
 
 store enus_evv_u_intfac_data_3
 bytes 30 04 03 0c 02 00 00 00 2f 10 03 19 48 03 19 48 01 48 1a 02 19 1a 41 00 2d 02 02 0d 2e 10 02 13

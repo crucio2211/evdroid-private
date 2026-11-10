@@ -1,0 +1,731 @@
+# The rules of enus, lifted by tools/rules/lift64.py out of ETI
+# Eloquence 6.1 as Apple ships it, by tools/module/lift61.py. Each says
+# `instead' because it is written afresh rather than re-expressed from one of
+# IBM's: nothing of IBM's is under it.
+
+rule insert_acoustic_vals takes 1
+  instead
+  local vf8 word
+  local v100 word
+  local v108 word
+  local v110 word
+  local v118 word
+  local v120 word
+  local v128 word
+  local v130 word
+  local v138 word
+  local v140 word
+  local v148 word
+  local v150 word
+  local v158 word
+  local v160 word
+  local v168 word
+  local v170 word
+  local v178 word
+  local v180 word
+  local v188 word
+  local v190 word
+  local v198 word
+  local v1a0 word
+  local v1a8 word
+  local v1b0 word
+  local v1b8 word
+  local v1c0 word
+  local h_r12
+  variable g11d4 word 3060
+  variable g11d8 word 3064
+  variable g11dc word 3068
+  variable g11e0 word 3072
+  variable g11e4 word 3076
+  variable g12a0 word 3264
+  variable g12a4 word 3268
+  variable g12a8 word 3272
+  variable g12ac word 3276
+  variable g12b0 word 3280
+  variable g12b4 word 3284
+  variable g12b8 word 3288
+  variable g12bc word 3292
+  variable g12c0 word 3296
+  variable g12c4 word 3300
+  variable g628 word 884
+  variable g638 word 892
+  variable g84c word 1136
+  variable g850 word 1140
+  variable g854 word 1144
+  variable g858 word 1148
+  variable g85c word 1152
+  variable g860 word 1156
+  variable g864 word 1160
+  variable g868 word 1164
+  variable g86c word 1168
+  variable g870 word 1172
+  variable g910 word 1316
+  variable g920 word 1324
+  place pf517
+  place pf554
+  place pf587
+  call fence 0 sym eti_null
+  call doF addr g84c addr g12a0 addr g12a4
+  set v1a8 to addr g854
+  set v1a0 to addr g12b0
+  set v198 to addr g12b4
+  set v190 to addr g858
+  set v188 to addr g12b8
+  set v180 to addr g12bc
+  set v178 to addr g85c
+  set v170 to addr g12c0
+  set v168 to addr g12c4
+  set v160 to addr g860
+  set v158 to addr g11d4
+  set vf8 to addr g910
+  set v140 to addr g864
+  set v138 to addr g11d8
+  set v130 to addr g868
+  set v128 to addr g11dc
+  set v120 to addr g86c
+  set v118 to addr g11e0
+  set v110 to addr g870
+  set v108 to addr g11e4
+  set h_r12 to 0
+  set v1c0 to addr g850
+  set v1b8 to addr g12a8
+  set v1b0 to addr g12ac
+  set v150 to addr g920
+  set v148 to addr g628
+  set v100 to addr g638
+  place pf729
+  call doF addr g850 addr g12a8 addr g12ac
+  place pf731
+  place tf731_2 on 2
+  set h_r12 to unwind
+  call doF addr g854 addr g12b0 addr g12b4
+  place pf74e
+  place tf74e_3 on 3
+  set h_r12 to unwind
+  call doF addr g858 addr g12b8 addr g12bc
+  place pf76b
+  place tf76b_4 on 4
+  set h_r12 to unwind
+  call doF addr g85c addr g12c0 addr g12c4
+  place pf788
+  place tf788_5 on 5
+  set h_r12 to unwind
+  call add_filtered_val addr g860 addr g11d4 addr g910 addr g920 addr g628 addr g638
+  place pf7b4
+  call add_filtered_val addr g864 addr g11d8 addr g910 addr g920 addr g628 addr g638
+  place pf7e0
+  call add_filtered_val addr g868 addr g11dc addr g910 addr g920 addr g628 addr g638
+  place pf80c
+  call add_filtered_val addr g86c addr g11e0 addr g910 addr g920 addr g628 addr g638
+  place pf838
+  place tf838_9 on 9
+  set h_r12 to unwind
+  call add_filtered_val addr g870 addr g11e4 addr g910 addr g920 addr g628 addr g638
+  place pf868
+  place tf868_10 on 10
+  set h_r12 to unwind
+  call do_FTZ_FTP
+  place pf870
+  place tf870_11 on 11
+  set h_r12 to unwind
+  call starttest 12
+  call lpta_loadp addr g628
+  call setscan_r 2
+  if answer is not 0
+    go to pf93e
+  end
+  place pf891
+  call bspush_ca_scan_boa 13
+  call testFldeq 2 3 0
+  if answer is 0
+    set h_r12 to 1
+  end
+  set unwind to h_r12
+  backtrack
+  place pf8ea
+  place tf8ea_13 on 13
+  set h_r12 to unwind
+  call bspop_boa
+  call advance_tok
+  if answer is not 0
+    set unwind to h_r12
+    backtrack
+  end
+  place pf8fe
+  go to pf94e
+  place pf900
+  place tf900_8 on 8
+  set h_r12 to unwind
+  go to pf80c
+  place pf90c
+  place tf90c_7 on 7
+  set h_r12 to unwind
+  go to pf7e0
+  place pf918
+  place tf918_6 on 6
+  set h_r12 to unwind
+  go to pf7b4
+  place pf924
+  place tf924_1 on 1
+  set h_r12 to unwind
+  go to pf729
+  place pf93e
+  place tf93e_12 on 12
+  set h_r12 to unwind
+  call do_son_amps
+  go to pf956
+  place pf94e
+  call do_non_son_amps
+  place pf956
+  place tf956_14 on 14
+  place tf956_15 on 15
+  set h_r12 to unwind
+  call do_release
+  match
+  place tm_16 on 16
+  match
+end
+
+rule add_filtered_val takes 7
+  instead
+  local cf0 bytes 8
+  local c11c bytes 8
+  local c130 bytes 8
+  local c140 bytes 8
+  local c150 bytes 8
+  local c160 bytes 8
+  local vf8 word
+  local v100 word
+  local v108 word
+  local v110 word
+  local v118 word
+  place pf9d4
+  set v118 to arg 5
+  place pfa27
+  set vf8 to arg 1
+  set v100 to arg 2
+  set v108 to arg 3
+  set v110 to arg 4
+  place pfa79
+  call get_parm addr c11c arg 1 -4
+  call get_parm addr cf0 arg 2 -4
+  call get_parm addr c130 arg 3 -5
+  call get_parm addr c160 arg 4 -5
+  call get_parm addr c150 arg 5 -6
+  call get_parm addr c140 arg 6 -6
+  call fence 0 sym eti_null
+  call run_filters addr c11c addr cf0
+  call addStreamArraySsVal addr c11c addr cf0 addr c130 addr c160
+  match
+end
+
+rule doAV takes 6
+  instead
+  local cf0 bytes 8
+  local c108 bytes 8
+  local c118 bytes 8
+  local c128 bytes 8
+  local c138 bytes 8
+  local vf8 word
+  variable g1330 word 3372
+  variable g894 word 1208
+  variable g8c0 word 1252
+  place pfb89
+  set vf8 to arg 5
+  place pfbd1
+  place pfc31
+  call get_parm addr cf0 arg 1 -4
+  call get_parm addr c108 arg 2 -5
+  call get_parm addr c128 arg 3 -5
+  call get_parm addr c118 arg 4 -6
+  call get_parm addr c138 arg 5 -6
+  call fence 0 sym eti_null
+  set global half 3374 to 6
+  call if_testeq_v_i addr g1330 100
+  if answer is not 0
+    go to pfcd7
+  end
+  place pfccd
+  if global half 2308 is 0
+    match
+  end
+  place pfcd7
+  if global word 1368 is not 0
+    go to pfcf2
+  end
+  place pfcf0
+  go to pfd18
+  place pfcf2
+  call addStreamArrayPtVal addr g894 addr cf0 addr c108 addr g8c0 addr c118
+  match
+  place pfd18
+  call addStreamArraySsVal addr g894 addr cf0 addr c108 addr c128
+  match
+end
+
+rule addStreamArraySsVal takes 5
+  instead
+  local cf0 bytes 8
+  local cf4 bytes 8
+  local c108 bytes 8
+  local c118 bytes 8
+  local h_r15
+  local h_rax
+  local h_rcx
+  local h_rsi
+  local kfec8_0
+  place pfd49
+  set h_r15 to arg 3
+  place pfd8a
+  place pfdea
+  set h_rsi to addr cf4
+  set h_rcx to -4
+  call get_parm h_rsi arg 1 h_rcx
+  set h_rax to answer
+  set h_rsi to addr cf0
+  set h_rcx to -4
+  call get_parm h_rsi arg 2 h_rcx
+  set h_rax to answer
+  set h_rsi to addr c108
+  set h_rcx to -5
+  call get_parm h_rsi arg 3 h_rcx
+  set h_rax to answer
+  set h_r15 to addr c118
+  set h_rsi to addr c118
+  set h_rcx to -5
+  call get_parm h_rsi arg 4 h_rcx
+  set h_rax to answer
+  call fence 0 sym eti_null
+  set h_rax to 0
+  if cell c118 value is not cell c108 value
+    go to pff16
+  end
+  place pfe70
+  set h_rcx to 0
+  if cell c108 value is not 0
+    go to pff55
+  end
+  place pfe86
+  set h_rsi to 3
+  call starttest_e h_rsi
+  set h_rax to answer
+  set h_rsi to 4
+  call bspush_ca_boa h_rsi
+  set h_rax to answer
+  set h_rsi to addr cf4
+  set h_rcx to addr c108
+  call addStreamArrayPtValC h_rsi addr cf0 h_rcx
+  set h_rax to answer
+  set h_rcx to 0
+  set kfec8_0 to h_rax
+  set h_rax to 0
+  if kfec8_0 is 0
+    set h_rax to 1
+  end
+  set h_rcx to h_rax
+  set h_rsi to h_rcx
+  set unwind to h_rsi
+  backtrack
+  go to pff16
+  place tff16_1 on 1
+  set h_rax to unwind
+  set h_rcx to unwind
+  place pff16
+  set h_r15 to h_rax
+  set h_rsi to 7
+  call starttest h_rsi
+  set h_rax to answer
+  set h_rsi to 8
+  call bspush_ca_boa h_rsi
+  set h_rax to answer
+  set h_rsi to addr cf4
+  set h_rcx to addr c108
+  call addStreamArraySsValC h_rsi addr cf0 h_rcx addr c118
+  set h_rax to answer
+  go to pff92
+  go to pff55
+  place tff55_2 on 2
+  set h_rax to unwind
+  set h_rcx to unwind
+  place pff55
+  set h_r15 to h_rcx
+  set h_rsi to 5
+  call starttest h_rsi
+  set h_rax to answer
+  set h_rsi to 6
+  call bspush_ca_boa h_rsi
+  set h_rax to answer
+  set h_rsi to addr cf4
+  set h_rcx to addr c108
+  call addStreamArrayPtValC h_rsi addr cf0 h_rcx
+  set h_rax to answer
+  place pff92
+  if h_rax is 0
+    set h_r15 to 1
+  end
+  set h_rsi to h_r15
+  set unwind to h_rsi
+  backtrack
+  go to pffa0
+  place tffa0_4 on 4
+  place tffa0_6 on 6
+  place tffa0_8 on 8
+  set h_rax to unwind
+  set h_rcx to unwind
+  place pffa0
+  call bspop_boa
+  set h_rax to answer
+  match
+  place tm_3 on 3
+  place tm_5 on 5
+  place tm_7 on 7
+  match
+end
+
+rule addStreamArrayPtVal takes 6
+  instead
+  local cf0 bytes 8
+  local cf4 bytes 8
+  local cf8 bytes 8
+  local c110 bytes 8
+  local c120 bytes 8
+  local v100 word
+  local h_r13
+  local h_rsi
+  local s1016b
+  place pffd8
+  set v100 to arg 5
+  set h_r13 to arg 2
+  place p10020
+  place p10080
+  set h_rsi to addr cf8
+  call get_parm h_rsi arg 1 -4
+  set h_rsi to addr cf4
+  set h_r13 to -4
+  call get_parm h_rsi arg 2 -4
+  set h_rsi to addr c110
+  call get_parm h_rsi arg 3 -5
+  set h_rsi to addr cf0
+  call get_parm h_rsi arg 4 -4
+  set h_rsi to addr c120
+  call get_parm h_rsi arg 5 -6
+  call fence 0 sym eti_null
+  if cell c110 value is not 0
+    go to p10130
+  end
+  place p10110
+  if global half 1250 is not cell cf0 field
+    go to p10130
+  end
+  place p10122
+  set cell cf0 field to global half 1246
+  place p10130
+  set h_r13 to 0
+  place p1013e
+  place t1013e_1 on 1
+  set h_r13 to unwind
+  set h_rsi to 2
+  call starttest h_rsi
+  set h_rsi to 3
+  call bspush_ca_boa h_rsi
+  set h_rsi to addr cf8
+  call addStreamArrayPtValC h_rsi addr cf4 addr c110
+  set s1016b to answer
+  set h_rsi to 1
+  if s1016b is 0
+    set unwind to h_rsi
+    backtrack
+  end
+  place p10177
+  set h_rsi to h_r13
+  set unwind to h_rsi
+  backtrack
+  place p101ab
+  place t101ab_3 on 3
+  set h_r13 to unwind
+  call bspop_boa
+  match
+  place tm_2 on 2
+  match
+end
+
+rule doFNP takes 6
+  instead
+  local c11c bytes 8
+  local c130 bytes 8
+  local c140 bytes 8
+  local c150 bytes 8
+  local c160 bytes 8
+  local vf8 word
+  local v100 word
+  local v108 word
+  local v110 word
+  local v118 word
+  variable g874 word 1176
+  place p101c7
+  set v118 to arg 5
+  place p1021a
+  set vf8 to arg 1
+  set v100 to arg 2
+  set v108 to arg 3
+  set v110 to arg 4
+  place p1026c
+  call get_parm addr c11c arg 1 -4
+  call get_parm addr c160 arg 2 -5
+  call get_parm addr c150 arg 3 -5
+  call get_parm addr c140 arg 4 -6
+  call get_parm addr c130 arg 5 -6
+  call fence 0 sym eti_null
+  call run_filters addr g874 addr c11c
+  call addStreamArraySsVal addr g874 addr c11c addr c160 addr c150
+  match
+end
+
+rule doFNZ takes 6
+  instead
+  local cf0 bytes 8
+  local c128 bytes 8
+  local c138 bytes 8
+  local c148 bytes 8
+  local c158 bytes 8
+  local vf8 word
+  local v100 word
+  local v108 word
+  local v110 word
+  local v118 word
+  variable g878 word 1180
+  variable g8c0 word 1252
+  place p10360
+  set v118 to arg 5
+  place p103b3
+  set vf8 to arg 1
+  set v100 to arg 2
+  set v108 to arg 3
+  set v110 to arg 4
+  place p10405
+  call get_parm addr cf0 arg 1 -4
+  call get_parm addr c128 arg 2 -5
+  call get_parm addr c148 arg 3 -5
+  call get_parm addr c138 arg 4 -6
+  call get_parm addr c158 arg 5 -6
+  call fence 0 sym eti_null
+  call run_filters addr g878 addr cf0
+  if cell c148 value is not cell c128 value
+    go to p104c3
+  end
+  place p104c1
+  go to p104e5
+  place p104c3
+  call addStreamArraySsVal addr g878 addr cf0 addr c128 addr c148
+  match
+  place p104e5
+  call addStreamArrayPtVal addr g878 addr cf0 addr c128 addr g8c0 addr c138
+  match
+end
+
+rule doAF takes 6
+  instead
+  local cf0 bytes 8
+  local c128 bytes 8
+  local c138 bytes 8
+  local c148 bytes 8
+  local c158 bytes 8
+  local vf8 word
+  local v100 word
+  local v108 word
+  local v110 word
+  local v118 word
+  variable g638 word 892
+  variable g89c word 1216
+  variable g8bc word 1248
+  variable g920 word 1324
+  place p10541
+  set v118 to arg 5
+  place p10594
+  set vf8 to arg 1
+  set v100 to arg 2
+  set v108 to arg 3
+  set v110 to arg 4
+  place p105e6
+  call get_parm addr cf0 arg 1 -4
+  call get_parm addr c148 arg 2 -5
+  call get_parm addr c138 arg 3 -5
+  call get_parm addr c158 arg 4 -6
+  call get_parm addr c128 arg 5 -6
+  call fence 0 sym eti_null
+  call lpta_loadpn addr c158
+  call rpta_loadpn addr c128
+  call compare_ptas
+  if answer is not 0
+    go to p106e0
+  end
+  place p1069b
+  call testeq
+  if answer is not 0
+    go to p106e0
+  end
+  place p106a7
+  call lpta_loadpn addr c128
+  call rpta_loadpn addr g638
+  call compare_ptas
+  if answer is not 0
+    go to p106e0
+  end
+  place p106d4
+  call testeq
+  if answer is 0
+    go to p10734
+  end
+  place p106e0
+  call addStreamArraySsVal addr g89c addr cf0 addr c148 addr c138
+  match
+  place p10734
+  call addStreamArrayPtVal addr g89c addr cf0 addr g920 addr g8bc addr g638
+  match
+end
+
+rule extend_vals takes 1
+  instead
+  place p10762
+  place p10795
+  place p107c4
+  call fence 0 sym eti_null
+  match
+end
+
+rule modulate_noise takes 1
+  instead
+  local ce0 bytes 8
+  local cf0 bytes 8
+  local c100 bytes 8
+  local h_rax
+  local h_xmm0
+  variable g1200 word 3104
+  variable g1204 word 3108
+  variable g1208 word 3112
+  variable g120c word 3116
+  variable g1210 word 3120
+  variable g1214 word 3124
+  variable g628 word 884
+  variable g638 word 892
+  variable g8a0 word 1220
+  variable g8a4 word 1224
+  variable g8a8 word 1228
+  variable g8ac word 1232
+  variable g8b0 word 1236
+  variable g8b4 word 1240
+  variable g910 word 1316
+  variable g920 word 1324
+  place p107fb
+  place p1082c
+  place p10888
+  set cell cf0 kind to 65531
+  set ce0 to 65532
+  call push_ptr_init addr c100
+  set h_rax to answer
+  call fence 0 sym eti_null
+  set h_xmm0 to global word 2348
+  scale h_xmm0 by 5000 over 10000
+  add global word 1320 to h_xmm0
+  set cell cf0 value to h_xmm0
+  call starttest 1
+  set h_rax to answer
+  call c_assvar addr ce0
+  set h_rax to answer
+  set h_rax to global half 3090
+  add -5 to h_rax
+  set cell ce0 field to h_rax
+  call doAF addr ce0 addr g910 addr g910 addr g628 addr g628
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p10925
+  go to p1092c
+  place p1092c
+  place t1092c_1 on 1
+  call starttest 2
+  set h_rax to answer
+  call c_assvar addr ce0
+  set h_rax to answer
+  set h_rax to global half 3090
+  add 5 to h_rax
+  set cell ce0 field to h_rax
+  call doAF addr ce0 addr cf0 addr cf0 addr c100 addr c100
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p1097b
+  place t1097b_2 on 2
+  call starttest 3
+  set h_rax to answer
+  call c_assvar addr ce0
+  set h_rax to answer
+  set h_rax to global half 3090
+  add -5 to h_rax
+  set cell ce0 field to h_rax
+  call doAF addr ce0 addr g920 addr g920 addr g638 addr g638
+  set h_rax to answer
+  if h_rax is 0
+    go to p109ff
+  end
+  set unwind to 0
+  backtrack
+  place p109ff
+  place t109ff_3 on 3
+  call addStreamArraySsVal addr g8b4 addr g1214 addr g910 addr g920
+  set h_rax to answer
+  place p10a1f
+  place t10a1f_4 on 4
+  call addStreamArraySsVal addr g8a0 addr g1200 addr g910 addr g920
+  set h_rax to answer
+  place p10a3f
+  place t10a3f_5 on 5
+  call addStreamArraySsVal addr g8a4 addr g1204 addr g910 addr g920
+  set h_rax to answer
+  place p10a5f
+  place t10a5f_6 on 6
+  call addStreamArraySsVal addr g8a8 addr g1208 addr g910 addr g920
+  set h_rax to answer
+  place p10a7f
+  place t10a7f_7 on 7
+  call addStreamArraySsVal addr g8ac addr g120c addr g910 addr g920
+  set h_rax to answer
+  place p10a9f
+  place t10a9f_8 on 8
+  call addStreamArraySsVal addr g8b0 addr g1210 addr g910 addr g920
+  set h_rax to answer
+  place p10abf
+  place t10abf_9 on 9
+  set global half 3210 to 1
+  match
+end
+
+rule modulate_nas_AV takes 1
+  instead
+  local ce0 bytes 8
+  local cf0 bytes 8
+  local h_xmm0
+  variable g11e8 word 3080
+  place p10afc
+  place p10b29
+  place p10b81
+  set cell ce0 value to 0
+  set cell ce0 kind to 65531
+  call push_ptr_init addr cf0
+  call fence 0 sym eti_null
+  if global half 3202 is not 0
+    match
+  end
+  place p10bb3
+  set h_xmm0 to global word 2348
+  scale h_xmm0 by 8000 over 10000
+  add global word 1320 to h_xmm0
+  set cell ce0 value to h_xmm0
+  call doAV addr g11e8 addr ce0 addr ce0 addr cf0 addr cf0
+  set global half 3202 to 1
+  match
+end

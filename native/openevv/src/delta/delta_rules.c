@@ -86,6 +86,7 @@ typedef struct {
     unsigned char *base;          /* the frame base: offset zero */
     void          *state;
     const uint8_t *code;          /* the rule's own first byte */
+    int            jw;            /* bytes that name a place in it */
     int32_t        pc;
     int32_t        answer;
     int            done;
@@ -155,6 +156,18 @@ static int32_t get16s(const uint8_t *p)
 static int32_t get16to(const uint8_t *p)
 {
     return (int32_t)get16(p);
+}
+
+/* The same, in as many bytes as the rule uses for a place: two, and three
+   for one longer than 65,535 bytes, which no rule was until Apple's
+   homograph rule for American English. The length is what says which. */
+static int32_t get_to(const uint8_t *p, int jw)
+{
+    int32_t v = get16to(p);
+
+    if (jw == 3)
+        v |= (int32_t)p[2] << 16;
+    return v;
 }
 
 static int32_t operand_read(interp *st, const uint8_t **pp, int w, int sext);
@@ -434,14 +447,14 @@ static void step(interp *st)
     }
 
     case OP_JUMP:
-        st->pc = get16to(p);
+        st->pc = get_to(p, st->jw);
         return;
 
     case OP_BRANCH: {
         int cond = *p++;
-        int32_t to = get16to(p);
+        int32_t to = get_to(p, st->jw);
 
-        p += 2;
+        p += st->jw;
         if (delta_condition(&st->fl, cond)) {
             st->pc = to;
             return;
@@ -535,10 +548,10 @@ static void step(interp *st)
 
         p += 2;
         if (idx >= 0 && idx < (int32_t)n) {
-            st->pc = get16to(p + 2 * idx);
+            st->pc = get_to(p + st->jw * idx, st->jw);
             return;
         }
-        p += 2 * n;
+        p += st->jw * n;
         break;
     }
 
@@ -1273,6 +1286,7 @@ static int32_t run_bytecode(void *state, const delta_rule *r,
     st.base = frame + r->frame;
     st.state = state;
     st.code = delta_rule_code + r->offset;
+    st.jw = r->length > 0xffff ? 3 : 2;
     st.pc = 0;
 
     for (i = 0; i < nargs && i < r->params; i++)

@@ -1,0 +1,1153 @@
+# The rules of enus, lifted by tools/rules/lift64.py out of ETI
+# Eloquence 6.1 as Apple ships it, by tools/module/lift61.py. Each says
+# `instead' because it is written afresh rather than re-expressed from one of
+# IBM's: nothing of IBM's is under it.
+
+rule set_eng_global_constants takes 1
+  instead
+  place p4ca03
+  place p4ca36
+  place p4ca65
+  call fence 0 sym eti_null
+  and 0 into global half 2462
+  set global half 2474 to 1
+  set global half 4226 to 1
+  set global half 4230 to 2
+  match
+end
+
+rule init_eng_vars takes 1
+  instead
+  place p4cabf
+  place p4caf2
+  place p4cb21
+  call fence 0 sym eti_null
+  and 0 into global half 2698
+  set global half 3626 to global half 3630
+  set global half 2458 to global half 2462
+  match
+end
+
+rule reset_eng_sent_vars takes 1
+  instead
+  place p4cb7c
+  place p4cbaf
+  place p4cbde
+  call fence 0 sym eti_null
+  match
+end
+
+rule init_eng_symbolic_vars takes 1
+  instead
+  local h_r12
+  local h_rax
+  variable g528 word 756
+  place p4cc15
+  place p4cc4a
+  place p4ccaa
+  call fence 0 sym eti_null
+  call init_eng_morph_vars
+  set h_rax to answer
+  go to p4cccc
+  place t4cccc_1 on 1
+  set h_r12 to 1
+  place p4cccc
+  call starttest 2
+  set h_rax to answer
+  call bspush_ca 3
+  set h_rax to answer
+  call lpta_loadp addr g528
+  call setscan_r 4
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4ccf4
+  call testFldeq 4 4 3
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4cd09
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4cd15
+  set h_r12 to 1
+  go to p4cd89
+  go to p4cd4f
+  place t4cd4f_3 on 3
+  set h_r12 to 1
+  place p4cd4f
+  call lpta_loadp addr g528
+  call setscan_r 4
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4cd61
+  call testFldeq 4 4 4
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4cd76
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4cd82
+  go to p4cd89
+  go to p4cd84
+  place t4cd84_2 on 2
+  set h_r12 to 1
+  place p4cd84
+  set h_rax to 0
+  set h_r12 to 0
+  go to p4cd89
+  place t4cd89_4 on 4
+  set h_r12 to 1
+  place p4cd89
+  set global half 4186 to h_r12
+  go to p4cd91
+  place t4cd91_5 on 5
+  set h_r12 to 1
+  place p4cd91
+  and 0 into global half 2718
+  and 0 into global half 2710
+  and 0 into global half 4206
+  set global word 2704 to 0
+  and 0 into global half 4210
+  and 0 into global half 4242
+  call starttest 6
+  set h_rax to answer
+  call lpta_loadp addr g528
+  call setscan_r 4
+  set h_rax to answer
+  if h_rax is 0
+    go to p4ce26
+  end
+  go to p4cdde
+  place t4cdde_6 on 6
+  set h_r12 to 1
+  place p4cdde
+  call starttest 8
+  set h_rax to answer
+  call lpta_loadp addr g528
+  call setscan_r 4
+  set h_rax to answer
+  if h_rax is not 0
+    go to p4ce58
+  end
+  place p4cdfb
+  call testFldeq 4 4 2
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4ce14
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4ce24
+  go to p4ce70
+  place p4ce26
+  call testFldeq 4 4 1
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4ce3f
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4ce4f
+  set h_rax to global half 3634
+  go to p4ce77
+  go to p4ce58
+  place t4ce58_8 on 8
+  set h_r12 to 1
+  place p4ce58
+  set h_rax to 0
+  place p4ce5a
+  set global half 4234 to h_rax
+  match
+  place p4ce70
+  set h_rax to global half 3638
+  place p4ce77
+  go to p4ce5a
+  place tm_7 on 7
+  match
+end
+
+rule init_eng_morph_vars takes 1
+  instead
+  place p4cea4
+  place p4cedb
+  place p4cf0a
+  call fence 0 sym eti_null
+  and 0 into global half 2682
+  and 0 into global half 4202
+  set global half 2686 to 1
+  set global half 4170 to 1
+  and 0 into global half 2726
+  and 0 into global half 4178
+  and 0 into global half 4174
+  set global half 4182 to 1
+  and 0 into global half 4222
+  match
+end
+
+rule register_eng_phones takes 3
+  instead
+  local cf0 bytes 8
+  local cf4 bytes 8
+  local cf8 bytes 8
+  local cfc bytes 8
+  local c100 bytes 8
+  local c104 bytes 8
+  local c108 bytes 8
+  local c10c bytes 8
+  local c110 bytes 8
+  local c114 bytes 8
+  local c118 bytes 8
+  local c11c bytes 8
+  local c120 bytes 8
+  local c124 bytes 8
+  local c128 bytes 8
+  local c12c bytes 8
+  local c130 bytes 8
+  local v138 word
+  variable gea0 word 2496
+  place p4cf8c
+  place p4cfc7
+  place p4d027
+  call get_parm addr c130 arg 1 -4
+  call get_parm addr c12c arg 2 -4
+  set c128 to 65532
+  set c124 to 65532
+  set c120 to 65532
+  set c10c to 65532
+  set c108 to 65532
+  set c104 to 65532
+  set c100 to 65532
+  set cfc to 65532
+  set cf8 to 65532
+  set cf4 to 65532
+  set cf0 to 65532
+  set c110 to 65532
+  set c11c to 65532
+  set c118 to 65532
+  set c114 to 65532
+  call fence 0 sym eti_null
+  call starttest 1
+  call move_i addr c128 65
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 75
+  call move_i addr cf8 150
+  call move_i addr cf4 128
+  call move_i addr cf0 100
+  call move_i addr c110 130
+  call move_i addr c11c 175
+  call move_i addr c118 200
+  call move_i addr c114 125
+  set v138 to addr gea0
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4d2c0
+  go to p4d2c7
+  place p4d2c7
+  place t4d2c7_1 on 1
+  increment global half 2498
+  call starttest 2
+  call move_i addr c114 68
+  call move_i addr c118 0
+  call move_i addr c11c 0
+  call move_i addr c110 0
+  call move_i addr cf0 0
+  call move_i addr cf4 0
+  call move_i addr cf8 0
+  call move_i addr cfc 50
+  call move_i addr c100 100
+  call move_i addr c104 128
+  call move_i addr c108 25
+  call move_i addr c10c 130
+  call move_i addr c120 130
+  call move_i addr c124 180
+  call move_i addr c128 125
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c114 addr c118 addr c11c addr c110 addr cf0 addr cf4 addr cf8 addr cfc addr c100 addr c104 addr c108 addr c10c addr c120 addr c124 addr c128
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4d48b
+  place t4d48b_2 on 2
+  increment global half 2498
+  call starttest 3
+  call move_i addr c128 69
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 50
+  call move_i addr cf8 100
+  call move_i addr cf4 128
+  call move_i addr cf0 75
+  call move_i addr c110 130
+  call move_i addr c11c 175
+  call move_i addr c118 0
+  call move_i addr c114 125
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4d64b
+  place t4d64b_3 on 3
+  increment global half 2498
+  call starttest 4
+  call move_i addr c114 70
+  call move_i addr c118 0
+  call move_i addr c11c 0
+  call move_i addr c110 0
+  call move_i addr cf0 0
+  call move_i addr cf4 0
+  call move_i addr cf8 0
+  call move_i addr cfc 75
+  call move_i addr c100 150
+  call move_i addr c104 128
+  call move_i addr c108 50
+  call move_i addr c10c 130
+  call move_i addr c120 130
+  call move_i addr c124 255
+  call move_i addr c128 0
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c114 addr c118 addr c11c addr c110 addr cf0 addr cf4 addr cf8 addr cfc addr c100 addr c104 addr c108 addr c10c addr c120 addr c124 addr c128
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4d814
+  place t4d814_4 on 4
+  increment global half 2498
+  call starttest 5
+  call move_i addr c128 71
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 50
+  call move_i addr cf8 100
+  call move_i addr cf4 128
+  call move_i addr cf0 75
+  call move_i addr c110 130
+  call move_i addr c11c 130
+  call move_i addr c118 0
+  call move_i addr c114 0
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4d9d9
+  place t4d9d9_5 on 5
+  increment global half 2498
+  call starttest 6
+  call move_i addr c114 72
+  call move_i addr c118 0
+  call move_i addr c11c 0
+  call move_i addr c110 0
+  call move_i addr cf0 0
+  call move_i addr cf4 0
+  call move_i addr cf8 0
+  call move_i addr cfc 50
+  call move_i addr c100 75
+  call move_i addr c104 128
+  call move_i addr c108 100
+  call move_i addr c10c 150
+  call move_i addr c120 130
+  call move_i addr c124 0
+  call move_i addr c128 100
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c114 addr c118 addr c11c addr c110 addr cf0 addr cf4 addr cf8 addr cfc addr c100 addr c104 addr c108 addr c10c addr c120 addr c124 addr c128
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4dba0
+  place t4dba0_6 on 6
+  increment global half 2498
+  call starttest 7
+  call move_i addr c128 73
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 50
+  call move_i addr cf8 100
+  call move_i addr cf4 128
+  call move_i addr cf0 50
+  call move_i addr c110 130
+  call move_i addr c11c 175
+  call move_i addr c118 0
+  call move_i addr c114 125
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4dd64
+  place t4dd64_7 on 7
+  increment global half 2498
+  call starttest 8
+  call move_i addr c114 82
+  call move_i addr c118 0
+  call move_i addr c11c 0
+  call move_i addr c110 0
+  call move_i addr cf0 0
+  call move_i addr cf4 0
+  call move_i addr cf8 0
+  call move_i addr cfc 75
+  call move_i addr c100 100
+  call move_i addr c104 128
+  call move_i addr c108 75
+  call move_i addr c10c 130
+  call move_i addr c120 0
+  call move_i addr c124 0
+  call move_i addr c128 150
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c114 addr c118 addr c11c addr c110 addr cf0 addr cf4 addr cf8 addr cfc addr c100 addr c104 addr c108 addr c10c addr c120 addr c124 addr c128
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4df28
+  place t4df28_8 on 8
+  increment global half 2498
+  call starttest 9
+  call move_i addr c128 83
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 75
+  call move_i addr cf8 125
+  call move_i addr cf4 128
+  call move_i addr cf0 100
+  call move_i addr c110 130
+  call move_i addr c11c 130
+  call move_i addr c118 0
+  call move_i addr c114 200
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4e0ec
+  place t4e0ec_9 on 9
+  increment global half 2498
+  call starttest 10
+  call move_i addr c114 84
+  call move_i addr c118 0
+  call move_i addr c11c 0
+  call move_i addr c110 0
+  call move_i addr cf0 0
+  call move_i addr cf4 0
+  call move_i addr cf8 0
+  call move_i addr cfc 50
+  call move_i addr c100 100
+  call move_i addr c104 128
+  call move_i addr c108 25
+  call move_i addr c10c 130
+  call move_i addr c120 130
+  call move_i addr c124 180
+  call move_i addr c128 125
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c114 addr c118 addr c11c addr c110 addr cf0 addr cf4 addr cf8 addr cfc addr c100 addr c104 addr c108 addr c10c addr c120 addr c124 addr c128
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4e2b0
+  place t4e2b0_10 on 10
+  increment global half 2498
+  call starttest 11
+  call move_i addr c128 85
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 25
+  call move_i addr cf8 0
+  call move_i addr cf4 130
+  call move_i addr cf0 90
+  call move_i addr c110 60
+  call move_i addr c11c 60
+  call move_i addr c118 0
+  call move_i addr c114 255
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4e472
+  place t4e472_11 on 11
+  increment global half 2498
+  call starttest 12
+  call move_i addr c114 88
+  call move_i addr c118 0
+  call move_i addr c11c 0
+  call move_i addr c110 0
+  call move_i addr cf0 0
+  call move_i addr cf4 0
+  call move_i addr cf8 0
+  call move_i addr cfc 10
+  call move_i addr c100 50
+  call move_i addr c104 128
+  call move_i addr c108 50
+  call move_i addr c10c 130
+  call move_i addr c120 0
+  call move_i addr c124 0
+  call move_i addr c128 0
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c114 addr c118 addr c11c addr c110 addr cf0 addr cf4 addr cf8 addr cfc addr c100 addr c104 addr c108 addr c10c addr c120 addr c124 addr c128
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4e637
+  place t4e637_12 on 12
+  increment global half 2498
+  call starttest 13
+  call move_i addr c128 90
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 75
+  call move_i addr cf8 125
+  call move_i addr cf4 128
+  call move_i addr cf0 100
+  call move_i addr c110 130
+  call move_i addr c11c 130
+  call move_i addr c118 0
+  call move_i addr c114 200
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4e7fb
+  place t4e7fb_13 on 13
+  increment global half 2498
+  call starttest 14
+  call move_i addr c114 97
+  call move_i addr c118 0
+  call move_i addr c11c 0
+  call move_i addr c110 0
+  call move_i addr cf0 0
+  call move_i addr cf4 0
+  call move_i addr cf8 0
+  call move_i addr cfc 100
+  call move_i addr c100 125
+  call move_i addr c104 128
+  call move_i addr c108 200
+  call move_i addr c10c 150
+  call move_i addr c120 130
+  call move_i addr c124 150
+  call move_i addr c128 150
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c114 addr c118 addr c11c addr c110 addr cf0 addr cf4 addr cf8 addr cfc addr c100 addr c104 addr c108 addr c10c addr c120 addr c124 addr c128
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4e9c4
+  place t4e9c4_14 on 14
+  increment global half 2498
+  call starttest 15
+  call move_i addr c128 98
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 0
+  call move_i addr cf8 100
+  call move_i addr cf4 128
+  call move_i addr cf0 0
+  call move_i addr c110 0
+  call move_i addr c11c 0
+  call move_i addr c118 0
+  call move_i addr c114 200
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4eb82
+  place t4eb82_15 on 15
+  increment global half 2498
+  call starttest 16
+  call move_i addr c114 99
+  call move_i addr c118 0
+  call move_i addr c11c 0
+  call move_i addr c110 0
+  call move_i addr cf0 0
+  call move_i addr cf4 0
+  call move_i addr cf8 0
+  call move_i addr cfc 25
+  call move_i addr c100 0
+  call move_i addr c104 130
+  call move_i addr c108 150
+  call move_i addr c10c 60
+  call move_i addr c120 60
+  call move_i addr c124 0
+  call move_i addr c128 255
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c114 addr c118 addr c11c addr c110 addr cf0 addr cf4 addr cf8 addr cfc addr c100 addr c104 addr c108 addr c10c addr c120 addr c124 addr c128
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4ed46
+  place t4ed46_16 on 16
+  increment global half 2498
+  call starttest 17
+  call move_i addr c128 100
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 75
+  call move_i addr cf8 150
+  call move_i addr cf4 128
+  call move_i addr cf0 50
+  call move_i addr c110 130
+  call move_i addr c11c 130
+  call move_i addr c118 255
+  call move_i addr c114 0
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4ef0f
+  place t4ef0f_17 on 17
+  increment global half 2498
+  call starttest 18
+  call move_i addr c114 101
+  call move_i addr c118 0
+  call move_i addr c11c 0
+  call move_i addr c110 0
+  call move_i addr cf0 0
+  call move_i addr cf4 0
+  call move_i addr cf8 0
+  call move_i addr cfc 50
+  call move_i addr c100 100
+  call move_i addr c104 128
+  call move_i addr c108 75
+  call move_i addr c10c 130
+  call move_i addr c120 175
+  call move_i addr c124 0
+  call move_i addr c128 255
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c114 addr c118 addr c11c addr c110 addr cf0 addr cf4 addr cf8 addr cfc addr c100 addr c104 addr c108 addr c10c addr c120 addr c124 addr c128
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4f0d1
+  place t4f0d1_18 on 18
+  increment global half 2498
+  call starttest 19
+  call move_i addr c128 102
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 10
+  call move_i addr cf8 100
+  call move_i addr cf4 128
+  call move_i addr cf0 25
+  call move_i addr c110 130
+  call move_i addr c11c 0
+  call move_i addr c118 0
+  call move_i addr c114 200
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4f291
+  place t4f291_19 on 19
+  increment global half 2498
+  call starttest 20
+  call move_i addr c114 103
+  call move_i addr c118 0
+  call move_i addr c11c 0
+  call move_i addr c110 0
+  call move_i addr cf0 0
+  call move_i addr cf4 0
+  call move_i addr cf8 0
+  call move_i addr cfc 50
+  call move_i addr c100 100
+  call move_i addr c104 128
+  call move_i addr c108 75
+  call move_i addr c10c 130
+  call move_i addr c120 130
+  call move_i addr c124 0
+  call move_i addr c128 0
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c114 addr c118 addr c11c addr c110 addr cf0 addr cf4 addr cf8 addr cfc addr c100 addr c104 addr c108 addr c10c addr c120 addr c124 addr c128
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4f456
+  place t4f456_20 on 20
+  increment global half 2498
+  call starttest 21
+  call move_i addr c128 105
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 25
+  call move_i addr cf8 150
+  call move_i addr cf4 128
+  call move_i addr cf0 50
+  call move_i addr c110 130
+  call move_i addr c11c 130
+  call move_i addr c118 0
+  call move_i addr c114 255
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4f61c
+  place t4f61c_21 on 21
+  increment global half 2498
+  call starttest 22
+  call move_i addr c114 107
+  call move_i addr c118 0
+  call move_i addr c11c 0
+  call move_i addr c110 0
+  call move_i addr cf0 0
+  call move_i addr cf4 0
+  call move_i addr cf8 0
+  call move_i addr cfc 50
+  call move_i addr c100 100
+  call move_i addr c104 128
+  call move_i addr c108 75
+  call move_i addr c10c 130
+  call move_i addr c120 130
+  call move_i addr c124 0
+  call move_i addr c128 0
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c114 addr c118 addr c11c addr c110 addr cf0 addr cf4 addr cf8 addr cfc addr c100 addr c104 addr c108 addr c10c addr c120 addr c124 addr c128
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4f7e1
+  place t4f7e1_22 on 22
+  increment global half 2498
+  call starttest 23
+  call move_i addr c128 108
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 75
+  call move_i addr cf8 150
+  call move_i addr cf4 128
+  call move_i addr cf0 50
+  call move_i addr c110 130
+  call move_i addr c11c 130
+  call move_i addr c118 255
+  call move_i addr c114 0
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4f9aa
+  place t4f9aa_23 on 23
+  increment global half 2498
+  call starttest 24
+  call move_i addr c114 109
+  call move_i addr c118 0
+  call move_i addr c11c 0
+  call move_i addr c110 0
+  call move_i addr cf0 0
+  call move_i addr cf4 0
+  call move_i addr cf8 0
+  call move_i addr cfc 0
+  call move_i addr c100 100
+  call move_i addr c104 128
+  call move_i addr c108 0
+  call move_i addr c10c 0
+  call move_i addr c120 0
+  call move_i addr c124 0
+  call move_i addr c128 200
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c114 addr c118 addr c11c addr c110 addr cf0 addr cf4 addr cf8 addr cfc addr c100 addr c104 addr c108 addr c10c addr c120 addr c124 addr c128
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4fb68
+  place t4fb68_24 on 24
+  increment global half 2498
+  call starttest 25
+  call move_i addr c128 110
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 75
+  call move_i addr cf8 150
+  call move_i addr cf4 128
+  call move_i addr cf0 50
+  call move_i addr c110 130
+  call move_i addr c11c 130
+  call move_i addr c118 255
+  call move_i addr c114 0
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4fd31
+  place t4fd31_25 on 25
+  increment global half 2498
+  call starttest 26
+  call move_i addr c114 111
+  call move_i addr c118 0
+  call move_i addr c11c 0
+  call move_i addr c110 0
+  call move_i addr cf0 0
+  call move_i addr cf4 0
+  call move_i addr cf8 0
+  call move_i addr cfc 25
+  call move_i addr c100 0
+  call move_i addr c104 130
+  call move_i addr c108 130
+  call move_i addr c10c 60
+  call move_i addr c120 60
+  call move_i addr c124 0
+  call move_i addr c128 255
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c114 addr c118 addr c11c addr c110 addr cf0 addr cf4 addr cf8 addr cfc addr c100 addr c104 addr c108 addr c10c addr c120 addr c124 addr c128
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p4fef7
+  place t4fef7_26 on 26
+  increment global half 2498
+  call starttest 27
+  call move_i addr c128 112
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 0
+  call move_i addr cf8 100
+  call move_i addr cf4 128
+  call move_i addr cf0 0
+  call move_i addr c110 0
+  call move_i addr c11c 0
+  call move_i addr c118 0
+  call move_i addr c114 200
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p500b5
+  place t500b5_27 on 27
+  increment global half 2498
+  call starttest 28
+  call move_i addr c114 114
+  call move_i addr c118 0
+  call move_i addr c11c 0
+  call move_i addr c110 0
+  call move_i addr cf0 0
+  call move_i addr cf4 0
+  call move_i addr cf8 0
+  call move_i addr cfc 75
+  call move_i addr c100 50
+  call move_i addr c104 128
+  call move_i addr c108 75
+  call move_i addr c10c 130
+  call move_i addr c120 0
+  call move_i addr c124 0
+  call move_i addr c128 175
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c114 addr c118 addr c11c addr c110 addr cf0 addr cf4 addr cf8 addr cfc addr c100 addr c104 addr c108 addr c10c addr c120 addr c124 addr c128
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p50279
+  place t50279_28 on 28
+  increment global half 2498
+  call starttest 29
+  call move_i addr c128 115
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 50
+  call move_i addr cf8 100
+  call move_i addr cf4 128
+  call move_i addr cf0 75
+  call move_i addr c110 130
+  call move_i addr c11c 130
+  call move_i addr c118 150
+  call move_i addr c114 0
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p50440
+  place t50440_29 on 29
+  increment global half 2498
+  call starttest 30
+  call move_i addr c114 116
+  call move_i addr c118 0
+  call move_i addr c11c 0
+  call move_i addr c110 0
+  call move_i addr cf0 0
+  call move_i addr cf4 0
+  call move_i addr cf8 0
+  call move_i addr cfc 75
+  call move_i addr c100 150
+  call move_i addr c104 128
+  call move_i addr c108 50
+  call move_i addr c10c 130
+  call move_i addr c120 130
+  call move_i addr c124 255
+  call move_i addr c128 0
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c114 addr c118 addr c11c addr c110 addr cf0 addr cf4 addr cf8 addr cfc addr c100 addr c104 addr c108 addr c10c addr c120 addr c124 addr c128
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p50609
+  place t50609_30 on 30
+  increment global half 2498
+  call starttest 31
+  call move_i addr c128 117
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 25
+  call move_i addr cf8 0
+  call move_i addr cf4 130
+  call move_i addr cf0 90
+  call move_i addr c110 60
+  call move_i addr c11c 60
+  call move_i addr c118 0
+  call move_i addr c114 255
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p507cb
+  place t507cb_31 on 31
+  increment global half 2498
+  call starttest 32
+  call move_i addr c114 118
+  call move_i addr c118 0
+  call move_i addr c11c 0
+  call move_i addr c110 0
+  call move_i addr cf0 0
+  call move_i addr cf4 0
+  call move_i addr cf8 0
+  call move_i addr cfc 10
+  call move_i addr c100 100
+  call move_i addr c104 128
+  call move_i addr c108 25
+  call move_i addr c10c 130
+  call move_i addr c120 0
+  call move_i addr c124 0
+  call move_i addr c128 200
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c114 addr c118 addr c11c addr c110 addr cf0 addr cf4 addr cf8 addr cfc addr c100 addr c104 addr c108 addr c10c addr c120 addr c124 addr c128
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p5098b
+  place t5098b_32 on 32
+  increment global half 2498
+  call starttest 33
+  call move_i addr c128 119
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 25
+  call move_i addr cf8 0
+  call move_i addr cf4 130
+  call move_i addr cf0 90
+  call move_i addr c110 60
+  call move_i addr c11c 60
+  call move_i addr c118 0
+  call move_i addr c114 255
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p50b4d
+  place t50b4d_33 on 33
+  increment global half 2498
+  call starttest 34
+  call move_i addr c114 120
+  call move_i addr c118 0
+  call move_i addr c11c 0
+  call move_i addr c110 0
+  call move_i addr cf0 0
+  call move_i addr cf4 0
+  call move_i addr cf8 0
+  call move_i addr cfc 10
+  call move_i addr c100 50
+  call move_i addr c104 128
+  call move_i addr c108 75
+  call move_i addr c10c 130
+  call move_i addr c120 0
+  call move_i addr c124 0
+  call move_i addr c128 0
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c114 addr c118 addr c11c addr c110 addr cf0 addr cf4 addr cf8 addr cfc addr c100 addr c104 addr c108 addr c10c addr c120 addr c124 addr c128
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p50d0e
+  place t50d0e_34 on 34
+  increment global half 2498
+  call starttest 35
+  call move_i addr c128 121
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 25
+  call move_i addr cf8 150
+  call move_i addr cf4 128
+  call move_i addr cf0 50
+  call move_i addr c110 130
+  call move_i addr c11c 130
+  call move_i addr c118 0
+  call move_i addr c114 255
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p50ed4
+  place t50ed4_35 on 35
+  increment global half 2498
+  call starttest 36
+  call move_i addr c114 122
+  call move_i addr c118 0
+  call move_i addr c11c 0
+  call move_i addr c110 0
+  call move_i addr cf0 0
+  call move_i addr cf4 0
+  call move_i addr cf8 0
+  call move_i addr cfc 50
+  call move_i addr c100 100
+  call move_i addr c104 128
+  call move_i addr c108 75
+  call move_i addr c10c 130
+  call move_i addr c120 130
+  call move_i addr c124 150
+  call move_i addr c128 0
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c114 addr c118 addr c11c addr c110 addr cf0 addr cf4 addr cf8 addr cfc addr c100 addr c104 addr c108 addr c10c addr c120 addr c124 addr c128
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p5109b
+  place t5109b_36 on 36
+  increment global half 2498
+  call starttest 37
+  call move_i addr c128 164
+  call move_i addr c124 0
+  call move_i addr c120 0
+  call move_i addr c10c 0
+  call move_i addr c108 0
+  call move_i addr c104 0
+  call move_i addr c100 0
+  call move_i addr cfc 0
+  call move_i addr cf8 170
+  call move_i addr cf4 128
+  call move_i addr cf0 0
+  call move_i addr c110 0
+  call move_i addr c11c 0
+  call move_i addr c118 0
+  call move_i addr c114 0
+  call registerPhoneme addr c130 addr c12c addr gea0 addr c128 addr c124 addr c120 addr c10c addr c108 addr c104 addr c100 addr cfc addr cf8 addr cf4 addr cf0 addr c110 addr c11c addr c118 addr c114
+  if answer is 0
+    go to p5128f
+  end
+  set unwind to 0
+  backtrack
+  place p5128f
+  place t5128f_37 on 37
+  increment global half 2498
+  match
+end

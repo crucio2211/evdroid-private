@@ -75,7 +75,8 @@ class EvvPreview(private val language: Int) {
 		rateHz: Int,
 		audio: AudioOutput.Snapshot = AudioOutput.Snapshot(),
 		ratePercent: Int? = null,
-		pitchPercent: Int? = null
+		pitchPercent: Int? = null,
+		pauseMode: Int? = null
 	) {
 		// Whatever is being said stops first, and the turn this utterance
 		// belongs to is taken after that -- stopping is what moves the count
@@ -87,6 +88,7 @@ class EvvPreview(private val language: Int) {
 			if (mine != generation) return@post
 			val e = engine ?: EvvEngine.open(language)?.also { engine = it } ?: return@post
 			e.setSampleRate(rateHz)
+			pauseMode?.let { e.setPauseMode(it) }
 			e.applyVoice(voice, shape)
 			ratePercent?.let { e.setRatePercent(it) }
 			pitchPercent?.let { e.setPitchPercent(it) }

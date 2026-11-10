@@ -1,0 +1,2099 @@
+# The rules of enus, lifted by tools/rules/lift64.py out of ETI
+# Eloquence 6.1 as Apple ships it, by tools/module/lift61.py. Each says
+# `instead' because it is written afresh rather than re-expressed from one of
+# IBM's: nothing of IBM's is under it.
+
+rule pnames takes 3
+  instead
+  local c100 bytes 8
+  local c110 bytes 8
+  local h_r12
+  local h_r13
+  local h_r14
+  local h_r15
+  local h_rax
+  local h_rcx
+  local h_rdx
+  local n6e5e2_0
+  place p6d6e7
+  set h_r14 to arg 2
+  set h_r15 to arg 1
+  set h_r13 to 94
+  place p6d72a
+  place p6d759
+  set h_r12 to addr c110
+  set h_r13 to -6
+  set h_rdx to arg 1
+  set h_rcx to -6
+  call get_parm addr c110 h_rdx h_rcx
+  set h_rax to answer
+  set h_r15 to addr c100
+  set h_rdx to arg 2
+  set h_rcx to -6
+  call get_parm addr c100 h_rdx h_rcx
+  set h_rax to answer
+  call fence 0 sym eti_null
+  set h_rdx to addr c100
+  call lpta_rpta_loadp addr c110 h_rdx
+  set h_rax to answer
+  set h_rax to 0
+  set h_rcx to 0
+  set h_rdx to 0
+  call actd_lookup 11 h_rdx h_rcx
+  set h_rax to answer
+  if h_rax is 0
+    go to p6d7ee
+  end
+  give up
+  place p6d7ee
+  set h_r13 to 5
+  set h_rax to 0
+  set h_r12 to 0
+  place p6d7f6
+  call starttest 276
+  set h_rax to answer
+  if global half 2698 is 1
+    match
+  end
+  place p6d811
+  set h_r14 to h_r13
+  set h_r15 to h_r12
+  call actd_goto
+  set h_rax to answer
+  set unwind to 0
+  backtrack
+  go to p6d866
+  place t6d866_102 on 102
+  place t6d866_103 on 103
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d866
+  set h_r14 to 7
+  set h_r12 to sym eti_s_1b9f8c
+  go to p6e5cc
+  go to p6d871
+  place t6d871_1 on 1
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d871
+  set h_r14 to 4
+  set h_r12 to sym eti_s_1b9d4b
+  go to p6e5cc
+  go to p6d880
+  place t6d880_2 on 2
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d880
+  set h_r12 to sym eti_s_1b9d4f
+  go to p6e599
+  go to p6d88c
+  place t6d88c_3 on 3
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d88c
+  set h_r12 to sym eti_s_1b9d56
+  go to p6e57c
+  go to p6d898
+  place t6d898_4 on 4
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d898
+  set h_r12 to sym eti_s_1b9d5c
+  go to p6e5c9
+  go to p6d8a4
+  place t6d8a4_5 on 5
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d8a4
+  set h_r12 to sym eti_s_1b9d5f
+  go to p6e5cc
+  go to p6d8b0
+  place t6d8b0_6 on 6
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d8b0
+  set h_r12 to sym eti_s_1b9d64
+  go to p6e5cc
+  go to p6d8bc
+  place t6d8bc_7 on 7
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d8bc
+  set h_r12 to sym eti_s_1b9d69
+  go to p6e5cc
+  go to p6d8c8
+  place t6d8c8_8 on 8
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d8c8
+  set h_r12 to sym eti_s_1b9d6e
+  go to p6e5a5
+  go to p6d8d4
+  place t6d8d4_9 on 9
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d8d4
+  set h_r12 to sym eti_s_1b9d72
+  go to p6e599
+  go to p6d8e0
+  place t6d8e0_10 on 10
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d8e0
+  set h_r12 to sym eti_s_1b9d79
+  go to p6e5b1
+  go to p6d8ec
+  place t6d8ec_11 on 11
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d8ec
+  set h_r12 to sym eti_s_1b9d83
+  go to p6e559
+  go to p6d8f8
+  place t6d8f8_12 on 12
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d8f8
+  set h_r12 to sym eti_s_1b9d8c
+  go to p6e5a5
+  go to p6d904
+  place t6d904_13 on 13
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d904
+  set h_r12 to sym eti_s_1b9d90
+  go to p6e599
+  go to p6d910
+  place t6d910_14 on 14
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d910
+  set h_r12 to sym eti_s_1b9d97
+  set h_r14 to 7
+  set h_r15 to 120
+  go to p6e5cc
+  go to p6d924
+  place t6d924_15 on 15
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d924
+  set h_r12 to sym eti_s_1b9d9e
+  go to p6e57c
+  go to p6d930
+  place t6d930_16 on 16
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d930
+  set h_r12 to sym eti_s_1b9da4
+  go to p6e599
+  go to p6d93c
+  place t6d93c_17 on 17
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d93c
+  set h_r12 to sym eti_s_1b9dab
+  go to p6e5cc
+  go to p6d948
+  place t6d948_18 on 18
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d948
+  set h_r12 to sym eti_s_1b9db0
+  go to p6e5a5
+  go to p6d954
+  place t6d954_19 on 19
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d954
+  set h_r12 to sym eti_s_1b9db4
+  go to p6e5cc
+  go to p6d960
+  place t6d960_20 on 20
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d960
+  set h_r12 to sym eti_s_1b9db9
+  go to p6e1ba
+  go to p6d96c
+  place t6d96c_21 on 21
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d96c
+  set h_r12 to sym eti_s_1b9dbe
+  go to p6e559
+  go to p6d978
+  place t6d978_22 on 22
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d978
+  set h_r12 to sym eti_s_1b9dc7
+  go to p6e57c
+  go to p6d984
+  place t6d984_23 on 23
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d984
+  set h_r12 to sym eti_s_1b9dcd
+  go to p6e5c9
+  go to p6d990
+  place t6d990_24 on 24
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d990
+  set h_r12 to sym eti_s_1b9dd0
+  go to p6e5cc
+  go to p6d99c
+  place t6d99c_25 on 25
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d99c
+  set h_r12 to sym eti_s_1b9dd5
+  go to p6e57c
+  go to p6d9a8
+  place t6d9a8_26 on 26
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d9a8
+  set h_r12 to sym eti_s_1b9ddb
+  go to p6e599
+  go to p6d9b4
+  place t6d9b4_27 on 27
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d9b4
+  set h_r12 to sym eti_s_1b9de2
+  go to p6e53e
+  go to p6d9c0
+  place t6d9c0_28 on 28
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d9c0
+  set h_r12 to sym eti_s_1b9dea
+  set h_r14 to 6
+  go to p6dcb5
+  go to p6d9cf
+  place t6d9cf_29 on 29
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d9cf
+  set h_r12 to sym eti_s_1b9df0
+  go to p6dc0e
+  go to p6d9db
+  place t6d9db_30 on 30
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d9db
+  set h_r12 to sym eti_s_1b9df4
+  go to p6e599
+  go to p6d9e7
+  place t6d9e7_31 on 31
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d9e7
+  set h_r12 to sym eti_s_1b9dfb
+  go to p6e5c9
+  go to p6d9f3
+  place t6d9f3_32 on 32
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d9f3
+  set h_r12 to sym eti_s_1b9dfe
+  go to p6e5cc
+  go to p6d9ff
+  place t6d9ff_33 on 33
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6d9ff
+  set h_r12 to sym eti_s_1b9e03
+  go to p6e53e
+  go to p6da0b
+  place t6da0b_34 on 34
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6da0b
+  set h_r12 to sym eti_s_1b9e0b
+  go to p6e5a5
+  go to p6da17
+  place t6da17_35 on 35
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6da17
+  set h_r12 to sym eti_s_1b9e0f
+  go to p6e599
+  go to p6da23
+  place t6da23_36 on 36
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6da23
+  set h_r12 to sym eti_s_1b9e16
+  go to p6e57c
+  go to p6da2f
+  place t6da2f_37 on 37
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6da2f
+  set h_r12 to sym eti_s_1b9e1c
+  go to p6e57c
+  go to p6da3b
+  place t6da3b_38 on 38
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6da3b
+  set h_r12 to sym eti_s_1b9e22
+  go to p6e599
+  go to p6da47
+  place t6da47_39 on 39
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6da47
+  set h_r12 to sym eti_s_1b9e29
+  go to p6e57c
+  go to p6da53
+  place t6da53_40 on 40
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6da53
+  set h_r12 to sym eti_s_1b9e2f
+  go to p6e53e
+  go to p6da5f
+  place t6da5f_41 on 41
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6da5f
+  set h_r12 to sym eti_s_1b9e37
+  go to p6e5cc
+  go to p6da6b
+  place t6da6b_42 on 42
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6da6b
+  set h_r12 to sym eti_s_1b9e3c
+  go to p6e5cc
+  go to p6da77
+  place t6da77_43 on 43
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6da77
+  set h_r12 to sym eti_s_1b9e41
+  go to p6e5a5
+  go to p6da83
+  place t6da83_44 on 44
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6da83
+  set h_r12 to sym eti_s_1b9e45
+  go to p6e5cc
+  go to p6da8f
+  place t6da8f_45 on 45
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6da8f
+  set h_r12 to sym eti_s_1b9e4a
+  set h_r14 to 7
+  go to p6dcb5
+  go to p6da9e
+  place t6da9e_46 on 46
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6da9e
+  set h_r12 to sym eti_s_1b9e51
+  go to p6e5cc
+  go to p6daaa
+  place t6daaa_47 on 47
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6daaa
+  set h_r12 to sym eti_s_1b9e56
+  go to p6e57c
+  go to p6dab6
+  place t6dab6_48 on 48
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dab6
+  set h_r12 to sym eti_s_1b9e5c
+  go to p6e5a5
+  go to p6dac2
+  place t6dac2_49 on 49
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dac2
+  set h_r12 to sym eti_s_1b9e60
+  go to p6e5cc
+  go to p6dace
+  place t6dace_50 on 50
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dace
+  set h_r12 to sym eti_s_1b9e65
+  go to p6e5a5
+  go to p6dada
+  place t6dada_51 on 51
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dada
+  set h_r12 to sym eti_s_1b9e69
+  go to p6e5c9
+  go to p6dae6
+  place t6dae6_52 on 52
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dae6
+  set h_r12 to sym eti_s_1b9e6c
+  go to p6e5a5
+  go to p6daf2
+  place t6daf2_53 on 53
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6daf2
+  set h_r12 to sym eti_s_1b9e70
+  set h_r14 to 9
+  go to p6e475
+  go to p6db01
+  place t6db01_54 on 54
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6db01
+  set h_r12 to sym eti_s_1b9e79
+  go to p6e599
+  go to p6db0d
+  place t6db0d_55 on 55
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6db0d
+  set h_r12 to sym eti_s_1b9e80
+  go to p6e5a5
+  go to p6db19
+  place t6db19_56 on 56
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6db19
+  set h_r12 to sym eti_s_1b9e84
+  go to p6e57c
+  go to p6db25
+  place t6db25_57 on 57
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6db25
+  set h_r12 to sym eti_s_1b9e8a
+  go to p6e5a5
+  go to p6db31
+  place t6db31_58 on 58
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6db31
+  set h_r12 to sym eti_s_1b9e8e
+  go to p6e5c9
+  go to p6db3d
+  place t6db3d_59 on 59
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6db3d
+  set h_r12 to sym eti_s_1b9e91
+  set h_r14 to 6
+  go to p6e1d7
+  go to p6db4c
+  place t6db4c_60 on 60
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6db4c
+  set h_r12 to sym eti_s_1b9e97
+  go to p6e5a5
+  go to p6db58
+  place t6db58_61 on 61
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6db58
+  set h_r12 to sym eti_s_1b9e9b
+  go to p6e57c
+  go to p6db64
+  place t6db64_62 on 62
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6db64
+  set h_r12 to sym eti_s_1b9ea1
+  set h_r14 to 13
+  go to p6dcc9
+  go to p6db73
+  place t6db73_63 on 63
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6db73
+  set h_r12 to sym eti_s_1b9eae
+  go to p6e57c
+  go to p6db7f
+  place t6db7f_64 on 64
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6db7f
+  set h_r12 to sym eti_s_1b9eb4
+  go to p6e599
+  go to p6db8b
+  place t6db8b_65 on 65
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6db8b
+  set h_r12 to sym eti_s_1b9ebb
+  go to p6e5cc
+  go to p6db97
+  place t6db97_66 on 66
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6db97
+  set h_r12 to sym eti_s_1b9ec0
+  go to p6e5a5
+  go to p6dba3
+  place t6dba3_67 on 67
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dba3
+  set h_r12 to sym eti_s_1b9ec4
+  go to p6dc43
+  go to p6dbaf
+  place t6dbaf_68 on 68
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dbaf
+  set h_r12 to sym eti_s_1b9ecb
+  go to p6e5cc
+  go to p6dbbb
+  place t6dbbb_69 on 69
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dbbb
+  set h_r12 to sym eti_s_1b9ed0
+  set h_r14 to 7
+  set h_r15 to 2201
+  go to p6e5cc
+  go to p6dbcf
+  place t6dbcf_70 on 70
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dbcf
+  set h_r12 to sym eti_s_1b9ed7
+  go to p6e486
+  go to p6dbdb
+  place t6dbdb_71 on 71
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dbdb
+  set h_r12 to sym eti_s_1b9edc
+  go to p6e5a5
+  go to p6dbe7
+  place t6dbe7_72 on 72
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dbe7
+  set h_r12 to sym eti_s_1b9ee0
+  set h_r14 to 8
+  set h_r15 to 2100
+  go to p6e5cc
+  go to p6dbfb
+  place t6dbfb_73 on 73
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dbfb
+  set h_r12 to sym eti_s_1b9ee8
+  go to p6e53e
+  go to p6dc07
+  place t6dc07_74 on 74
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dc07
+  set h_r12 to sym eti_s_1b9ef0
+  place p6dc0e
+  set h_r15 to 21
+  go to p6e5a5
+  go to p6dc18
+  place t6dc18_75 on 75
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dc18
+  set h_r12 to sym eti_s_1b9ef4
+  go to p6e5c9
+  go to p6dc24
+  place t6dc24_76 on 76
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dc24
+  set h_r12 to sym eti_s_1b9ef7
+  go to p6e5bd
+  go to p6dc30
+  place t6dc30_77 on 77
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dc30
+  set h_r12 to sym eti_s_1b9ef9
+  go to p6e3fc
+  go to p6dc3c
+  place t6dc3c_78 on 78
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dc3c
+  set h_r12 to sym eti_s_1b9efe
+  place p6dc43
+  set h_r14 to 7
+  go to p6e3fc
+  go to p6dc4b
+  place t6dc4b_79 on 79
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dc4b
+  set h_r12 to sym eti_s_1b9f05
+  go to p6e3fc
+  go to p6dc57
+  place t6dc57_80 on 80
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dc57
+  set h_r12 to sym eti_s_1b9f0a
+  go to p6e53e
+  go to p6dc63
+  place t6dc63_81 on 81
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dc63
+  set h_r12 to sym eti_s_1b9f12
+  go to p6e5cc
+  go to p6dc6f
+  place t6dc6f_82 on 82
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dc6f
+  set h_r12 to sym eti_s_1b9f17
+  go to p6e53e
+  go to p6dc7b
+  place t6dc7b_83 on 83
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dc7b
+  set h_r12 to sym eti_s_1b9f1f
+  go to p6e1ba
+  go to p6dc87
+  place t6dc87_84 on 84
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dc87
+  set h_r12 to sym eti_s_1b9f24
+  go to p6e5a5
+  go to p6dc93
+  place t6dc93_85 on 85
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dc93
+  set h_r12 to sym eti_s_1b9f28
+  go to p6e274
+  go to p6dc9f
+  place t6dc9f_86 on 86
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dc9f
+  set h_r12 to sym eti_s_1b9f2e
+  go to p6e57c
+  go to p6dcab
+  place t6dcab_87 on 87
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dcab
+  set h_r12 to sym eti_s_1b9f34
+  set h_r14 to 8
+  place p6dcb5
+  set h_r15 to 201
+  go to p6e5cc
+  go to p6dcbf
+  place t6dcbf_88 on 88
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dcbf
+  set h_r12 to sym eti_s_1b9f3c
+  set h_r14 to 10
+  place p6dcc9
+  set h_r15 to 1010
+  go to p6e5cc
+  go to p6dcd3
+  place t6dcd3_89 on 89
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dcd3
+  set h_r12 to sym eti_s_1b9f46
+  go to p6e599
+  go to p6dcdf
+  place t6dcdf_90 on 90
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dcdf
+  set h_r12 to sym eti_s_1b9f4d
+  set h_r14 to 6
+  go to p6e1ba
+  go to p6dcee
+  place t6dcee_91 on 91
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dcee
+  set h_r12 to sym eti_s_1b9f53
+  go to p6e599
+  go to p6dcfa
+  place t6dcfa_92 on 92
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dcfa
+  set h_r12 to sym eti_s_1b9f5a
+  go to p6e486
+  go to p6dd06
+  place t6dd06_93 on 93
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dd06
+  set h_r12 to sym eti_s_1b9f5f
+  go to p6e5a5
+  go to p6dd12
+  place t6dd12_94 on 94
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dd12
+  set h_r12 to sym eti_s_1b9f63
+  go to p6e5cc
+  go to p6dd1e
+  place t6dd1e_95 on 95
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dd1e
+  set h_r12 to sym eti_s_1b9f68
+  go to p6e57c
+  go to p6dd2a
+  place t6dd2a_96 on 96
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dd2a
+  set h_r12 to sym eti_s_1b9f6e
+  go to p6e5a5
+  go to p6dd36
+  place t6dd36_97 on 97
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dd36
+  set h_r12 to sym eti_s_1b9f72
+  go to p6e599
+  go to p6dd42
+  place t6dd42_98 on 98
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dd42
+  set h_r12 to sym eti_s_1b9f79
+  go to p6e57c
+  go to p6dd4e
+  place t6dd4e_99 on 99
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dd4e
+  set h_r12 to sym eti_s_1b9f7f
+  go to p6e5c9
+  go to p6dd5a
+  place t6dd5a_100 on 100
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dd5a
+  set h_r12 to sym eti_s_1b9f82
+  go to p6e5cc
+  go to p6dd66
+  place t6dd66_101 on 101
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dd66
+  set h_r12 to sym eti_s_1b9f87
+  go to p6e5cc
+  go to p6dd72
+  place t6dd72_104 on 104
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dd72
+  set h_r12 to sym eti_s_1b9f93
+  go to p6e599
+  go to p6dd7e
+  place t6dd7e_105 on 105
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dd7e
+  set h_r12 to sym eti_s_1b9f9a
+  go to p6e53e
+  go to p6dd8a
+  place t6dd8a_106 on 106
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dd8a
+  set h_r12 to sym eti_s_1b9fa2
+  go to p6e28f
+  go to p6dd96
+  place t6dd96_107 on 107
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dd96
+  set h_r12 to sym eti_s_1b9faa
+  go to p6e5c9
+  go to p6dda2
+  place t6dda2_108 on 108
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dda2
+  set h_r12 to sym eti_s_1b9fad
+  go to p6e5a5
+  go to p6ddae
+  place t6ddae_109 on 109
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6ddae
+  set h_r12 to sym eti_s_1b9fb1
+  go to p6e5cc
+  go to p6ddba
+  place t6ddba_110 on 110
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6ddba
+  set h_r12 to sym eti_s_1b9fb6
+  go to p6e599
+  go to p6ddc6
+  place t6ddc6_111 on 111
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6ddc6
+  set h_r12 to sym eti_s_1b9fbd
+  go to p6e5cc
+  go to p6ddd2
+  place t6ddd2_112 on 112
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6ddd2
+  set h_r12 to sym eti_s_1b9fc2
+  go to p6e5cc
+  go to p6ddde
+  place t6ddde_113 on 113
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6ddde
+  set h_r12 to sym eti_s_1b9fc7
+  go to p6e5c9
+  go to p6ddea
+  place t6ddea_114 on 114
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6ddea
+  set h_r12 to sym eti_s_1b9fca
+  go to p6e5a5
+  go to p6ddf6
+  place t6ddf6_115 on 115
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6ddf6
+  set h_r12 to sym eti_s_1b9fce
+  go to p6e57c
+  go to p6de02
+  place t6de02_116 on 116
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6de02
+  set h_r12 to sym eti_s_1b9fd4
+  go to p6e031
+  go to p6de0e
+  place t6de0e_117 on 117
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6de0e
+  set h_r12 to sym eti_s_1b9fdc
+  go to p6e5c9
+  go to p6de1a
+  place t6de1a_118 on 118
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6de1a
+  set h_r12 to sym eti_s_1b9fdf
+  go to p6e5bd
+  go to p6de26
+  place t6de26_119 on 119
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6de26
+  set h_r12 to sym eti_s_1b9fe1
+  go to p6e5a5
+  go to p6de32
+  place t6de32_120 on 120
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6de32
+  set h_r12 to sym eti_s_1b9fe5
+  go to p6e5c9
+  go to p6de3e
+  place t6de3e_121 on 121
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6de3e
+  set h_r12 to sym eti_s_1b9fe8
+  set h_r14 to 9
+  go to p6e1d7
+  go to p6de4d
+  place t6de4d_122 on 122
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6de4d
+  set h_r12 to sym eti_s_1b9ff1
+  go to p6e599
+  go to p6de59
+  place t6de59_123 on 123
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6de59
+  set h_r12 to sym eti_s_1b9ff8
+  go to p6e5a5
+  go to p6de65
+  place t6de65_124 on 124
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6de65
+  set h_r14 to 6
+  go to p6de72
+  go to p6de6a
+  place t6de6a_125 on 125
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6de6a
+  set h_r14 to 6
+  set h_r15 to 102
+  place p6de72
+  set h_r12 to sym eti_s_1b9ffc
+  go to p6e5cc
+  go to p6de7a
+  place t6de7a_126 on 126
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6de7a
+  set h_r12 to sym eti_s_1ba002
+  go to p6e5c9
+  go to p6de86
+  place t6de86_127 on 127
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6de86
+  set h_r12 to sym eti_s_1ba005
+  go to p6e5a5
+  go to p6de92
+  place t6de92_128 on 128
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6de92
+  set h_r12 to sym eti_s_1ba009
+  go to p6e475
+  go to p6de9e
+  place t6de9e_129 on 129
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6de9e
+  set h_r12 to sym eti_s_1ba00e
+  go to p6e5c9
+  go to p6deaa
+  place t6deaa_130 on 130
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6deaa
+  set h_r12 to sym eti_s_1ba011
+  go to p6e599
+  go to p6deb6
+  place t6deb6_131 on 131
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6deb6
+  set h_r12 to sym eti_s_1ba018
+  set h_r15 to 12
+  go to p6e5a5
+  go to p6dec7
+  place t6dec7_132 on 132
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dec7
+  set h_r12 to sym eti_s_1ba01c
+  go to p6e5a5
+  go to p6ded3
+  place t6ded3_133 on 133
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6ded3
+  set h_r12 to sym eti_s_1ba020
+  go to p6e5cc
+  go to p6dedf
+  place t6dedf_134 on 134
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dedf
+  set h_r12 to sym eti_s_1ba025
+  go to p6e5c9
+  go to p6deeb
+  place t6deeb_135 on 135
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6deeb
+  set h_r12 to sym eti_s_1ba028
+  go to p6e5a5
+  go to p6def7
+  place t6def7_136 on 136
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6def7
+  set h_r12 to sym eti_s_1ba02c
+  go to p6e5c9
+  go to p6df03
+  place t6df03_137 on 137
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6df03
+  set h_r12 to sym eti_s_1ba02f
+  set h_r15 to 21
+  go to p6e5a5
+  go to p6df14
+  place t6df14_138 on 138
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6df14
+  set h_r12 to sym eti_s_1ba033
+  go to p6e472
+  go to p6df20
+  place t6df20_139 on 139
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6df20
+  set h_r12 to sym eti_s_1ba039
+  go to p6e5bd
+  go to p6df2c
+  place t6df2c_140 on 140
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6df2c
+  set h_r12 to sym eti_s_1ba03b
+  go to p6e599
+  go to p6df38
+  place t6df38_141 on 141
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6df38
+  set h_r12 to sym eti_s_1ba042
+  go to p6e5a5
+  go to p6df44
+  place t6df44_142 on 142
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6df44
+  set h_r12 to sym eti_s_1ba046
+  go to p6e5c9
+  go to p6df50
+  place t6df50_143 on 143
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6df50
+  set h_r12 to sym eti_s_1ba049
+  go to p6e5cc
+  go to p6df5c
+  place t6df5c_144 on 144
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6df5c
+  set h_rax to global half 3638
+  set global half 4234 to h_rax
+  set h_r12 to sym eti_s_1ba04e
+  go to p6e599
+  go to p6df76
+  place t6df76_145 on 145
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6df76
+  set h_r12 to sym eti_s_1ba055
+  go to p6e57c
+  go to p6df82
+  place t6df82_146 on 146
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6df82
+  set h_r12 to sym eti_s_1ba05b
+  go to p6e599
+  go to p6df8e
+  place t6df8e_147 on 147
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6df8e
+  set h_r12 to sym eti_s_1ba062
+  go to p6e5a5
+  go to p6df9a
+  place t6df9a_148 on 148
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6df9a
+  set h_r12 to sym eti_s_1ba066
+  go to p6e5bd
+  go to p6dfa6
+  place t6dfa6_149 on 149
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dfa6
+  set h_r12 to sym eti_s_1ba068
+  go to p6e588
+  go to p6dfb2
+  place t6dfb2_150 on 150
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dfb2
+  set h_r12 to sym eti_s_1ba06f
+  go to p6e57c
+  go to p6dfbe
+  place t6dfbe_151 on 151
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dfbe
+  set h_r12 to sym eti_s_1ba075
+  go to p6e5c9
+  go to p6dfca
+  place t6dfca_152 on 152
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dfca
+  set h_r12 to sym eti_s_1ba078
+  go to p6e5a5
+  go to p6dfd6
+  place t6dfd6_153 on 153
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dfd6
+  set h_r12 to sym eti_s_1ba07c
+  go to p6e57c
+  go to p6dfe2
+  place t6dfe2_154 on 154
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dfe2
+  set h_r12 to sym eti_s_1ba082
+  go to p6e5cc
+  go to p6dfee
+  place t6dfee_155 on 155
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dfee
+  set h_r12 to sym eti_s_1ba087
+  go to p6e5a5
+  go to p6dffa
+  place t6dffa_156 on 156
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6dffa
+  set h_r12 to sym eti_s_1ba08b
+  go to p6e5a5
+  go to p6e006
+  place t6e006_157 on 157
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e006
+  set h_r12 to sym eti_s_1ba08f
+  go to p6e5a5
+  go to p6e012
+  place t6e012_158 on 158
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e012
+  set h_r12 to sym eti_s_1ba093
+  go to p6e5cc
+  go to p6e01e
+  place t6e01e_159 on 159
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e01e
+  set h_r12 to sym eti_s_1ba098
+  go to p6e5cc
+  go to p6e02a
+  place t6e02a_160 on 160
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e02a
+  set h_r12 to sym eti_s_1ba09d
+  place p6e031
+  set h_r14 to 8
+  go to p6e1d7
+  go to p6e039
+  place t6e039_161 on 161
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e039
+  set h_r12 to sym eti_s_1ba0a5
+  go to p6e049
+  go to p6e042
+  place t6e042_162 on 162
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e042
+  set h_r12 to sym eti_s_1ba0ab
+  place p6e049
+  set h_r14 to 6
+  go to p6e486
+  go to p6e051
+  place t6e051_163 on 163
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e051
+  set h_r12 to sym eti_s_1ba0b1
+  go to p6e599
+  go to p6e05d
+  place t6e05d_164 on 164
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e05d
+  set h_r12 to sym eti_s_1ba0b8
+  go to p6e5c9
+  go to p6e069
+  place t6e069_165 on 165
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e069
+  set h_r12 to sym eti_s_1ba0bb
+  go to p6e57c
+  go to p6e075
+  place t6e075_166 on 166
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e075
+  set h_r12 to sym eti_s_1ba0c1
+  go to p6e3f9
+  go to p6e081
+  place t6e081_167 on 167
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e081
+  set h_r12 to sym eti_s_1ba0c7
+  go to p6e475
+  go to p6e08d
+  place t6e08d_168 on 168
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e08d
+  set h_r12 to sym eti_s_1ba0cc
+  set h_r14 to 8
+  go to p6e1ba
+  go to p6e09c
+  place t6e09c_169 on 169
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e09c
+  set h_r12 to sym eti_s_1ba0d4
+  go to p6e5a5
+  go to p6e0a8
+  place t6e0a8_170 on 170
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e0a8
+  set h_r12 to sym eti_s_1ba0d8
+  go to p6e4d3
+  go to p6e0b4
+  place t6e0b4_171 on 171
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e0b4
+  set h_r12 to sym eti_s_1ba0e0
+  go to p6e486
+  go to p6e0c0
+  place t6e0c0_172 on 172
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e0c0
+  set h_r12 to sym eti_s_1ba0e5
+  set h_r14 to 11
+  set h_r15 to 20100
+  go to p6e5cc
+  go to p6e0d4
+  place t6e0d4_173 on 173
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e0d4
+  set h_r12 to sym eti_s_1ba0f0
+  set h_r14 to 7
+  set h_r15 to 201
+  go to p6e5cc
+  go to p6e0e8
+  place t6e0e8_174 on 174
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e0e8
+  set h_r12 to sym eti_s_1ba0f7
+  go to p6e57c
+  go to p6e0f4
+  place t6e0f4_175 on 175
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e0f4
+  set h_r12 to sym eti_s_1ba0fd
+  go to p6e5c9
+  go to p6e100
+  place t6e100_176 on 176
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e100
+  set h_r12 to sym eti_s_1ba100
+  go to p6e5a5
+  go to p6e10c
+  place t6e10c_177 on 177
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e10c
+  set h_r12 to sym eti_s_1ba104
+  go to p6e5cc
+  go to p6e118
+  place t6e118_178 on 178
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e118
+  set h_r12 to sym eti_s_1ba109
+  go to p6e588
+  go to p6e124
+  place t6e124_179 on 179
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e124
+  set h_r12 to sym eti_s_1ba110
+  go to p6e53e
+  go to p6e130
+  place t6e130_180 on 180
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e130
+  set h_r12 to sym eti_s_1ba118
+  go to p6e599
+  go to p6e13c
+  place t6e13c_181 on 181
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e13c
+  set h_r12 to sym eti_s_1ba11f
+  go to p6e274
+  go to p6e148
+  place t6e148_182 on 182
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e148
+  set h_r12 to sym eti_s_1ba125
+  go to p6e5c9
+  go to p6e154
+  place t6e154_183 on 183
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e154
+  set h_r12 to sym eti_s_1ba128
+  go to p6e57c
+  go to p6e160
+  place t6e160_184 on 184
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e160
+  set h_r12 to sym eti_s_1ba12e
+  go to p6e5c9
+  go to p6e16c
+  place t6e16c_185 on 185
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e16c
+  set h_r12 to sym eti_s_1ba131
+  go to p6e5cc
+  go to p6e178
+  place t6e178_186 on 186
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e178
+  set h_r12 to sym eti_s_1ba136
+  go to p6e5c9
+  go to p6e184
+  place t6e184_187 on 187
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e184
+  set h_r12 to sym eti_s_1ba139
+  go to p6e5a5
+  go to p6e190
+  place t6e190_188 on 188
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e190
+  set h_r12 to sym eti_s_1ba13d
+  go to p6e5bd
+  go to p6e19c
+  place t6e19c_189 on 189
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e19c
+  set h_r12 to sym eti_s_1ba13f
+  set h_r14 to 7
+  set h_r15 to 2100
+  go to p6e5cc
+  go to p6e1b0
+  place t6e1b0_190 on 190
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e1b0
+  set h_r12 to sym eti_s_1ba146
+  set h_r14 to 7
+  place p6e1ba
+  set h_r15 to 12
+  go to p6e5cc
+  go to p6e1c4
+  place t6e1c4_191 on 191
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e1c4
+  set h_r12 to sym eti_s_1ba14d
+  go to p6e58b
+  go to p6e1d0
+  place t6e1d0_192 on 192
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e1d0
+  set h_r12 to sym eti_s_1ba152
+  place p6e1d7
+  set h_r15 to 102
+  go to p6e5cc
+  go to p6e1e1
+  place t6e1e1_193 on 193
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e1e1
+  set h_r12 to sym eti_s_1ba157
+  go to p6e5a5
+  go to p6e1ed
+  place t6e1ed_194 on 194
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e1ed
+  set h_r12 to sym eti_s_1ba15b
+  go to p6e5a5
+  go to p6e1f9
+  place t6e1f9_195 on 195
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e1f9
+  set h_r12 to sym eti_s_1ba15f
+  go to p6e5cc
+  go to p6e205
+  place t6e205_196 on 196
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e205
+  set h_r12 to sym eti_s_1ba164
+  go to p6e559
+  go to p6e211
+  place t6e211_197 on 197
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e211
+  set h_r12 to sym eti_s_1ba16d
+  go to p6e5cc
+  go to p6e21d
+  place t6e21d_198 on 198
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e21d
+  set h_r12 to sym eti_s_1ba172
+  go to p6e486
+  go to p6e229
+  place t6e229_199 on 199
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e229
+  set h_r12 to sym eti_s_1ba177
+  go to p6e57c
+  go to p6e235
+  place t6e235_200 on 200
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e235
+  set h_r12 to sym eti_s_1ba17d
+  go to p6e5cc
+  go to p6e241
+  place t6e241_201 on 201
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e241
+  set h_r12 to sym eti_s_1ba182
+  go to p6e57c
+  go to p6e24d
+  place t6e24d_202 on 202
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e24d
+  set h_r12 to sym eti_s_1ba188
+  go to p6e5c9
+  go to p6e259
+  place t6e259_203 on 203
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e259
+  set h_r12 to sym eti_s_1ba18b
+  set h_r14 to 10
+  set h_r15 to 2010
+  go to p6e5cc
+  go to p6e26d
+  place t6e26d_204 on 204
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e26d
+  set h_r12 to sym eti_s_1ba195
+  place p6e274
+  set h_r14 to 6
+  go to p6e58b
+  go to p6e27c
+  place t6e27c_205 on 205
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e27c
+  set h_r12 to sym eti_s_1ba19b
+  go to p6e5cc
+  go to p6e288
+  place t6e288_206 on 206
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e288
+  set h_r12 to sym eti_s_1ba1a0
+  place p6e28f
+  set h_r14 to 8
+  go to p6e475
+  go to p6e297
+  place t6e297_207 on 207
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e297
+  set h_r12 to sym eti_s_1ba1a8
+  go to p6e5cc
+  go to p6e2a3
+  place t6e2a3_208 on 208
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e2a3
+  set h_r12 to sym eti_s_1ba1ad
+  go to p6e2d7
+  go to p6e2ac
+  place t6e2ac_209 on 209
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e2ac
+  set h_r12 to sym eti_s_1ba1b1
+  go to p6e5cc
+  go to p6e2b8
+  place t6e2b8_210 on 210
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e2b8
+  set h_r12 to sym eti_s_1ba1b6
+  go to p6e5a5
+  go to p6e2c4
+  place t6e2c4_211 on 211
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e2c4
+  set h_r12 to sym eti_s_1ba1ba
+  go to p6e5c9
+  go to p6e2d0
+  place t6e2d0_212 on 212
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e2d0
+  set h_r12 to sym eti_s_1ba1bd
+  place p6e2d7
+  set h_r15 to 1
+  go to p6e5a5
+  go to p6e2e1
+  place t6e2e1_213 on 213
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e2e1
+  set h_r12 to sym eti_s_1ba1c1
+  go to p6e5cc
+  go to p6e2ed
+  place t6e2ed_214 on 214
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e2ed
+  set h_r12 to sym eti_s_1ba1c6
+  go to p6e599
+  go to p6e2f9
+  place t6e2f9_215 on 215
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e2f9
+  set h_r12 to sym eti_s_1ba1cd
+  go to p6e5c9
+  go to p6e305
+  place t6e305_216 on 216
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e305
+  set h_r12 to sym eti_s_1ba1d0
+  set h_r14 to 8
+  go to p6e58b
+  go to p6e314
+  place t6e314_217 on 217
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e314
+  set h_r12 to sym eti_s_1ba1d8
+  go to p6e53e
+  go to p6e320
+  place t6e320_218 on 218
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e320
+  set h_r12 to sym eti_s_1ba1e0
+  go to p6e599
+  go to p6e32c
+  place t6e32c_219 on 219
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e32c
+  set h_r12 to sym eti_s_1ba1e7
+  go to p6e5c9
+  go to p6e338
+  place t6e338_220 on 220
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e338
+  set h_r12 to sym eti_s_1ba1ea
+  go to p6e3f9
+  go to p6e344
+  place t6e344_221 on 221
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e344
+  set h_r12 to sym eti_s_1ba1f0
+  go to p6e5a5
+  go to p6e350
+  place t6e350_222 on 222
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e350
+  set h_r12 to sym eti_s_1ba1f4
+  go to p6e5a5
+  go to p6e35c
+  place t6e35c_223 on 223
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e35c
+  set h_r12 to sym eti_s_1ba1f8
+  go to p6e57c
+  go to p6e368
+  place t6e368_224 on 224
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e368
+  set h_r12 to sym eti_s_1ba1fe
+  go to p6e5c9
+  go to p6e374
+  place t6e374_225 on 225
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e374
+  set h_r12 to sym eti_s_1ba201
+  go to p6e3f9
+  go to p6e37d
+  place t6e37d_226 on 226
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e37d
+  set h_r12 to sym eti_s_1ba207
+  go to p6e588
+  go to p6e389
+  place t6e389_227 on 227
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e389
+  set h_r12 to sym eti_s_1ba20e
+  go to p6e559
+  go to p6e395
+  place t6e395_228 on 228
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e395
+  set h_r12 to sym eti_s_1ba217
+  go to p6e5cc
+  go to p6e3a1
+  place t6e3a1_229 on 229
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e3a1
+  set h_r12 to sym eti_s_1ba21c
+  go to p6e599
+  go to p6e3ad
+  place t6e3ad_230 on 230
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e3ad
+  set h_r12 to sym eti_s_1ba223
+  go to p6e5b1
+  go to p6e3b9
+  place t6e3b9_231 on 231
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e3b9
+  set h_r12 to sym eti_s_1ba22d
+  go to p6e3f9
+  go to p6e3c2
+  place t6e3c2_232 on 232
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e3c2
+  set h_r12 to sym eti_s_1ba233
+  go to p6e599
+  go to p6e3ce
+  place t6e3ce_233 on 233
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e3ce
+  set h_r12 to sym eti_s_1ba23a
+  go to p6e5bd
+  go to p6e3da
+  place t6e3da_234 on 234
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e3da
+  set h_r12 to sym eti_s_1ba23c
+  go to p6e58b
+  go to p6e3e6
+  place t6e3e6_235 on 235
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e3e6
+  set h_r12 to sym eti_s_1ba241
+  go to p6e57c
+  go to p6e3f2
+  place t6e3f2_236 on 236
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e3f2
+  set h_r12 to sym eti_s_1ba247
+  place p6e3f9
+  set h_r14 to 6
+  place p6e3fc
+  set h_r15 to 21
+  go to p6e5cc
+  go to p6e406
+  place t6e406_237 on 237
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e406
+  set h_r12 to sym eti_s_1ba24d
+  go to p6e57c
+  go to p6e412
+  place t6e412_238 on 238
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e412
+  set h_r12 to sym eti_s_1ba253
+  go to p6e599
+  go to p6e41e
+  place t6e41e_239 on 239
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e41e
+  set h_r12 to sym eti_s_1ba25a
+  set h_r14 to 9
+  go to p6e475
+  go to p6e42a
+  place t6e42a_240 on 240
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e42a
+  set h_r12 to sym eti_s_1ba263
+  go to p6e559
+  go to p6e436
+  place t6e436_241 on 241
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e436
+  set h_r12 to sym eti_s_1ba26c
+  set h_r15 to 100
+  go to p6e5cc
+  go to p6e447
+  place t6e447_242 on 242
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e447
+  set h_r12 to sym eti_s_1ba271
+  go to p6e5cc
+  go to p6e453
+  place t6e453_243 on 243
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e453
+  set h_r12 to sym eti_s_1ba276
+  set h_r14 to 7
+  go to p6e475
+  go to p6e45f
+  place t6e45f_244 on 244
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e45f
+  set h_r12 to sym eti_s_1ba27d
+  go to p6e5c9
+  go to p6e46b
+  place t6e46b_245 on 245
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e46b
+  set h_r12 to sym eti_s_1ba280
+  place p6e472
+  set h_r14 to 6
+  place p6e475
+  set h_r15 to 10
+  go to p6e5cc
+  go to p6e47f
+  place t6e47f_246 on 246
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e47f
+  set h_r12 to sym eti_s_1ba286
+  place p6e486
+  set h_r15 to 1
+  go to p6e5cc
+  go to p6e490
+  place t6e490_247 on 247
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e490
+  set h_r12 to sym eti_s_1ba28b
+  go to p6e5bd
+  go to p6e49c
+  place t6e49c_248 on 248
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e49c
+  set h_r12 to sym eti_s_1ba28d
+  go to p6e5cc
+  go to p6e4a8
+  place t6e4a8_249 on 249
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e4a8
+  set h_r12 to sym eti_s_1ba292
+  go to p6e53e
+  go to p6e4b4
+  place t6e4b4_250 on 250
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e4b4
+  set h_r12 to sym eti_s_1ba29a
+  go to p6e5a5
+  go to p6e4c0
+  place t6e4c0_251 on 251
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e4c0
+  set h_r12 to sym eti_s_1ba29e
+  go to p6e57c
+  go to p6e4cc
+  place t6e4cc_252 on 252
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e4cc
+  set h_r12 to sym eti_s_1ba2a4
+  place p6e4d3
+  set h_r14 to 8
+  set h_r15 to 100
+  go to p6e5cc
+  go to p6e4e0
+  place t6e4e0_253 on 253
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e4e0
+  set h_r12 to sym eti_s_1ba2ac
+  go to p6e5cc
+  go to p6e4ec
+  place t6e4ec_254 on 254
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e4ec
+  set h_r12 to sym eti_s_1ba2b1
+  go to p6e57c
+  go to p6e4f8
+  place t6e4f8_255 on 255
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e4f8
+  set h_r12 to sym eti_s_1ba2b7
+  go to p6e53e
+  go to p6e501
+  place t6e501_256 on 256
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e501
+  set h_r12 to sym eti_s_1ba2bf
+  go to p6e5cc
+  go to p6e50d
+  place t6e50d_257 on 257
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e50d
+  set h_r12 to sym eti_s_1ba2c4
+  go to p6e599
+  go to p6e519
+  place t6e519_258 on 258
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e519
+  set h_r12 to sym eti_s_1ba2cb
+  go to p6e57c
+  go to p6e522
+  place t6e522_259 on 259
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e522
+  set h_r12 to sym eti_s_1ba2d1
+  go to p6e5a5
+  go to p6e52b
+  place t6e52b_260 on 260
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e52b
+  set h_r12 to sym eti_s_1ba2d5
+  go to p6e5cc
+  go to p6e537
+  place t6e537_261 on 261
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e537
+  set h_r12 to sym eti_s_1ba2da
+  place p6e53e
+  set h_r14 to 8
+  go to p6e5cc
+  go to p6e546
+  place t6e546_262 on 262
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e546
+  set h_r12 to sym eti_s_1ba2e2
+  set h_r14 to 9
+  go to p6e58b
+  go to p6e552
+  place t6e552_263 on 263
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e552
+  set h_r12 to sym eti_s_1ba2eb
+  place p6e559
+  set h_r14 to 9
+  go to p6e5cc
+  go to p6e55e
+  place t6e55e_264 on 264
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e55e
+  set h_r12 to sym eti_s_1ba2f4
+  set h_r15 to 11
+  go to p6e5a5
+  go to p6e56c
+  place t6e56c_265 on 265
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e56c
+  set h_r12 to sym eti_s_1ba2f8
+  go to p6e599
+  go to p6e575
+  place t6e575_266 on 266
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e575
+  set h_r12 to sym eti_s_1ba2ff
+  place p6e57c
+  set h_r14 to 6
+  go to p6e5cc
+  go to p6e581
+  place t6e581_267 on 267
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e581
+  set h_r12 to sym eti_s_1ba305
+  place p6e588
+  set h_r14 to 7
+  place p6e58b
+  set h_r15 to 210
+  go to p6e5cc
+  go to p6e592
+  place t6e592_268 on 268
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e592
+  set h_r12 to sym eti_s_1ba30c
+  place p6e599
+  set h_r14 to 7
+  go to p6e5cc
+  go to p6e59e
+  place t6e59e_269 on 269
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e59e
+  set h_r12 to sym eti_s_1ba313
+  place p6e5a5
+  set h_r14 to 4
+  go to p6e5cc
+  go to p6e5aa
+  place t6e5aa_270 on 270
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e5aa
+  set h_r12 to sym eti_s_1ba317
+  place p6e5b1
+  set h_r14 to 10
+  go to p6e5cc
+  go to p6e5b6
+  place t6e5b6_271 on 271
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e5b6
+  set h_r12 to sym eti_s_1ba321
+  place p6e5bd
+  set h_r14 to 2
+  go to p6e5cc
+  go to p6e5c2
+  place t6e5c2_272 on 272
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e5c2
+  set h_r12 to sym eti_s_1ba323
+  place p6e5c9
+  set h_r14 to 3
+  place p6e5cc
+  set h_rdx to addr c100
+  call lpta_rpta_loadp addr c110 h_rdx
+  set h_rax to answer
+  set n6e5e2_0 to h_r15
+  and 65535 into n6e5e2_0
+  if n6e5e2_0 is 0
+    go to p6e5f3
+  end
+  place p6e5e8
+  set h_rax to h_r15
+  set global word 2704 to h_rax
+  place p6e5f3
+  set h_rdx to h_r14
+  set h_r13 to 0
+  set h_rcx to h_r12
+  call insert_2pt_s 2 h_rdx h_rcx 0
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  match
+  go to p6e618
+  place t6e618_276 on 276
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e618
+  set h_r12 to h_r15
+  set h_r13 to h_r14
+  go to p6d811
+  go to p6e623
+  place t6e623_274 on 274
+  set h_rcx to 4
+  set h_rdx to sym eti_s_1b9ffc
+  place p6e623
+  set h_r12 to h_r15
+  set h_r13 to h_r14
+  go to p6d7f6
+  place tm_275 on 275
+  place tm_277 on 277
+  match
+end

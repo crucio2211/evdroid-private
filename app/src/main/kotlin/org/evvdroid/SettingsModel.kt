@@ -577,7 +577,8 @@ class SettingsModel(context: Context) {
 			sampleRateHz,
 			settings.audioSnapshot(),
 			ratePercent = 100.takeIf { forceRate },
-			pitchPercent = 100.takeIf { forcePitch }
+			pitchPercent = 100.takeIf { forcePitch },
+			pauseMode = settings.pauses
 		)
 	}
 

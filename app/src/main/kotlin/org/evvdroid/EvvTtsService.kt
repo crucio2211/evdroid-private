@@ -253,6 +253,7 @@ class EvvTtsService : TextToSpeechService() {
 	private fun applySettings(target: EvvEngine) {
 		val s = settings ?: return
 		target.setSampleRate(s.sampleRateHz)
+		target.setPauseMode(s.pauses)
 		target.setAbbreviations(s.abbreviations)
 		loadDictionaries(target, s)
 		loadRegexDictionary(s)
@@ -529,6 +530,7 @@ class EvvTtsService : TextToSpeechService() {
 		// Re-sent every time rather than once, because it is the one setting
 		// with no way of telling whether something else has moved it.
 		s?.let { target.setAbbreviations(it.abbreviations) }
+		s?.let { target.setPauseMode(it.pauses) }
 		// A forced rate or pitch is the voice's own Speed or Pitch row: the
 		// voice is applied absolutely below, so 100 here leaves it alone and
 		// whatever TalkBack asked for is ignored. Unforced, TalkBack's numbers

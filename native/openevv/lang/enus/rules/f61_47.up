@@ -1,0 +1,1299 @@
+# The rules of enus, lifted by tools/rules/lift64.py out of ETI
+# Eloquence 6.1 as Apple ships it, by tools/module/lift61.py. Each says
+# `instead' because it is written afresh rather than re-expressed from one of
+# IBM's: nothing of IBM's is under it.
+
+rule insert_eng_spr_phone takes 3
+  instead
+  local c100 bytes 8
+  local c110 bytes 8
+  local c130 bytes 18
+  local h_rdx
+  place p162f98
+  place p162fd3
+  place p163037
+  set h_rdx to arg 1
+  call get_parm addr c100 h_rdx -6
+  set h_rdx to arg 2
+  call get_parm addr c110 h_rdx -6
+  set cell c130 word 0 to 0
+  set cell c130 word 4 to 0
+  set cell c130 word 6 to 0
+  set cell c130 word 10 to 0
+  set c130 to -65534
+  set h_rdx to sym eti_null
+  call fence 0 h_rdx
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p1630f6
+  end
+  place p1630a5
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb8a
+  if answer is not 0
+    go to p1630f6
+  end
+  place p1630bd
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb8b 0
+  if answer is 0
+    match
+  end
+  place p1630f6
+  go to p163108
+  place t163108_1 on 1
+  place p163108
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163168
+  end
+  place p16311a
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb8c
+  if answer is not 0
+    go to p163168
+  end
+  place p163133
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb8d 0
+  if answer is 0
+    match
+  end
+  go to p163168
+  place t163168_3 on 3
+  place p163168
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p1631c8
+  end
+  place p16317a
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb8e
+  if answer is not 0
+    go to p1631c8
+  end
+  place p163193
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb8f 0
+  if answer is 0
+    match
+  end
+  go to p1631c8
+  place t1631c8_4 on 4
+  place p1631c8
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163228
+  end
+  place p1631da
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb90
+  if answer is not 0
+    go to p163228
+  end
+  place p1631f3
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb91 0
+  if answer is 0
+    match
+  end
+  go to p163228
+  place t163228_5 on 5
+  place p163228
+  if global half 2462 is not global half 2458
+    go to p163298
+  end
+  place p163238
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163298
+  end
+  place p16324a
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb92
+  if answer is not 0
+    go to p163298
+  end
+  place p163263
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb93 0
+  if answer is 0
+    match
+  end
+  go to p163298
+  place t163298_6 on 6
+  place p163298
+  if global half 2462 is not global half 2458
+    go to p163308
+  end
+  place p1632a8
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163308
+  end
+  place p1632ba
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb94
+  if answer is not 0
+    go to p163308
+  end
+  place p1632d3
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb95 0
+  if answer is 0
+    match
+  end
+  go to p163308
+  place t163308_7 on 7
+  place p163308
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163368
+  end
+  place p16331a
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb96
+  if answer is not 0
+    go to p163368
+  end
+  place p163333
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb97 0
+  if answer is 0
+    match
+  end
+  go to p163368
+  place t163368_8 on 8
+  place p163368
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p1633c8
+  end
+  place p16337a
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb98
+  if answer is not 0
+    go to p1633c8
+  end
+  place p163393
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb99 0
+  if answer is 0
+    match
+  end
+  go to p1633c8
+  place t1633c8_9 on 9
+  place p1633c8
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163428
+  end
+  place p1633da
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb9a
+  if answer is not 0
+    go to p163428
+  end
+  place p1633f3
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb9b 0
+  if answer is 0
+    match
+  end
+  go to p163428
+  place t163428_10 on 10
+  place p163428
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163488
+  end
+  place p16343a
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb9c
+  if answer is not 0
+    go to p163488
+  end
+  place p163453
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb9d 0
+  if answer is 0
+    match
+  end
+  go to p163488
+  place t163488_11 on 11
+  place p163488
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p1634e8
+  end
+  place p16349a
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb9e
+  if answer is not 0
+    go to p1634e8
+  end
+  place p1634b3
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb8a 0
+  if answer is 0
+    match
+  end
+  go to p1634e8
+  place t1634e8_12 on 12
+  place p1634e8
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163548
+  end
+  place p1634fa
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb9f
+  if answer is not 0
+    go to p163548
+  end
+  place p163513
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beba0 0
+  if answer is 0
+    match
+  end
+  go to p163548
+  place t163548_13 on 13
+  place p163548
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p1635a8
+  end
+  place p16355a
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beba1
+  if answer is not 0
+    go to p1635a8
+  end
+  place p163573
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb8e 0
+  if answer is 0
+    match
+  end
+  go to p1635a8
+  place t1635a8_14 on 14
+  place p1635a8
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163608
+  end
+  place p1635ba
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beba2
+  if answer is not 0
+    go to p163608
+  end
+  place p1635d3
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb9f 0
+  if answer is 0
+    match
+  end
+  go to p163608
+  place t163608_15 on 15
+  place p163608
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163668
+  end
+  place p16361a
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beba3
+  if answer is not 0
+    go to p163668
+  end
+  place p163633
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb98 0
+  if answer is 0
+    match
+  end
+  go to p163668
+  place t163668_16 on 16
+  place p163668
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p1636c8
+  end
+  place p16367a
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beba4
+  if answer is not 0
+    go to p1636c8
+  end
+  place p163693
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beba5 0
+  if answer is 0
+    match
+  end
+  go to p1636c8
+  place t1636c8_17 on 17
+  place p1636c8
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163728
+  end
+  place p1636da
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beba6
+  if answer is not 0
+    go to p163728
+  end
+  place p1636f3
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beba7 0
+  if answer is 0
+    match
+  end
+  go to p163728
+  place t163728_18 on 18
+  place p163728
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163788
+  end
+  place p16373a
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beba8
+  if answer is not 0
+    go to p163788
+  end
+  place p163753
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb96 0
+  if answer is 0
+    match
+  end
+  go to p163788
+  place t163788_19 on 19
+  place p163788
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p1637e8
+  end
+  place p16379a
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beba5
+  if answer is not 0
+    go to p1637e8
+  end
+  place p1637b3
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beba9 0
+  if answer is 0
+    match
+  end
+  go to p1637e8
+  place t1637e8_20 on 20
+  place p1637e8
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163848
+  end
+  place p1637fa
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1bebaa
+  if answer is not 0
+    go to p163848
+  end
+  place p163813
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1bebaa 0
+  if answer is 0
+    match
+  end
+  go to p163848
+  place t163848_21 on 21
+  place p163848
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p1638a8
+  end
+  place p16385a
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1bebab
+  if answer is not 0
+    go to p1638a8
+  end
+  place p163873
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1bebab 0
+  if answer is 0
+    match
+  end
+  go to p1638a8
+  place t1638a8_22 on 22
+  place p1638a8
+  call starttest 23
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163998
+  end
+  place p1638c9
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1bebac
+  if answer is not 0
+    go to p163998
+  end
+  place p1638e6
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 21
+  place p163900
+  call settvar_s addr c130 h_rdx
+  call npush_s 0
+  set cell c130 field to 3
+  call npop addr c130
+  call npush_s 1
+  set cell c130 field to 1
+  call npop addr c130
+  set h_rdx to addr c130
+  call insert_2ptv 2 h_rdx 0
+  if answer is 0
+    match
+  end
+  set unwind to 0
+  backtrack
+  go to p163998
+  place t163998_23 on 23
+  place p163998
+  call starttest 24
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p1639ed
+  end
+  place p1639b5
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1bebad
+  if answer is not 0
+    go to p1639ed
+  end
+  place p1639ce
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 20
+  go to p163900
+  go to p1639ed
+  place t1639ed_24 on 24
+  place p1639ed
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163a54
+  end
+  place p163a03
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1bebae
+  if answer is not 0
+    go to p163a54
+  end
+  place p163a1b
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb8c 0
+  if answer is 0
+    match
+  end
+  go to p163a54
+  place t163a54_25 on 25
+  place p163a54
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163abb
+  end
+  place p163a6a
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1bebaf
+  if answer is not 0
+    go to p163abb
+  end
+  place p163a82
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1bebb0 0
+  if answer is 0
+    match
+  end
+  go to p163abb
+  place t163abb_26 on 26
+  place p163abb
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163b22
+  end
+  place p163ad1
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beba9
+  if answer is not 0
+    go to p163b22
+  end
+  place p163ae9
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1bebaf 0
+  if answer is 0
+    match
+  end
+  go to p163b22
+  place t163b22_27 on 27
+  place p163b22
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163b89
+  end
+  place p163b38
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1bebb1
+  if answer is not 0
+    go to p163b89
+  end
+  place p163b50
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beba2 0
+  if answer is 0
+    match
+  end
+  go to p163b89
+  place t163b89_28 on 28
+  place p163b89
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163bf0
+  end
+  place p163b9f
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1bebb2
+  if answer is not 0
+    go to p163bf0
+  end
+  place p163bb7
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb90 0
+  if answer is 0
+    match
+  end
+  go to p163bf0
+  place t163bf0_29 on 29
+  place p163bf0
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163c57
+  end
+  place p163c06
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb8f
+  if answer is not 0
+    go to p163c57
+  end
+  place p163c1e
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb9e 0
+  if answer is 0
+    match
+  end
+  go to p163c57
+  place t163c57_30 on 30
+  place p163c57
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163cbe
+  end
+  place p163c6d
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb99
+  if answer is not 0
+    go to p163cbe
+  end
+  place p163c85
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1bebb2 0
+  if answer is 0
+    match
+  end
+  go to p163cbe
+  place t163cbe_31 on 31
+  place p163cbe
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163d25
+  end
+  place p163cd4
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb8d
+  if answer is not 0
+    go to p163d25
+  end
+  place p163cec
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1bebb3 0
+  if answer is 0
+    match
+  end
+  go to p163d25
+  place t163d25_32 on 32
+  place p163d25
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163d8c
+  end
+  place p163d3b
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb97
+  if answer is not 0
+    go to p163d8c
+  end
+  place p163d53
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1bebb1 0
+  if answer is 0
+    match
+  end
+  go to p163d8c
+  place t163d8c_33 on 33
+  place p163d8c
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163df3
+  end
+  place p163da2
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb95
+  if answer is not 0
+    go to p163df3
+  end
+  place p163dba
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beba1 0
+  if answer is 0
+    match
+  end
+  go to p163df3
+  place t163df3_34 on 34
+  place p163df3
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163e5a
+  end
+  place p163e09
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1bebb4
+  if answer is not 0
+    go to p163e5a
+  end
+  place p163e21
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1bebb5 0
+  if answer is 0
+    match
+  end
+  go to p163e5a
+  place t163e5a_35 on 35
+  place p163e5a
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163ec1
+  end
+  place p163e70
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1bebb6
+  if answer is not 0
+    go to p163ec1
+  end
+  place p163e88
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb9a 0
+  if answer is 0
+    match
+  end
+  go to p163ec1
+  place t163ec1_36 on 36
+  place p163ec1
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163f28
+  end
+  place p163ed7
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1bebb3
+  if answer is not 0
+    go to p163f28
+  end
+  place p163eef
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb92 0
+  if answer is 0
+    match
+  end
+  go to p163f28
+  place t163f28_37 on 37
+  place p163f28
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163f8f
+  end
+  place p163f3e
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1bebb7
+  if answer is not 0
+    go to p163f8f
+  end
+  place p163f56
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1bebae 0
+  if answer is 0
+    match
+  end
+  go to p163f8f
+  place t163f8f_38 on 38
+  place p163f8f
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p163ff6
+  end
+  place p163fa5
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb8b
+  if answer is not 0
+    go to p163ff6
+  end
+  place p163fbd
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1bebb8 0
+  if answer is 0
+    match
+  end
+  go to p163ff6
+  place t163ff6_39 on 39
+  place p163ff6
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p16405d
+  end
+  place p16400c
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb93
+  if answer is not 0
+    go to p16405d
+  end
+  place p164024
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1bebb9 0
+  if answer is 0
+    match
+  end
+  go to p16405d
+  place t16405d_40 on 40
+  place p16405d
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p1640c4
+  end
+  place p164073
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb9d
+  if answer is not 0
+    go to p1640c4
+  end
+  place p16408b
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1bebb7 0
+  if answer is 0
+    match
+  end
+  go to p1640c4
+  place t1640c4_41 on 41
+  place p1640c4
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p16412b
+  end
+  place p1640da
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb91
+  if answer is not 0
+    go to p16412b
+  end
+  place p1640f2
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beba4 0
+  if answer is 0
+    match
+  end
+  go to p16412b
+  place t16412b_42 on 42
+  place p16412b
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p164192
+  end
+  place p164141
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beba0
+  if answer is not 0
+    go to p164192
+  end
+  place p164159
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1beb9c 0
+  if answer is 0
+    match
+  end
+  go to p164192
+  place t164192_43 on 43
+  place p164192
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p1641f9
+  end
+  place p1641a8
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1bebba
+  if answer is not 0
+    go to p1641f9
+  end
+  place p1641c0
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1bebbb 0
+  if answer is 0
+    match
+  end
+  go to p1641f9
+  place t1641f9_44 on 44
+  place p1641f9
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p164260
+  end
+  place p16420f
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1bebbc
+  if answer is not 0
+    go to p164260
+  end
+  place p164227
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1bebbc 0
+  if answer is 0
+    match
+  end
+  go to p164260
+  place t164260_45 on 45
+  place p164260
+  set h_rdx to 1
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    give up
+  end
+  place p16427a
+  set h_rdx to 1
+  call test_string_s 1 h_rdx sym eti_s_1beb9b
+  if answer is not 0
+    give up
+  end
+  place p164296
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 1
+  call insert_2pt_s 2 h_rdx sym eti_s_1bebb4 0
+  if answer is not 0
+    give up
+  end
+  match
+  place tm_2 on 2
+  match
+end
+
+rule print_eng_SPR takes 3
+  instead
+  local c100 bytes 8
+  local c110 bytes 8
+  local h_rdx
+  place p164390
+  place p1643cf
+  place p164432
+  set h_rdx to arg 1
+  call get_parm addr c100 h_rdx -6
+  set h_rdx to arg 2
+  call get_parm addr c110 h_rdx -6
+  set h_rdx to sym eti_null
+  call fence 0 h_rdx
+  set h_rdx to sym eti_s_1beb97
+  call fence 1 h_rdx
+  call starttest 1
+  set h_rdx to 2
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p1644e9
+  end
+  place p1644a7
+  set h_rdx to 10
+  call testFldeq 2 h_rdx 1
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p1644c0
+  call advance_tok
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p1644d0
+  set h_rdx to sym eti_s_1b5b80
+  call print_lit 8 h_rdx
+  go to p1644e9
+  place p1644e9
+  place t1644e9_1 on 1
+  set h_rdx to 2
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p164535
+  end
+  place p1644ff
+  set h_rdx to 2
+  call test_string_s 2 h_rdx sym eti_s_1bebbd
+  if answer is not 0
+    go to p164535
+  end
+  place p164517
+  place t164517_3 on 3
+  set h_rdx to addr c110
+  call savescptr 3 h_rdx
+  set h_rdx to sym eti_s_1b5b82
+  go to p16465d
+  place p164535
+  place t164535_2 on 2
+  set h_rdx to 2
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p164581
+  end
+  place p16454b
+  set h_rdx to 2
+  call test_string_s 2 h_rdx sym eti_s_1bebbf
+  if answer is not 0
+    go to p164581
+  end
+  place p164563
+  place t164563_6 on 6
+  set h_rdx to addr c110
+  call savescptr 6 h_rdx
+  set h_rdx to sym eti_s_1b5b84
+  go to p16465d
+  place p164581
+  place t164581_5 on 5
+  set h_rdx to 2
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p1645cd
+  end
+  place p164597
+  set h_rdx to 2
+  call test_string_s 2 h_rdx sym eti_s_1bebc1
+  if answer is not 0
+    go to p1645cd
+  end
+  place p1645af
+  place t1645af_8 on 8
+  set h_rdx to addr c110
+  call savescptr 8 h_rdx
+  set h_rdx to sym eti_s_1b5b86
+  go to p16465d
+  place p1645cd
+  place t1645cd_7 on 7
+  set h_rdx to 2
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p164616
+  end
+  place p1645e3
+  set h_rdx to 2
+  call test_string_s 2 h_rdx sym eti_s_1bebc3
+  if answer is not 0
+    go to p164616
+  end
+  place p1645fb
+  place t1645fb_10 on 10
+  set h_rdx to addr c110
+  call savescptr 10 h_rdx
+  set h_rdx to sym eti_s_1b5b88
+  go to p16465d
+  place p164616
+  place t164616_9 on 9
+  set h_rdx to 2
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p16466d
+  end
+  place p16462c
+  set h_rdx to 2
+  call test_string_s 2 h_rdx sym eti_s_1bebc5
+  if answer is not 0
+    go to p16466d
+  end
+  place p164644
+  place t164644_12 on 12
+  set h_rdx to addr c110
+  call savescptr 12 h_rdx
+  set h_rdx to sym eti_s_1b5b8a
+  place p16465d
+  call print_lit 8 h_rdx
+  go to p164789
+  place p16466d
+  place t16466d_11 on 11
+  call starttest 13
+  set h_rdx to 2
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is 0
+    go to p1646f3
+  end
+  place p16468e
+  place t16468e_13 on 13
+  call starttest 14
+  set h_rdx to 2
+  call lpta_loadp addr c100
+  call setscan_r h_rdx
+  if answer is not 0
+    go to p16475c
+  end
+  place p1646b3
+  set h_rdx to 0
+  call testFldeq 2 h_rdx 20
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p1646c7
+  set h_rdx to 1
+  call testFldeq 2 h_rdx 1
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p1646db
+  call advance_tok
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p1646e7
+  set h_rdx to sym eti_s_1b5b8e
+  go to p16465d
+  place p1646f3
+  set h_rdx to 0
+  call testFldeq 2 h_rdx 21
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p164707
+  set h_rdx to 1
+  call testFldeq 2 h_rdx 1
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p16471b
+  call advance_tok
+  if answer is 0
+    go to p16479c
+  end
+  set unwind to 0
+  backtrack
+  place p16475c
+  place t16475c_14 on 14
+  set h_rdx to addr c110
+  call lpta_rpta_loadp addr c100 h_rdx
+  set h_rdx to 2
+  call print_stream 8 h_rdx 0 sym eti_s_1b643c
+  place p164789
+  place t164789_4 on 4
+  put cell c110 value into arg 2 at 4
+  match
+  place p16479c
+  set h_rdx to sym eti_s_1b5b8c
+  go to p16465d
+end

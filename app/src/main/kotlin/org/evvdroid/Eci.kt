@@ -12,6 +12,12 @@ object Eci {
 	const val PARAM_REAL_WORLD_UNITS = 8
 	const val PARAM_LANGUAGE_DIALECT = 9
 	const val PARAM_NUMBER_MODE = 10
+	const val PARAM_PAUSES = 22
+
+	const val PAUSES_NONE = 0
+	const val PAUSES_AT_END = 1
+	const val PAUSES_ALWAYS = 2
+	const val PAUSES_DEFAULT = PAUSES_AT_END
 
 	const val VOICE_GENDER = 0
 	const val VOICE_HEAD_SIZE = 1

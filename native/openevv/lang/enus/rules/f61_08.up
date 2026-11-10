@@ -1,0 +1,2688 @@
+# The rules of enus, lifted by tools/rules/lift64.py out of ETI
+# Eloquence 6.1 as Apple ships it, by tools/module/lift61.py. Each says
+# `instead' because it is written afresh rather than re-expressed from one of
+# IBM's: nothing of IBM's is under it.
+
+rule generate_intonation takes 1
+  instead
+  place p11528
+  place p1155d
+  place p115bd
+  call fence 0 sym eti_null
+  if global half 514 is not 1
+    go to p115e0
+  end
+  place p115d8
+  call add_f0_for_new_voice
+  place p115e0
+  place p115f2
+  place t115f2_1 on 1
+  if global half 518 is not 1
+    go to p11604
+  end
+  place p115fc
+  call init_phrase_inton_vars
+  place p11604
+  place t11604_2 on 2
+  if global half 514 is not 1
+    go to p11616
+  end
+  place p1160e
+  call init_word_inton_vars
+  place p11616
+  place t11616_3 on 3
+  call init_syll_inton_vars
+  place p1161e
+  place t1161e_4 on 4
+  if global half 518 is not 1
+    go to p11630
+  end
+  place p11628
+  call phr_initial_F0
+  place p11630
+  place t11630_5 on 5
+  call is_target_syll
+  if answer is not 0
+    go to p116de
+  end
+  place p11640
+  if global half 550 is global half 526
+    go to p1171d
+  end
+  place p11654
+  place t11654_7 on 7
+  call starttest 9
+  call bspush_ca 10
+  if global half 554 is global half 526
+    go to p116d6
+  end
+  set unwind to 0
+  backtrack
+  place p116aa
+  place t116aa_10 on 10
+  if global half 1570 is not global half 2244
+    set unwind to 0
+    backtrack
+  end
+  place p116ba
+  go to p116d6
+  place p116bc
+  place t116bc_9 on 9
+  if global half 542 is not global half 526
+    go to p116d6
+  end
+  place p116cc
+  call prenucl_f0
+  go to p116de
+  place p116d6
+  place t116d6_11 on 11
+  place t116d6_13 on 13
+  call postnucl_f0
+  place p116de
+  place t116de_6 on 6
+  place t116de_8 on 8
+  place t116de_12 on 12
+  place t116de_14 on 14
+  call first_postnucl_accent
+  place p116e6
+  place t116e6_15 on 15
+  call insert_target_t3
+  place p116ee
+  place t116ee_16 on 16
+  call insert_phrase_final_tones
+  place p116f6
+  place t116f6_17 on 17
+  if global half 1402 is not global half 502
+    match
+  end
+  place p11706
+  call add_f0_for_next_voice
+  match
+  place p1171d
+  call nucl_f0
+  go to p116de
+  place tm_18 on 18
+  match
+end
+
+rule add_f0_for_new_voice takes 1
+  instead
+  local cf0 bytes 8
+  local cf4 bytes 8
+  local c118 bytes 8
+  local v100 word
+  local v108 word
+  variable g1330 word 3372
+  variable g1370 word 3424
+  variable g300 word 420
+  place p11774
+  place p117ad
+  place p11810
+  call push_ptr_init addr c118
+  set cf4 to 65532
+  set cf0 to 65532
+  call fence 0 sym eti_null
+  call lpta_loadp addr g300
+  call setscan_l 4
+  if answer is not 0
+    match
+  end
+  place p1185e
+  call advance_tok
+  if answer is not 0
+    match
+  end
+  place p1186e
+  set v108 to addr g300
+  call starttest_l 1
+  call bspush_ca 2
+  set global half 3374 to 10
+  set v100 to addr g1330
+  call npush_v addr g1330
+  set global half 3426 to 10
+  call npush_v addr g1370
+  call if_testneq
+  if answer is not 0
+    go to p1197e
+  end
+  place p118d8
+  go to p118df
+  place p118df
+  place t118df_3 on 3
+  call init_voice_vars
+  place p118e7
+  place t118e7_4 on 4
+  call lpta_loadp addr g300
+  call setscan_l 2
+  if answer is not 0
+    match
+  end
+  place p11901
+  call test_string_s 2 1 sym eti_s_1b9060
+  if answer is not 0
+    match
+  end
+  place p1191e
+  place t1191e_5 on 5
+  call savescptr 5 addr c118
+  call starttest_l 1
+  call move_i addr cf4 95
+  call move_i addr cf0 50
+  call insert_f0 addr c118 addr cf4 addr cf0
+  if answer is 0
+    match
+  end
+  place p1197e
+  set unwind to 0
+  backtrack
+  place p119b8
+  place t119b8_2 on 2
+  set global half 3374 to 9
+  call npush_v addr g1330
+  set global half 3426 to 9
+  call npush_v addr g1370
+  call if_testneq
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p119ee
+  go to p118df
+  place tm_1 on 1
+  match
+end
+
+rule init_phrase_inton_vars takes 1
+  instead
+  local cf0 bytes 8
+  variable g15c0 word 3808
+  variable g278 word 328
+  variable g5a8 word 820
+  variable g5b8 word 828
+  place p11a10
+  place p11a43
+  place p11aa1
+  call push_ptr_init addr cf0
+  call fence 0 sym eti_null
+  set global half 706 to global half 1406
+  set global half 390 to global half 542
+  set global half 526 to global half 542
+  and 0 into global half 3614
+  or -1 into global half 3530
+  set global half 3602 to 1
+  set global half 3534 to 25
+  set cell cf0 value to global word 832
+  call estimate_nsylls addr g5a8 addr cf0 addr g15c0
+  call init_voice_vars
+  call init_nuclwrd_vars
+  if global half 1570 is not global half 2244
+    match
+  end
+  place p11b54
+  call num_words_in_range addr g5a8 addr g5b8 addr g278
+  match
+end
+
+rule init_word_inton_vars takes 1
+  instead
+  local h_rcx
+  variable g280 word 332
+  variable g788 word 1060
+  place p11b82
+  place p11baf
+  place p11c07
+  call fence 0 sym eti_null
+  if global half 3642 is not global half 3626
+    go to p11c36
+  end
+  place p11c28
+  set global word 676 to global word 2320
+  place p11c36
+  set h_rcx to global half 558
+  if global half 550 is not global half 390
+    go to p11c56
+  end
+  place p11c4d
+  set global half 390 to h_rcx
+  match
+  place p11c56
+  if h_rcx is global half 390
+    match
+  end
+  place p11c5b
+  call lpta_loadpn addr g280
+  call rpta_loadpn addr g788
+  call compare_ptas
+  if answer is not 0
+    match
+  end
+  place p11c85
+  call testeq
+  if answer is 0
+    go to p11ca0
+  end
+  match
+  place p11ca0
+  set h_rcx to global half 550
+  go to p11c4d
+end
+
+rule init_syll_inton_vars takes 1
+  instead
+  local h_rcx
+  place p11cae
+  place p11cdb
+  place p11d33
+  call fence 0 sym eti_null
+  set global word 660 to global word 2320
+  set global word 668 to global word 2320
+  set h_rcx to global half 526
+  if global half 550 is not h_rcx
+    go to p11d77
+  end
+  place p11d73
+  set h_rcx to global half 554
+  go to p11d99
+  place p11d77
+  if global half 554 is not h_rcx
+    go to p11d85
+  end
+  place p11d7c
+  set h_rcx to global half 558
+  go to p11d99
+  place p11d85
+  if global half 550 is not global half 390
+    match
+  end
+  place p11d8e
+  set h_rcx to global half 550
+  if global half 550 is not global half 530
+    match
+  end
+  place p11d99
+  set global half 526 to h_rcx
+  match
+end
+
+rule is_target_syll takes 1
+  instead
+  place p11db4
+  place p11de1
+  place p11e10
+  call fence 0 sym eti_null
+  if global half 522 is not 1
+    give up
+  end
+  place p11e2b
+  if global half 550 is not global half 390
+    match
+  end
+  place p11e3b
+  if global half 550 is not global half 530
+    give up
+  end
+  match
+end
+
+rule nucl_f0 takes 1
+  instead
+  local cf0 bytes 8
+  local h_rax
+  local h_rcx
+  local n11f5b_1
+  local n11f77_1
+  local n11f93_1
+  local n11faf_1
+  local n11fc9_1
+  variable g280 word 332
+  place p11e7a
+  place p11eb7
+  place p11eea
+  set cf0 to 65532
+  call fence 0 sym eti_null
+  set h_rax to answer
+  set h_rax to global half 550
+  if h_rax is not global half 526
+    give up
+  end
+  place p11f19
+  place p11f2b
+  place t11f2b_1 on 1
+  call position_t_ptrs
+  set h_rax to answer
+  place p11f33
+  place t11f33_2 on 2
+  set h_rcx to global half 2244
+  set h_rax to h_rcx
+  if global half 2280 is not h_rcx
+    go to p11f59
+  end
+  place p11f45
+  call nucl_high_tone
+  set h_rax to answer
+  go to p11fda
+  place p11f52
+  place t11f52_3 on 3
+  set h_rax to global half 2244
+  place p11f59
+  set h_rcx to h_rax
+  set n11f5b_1 to h_rax
+  and 65535 into n11f5b_1
+  if global half 2284 is not n11f5b_1
+    go to p11f75
+  end
+  place p11f64
+  call nucl_low_tone
+  set h_rax to answer
+  go to p11fda
+  place p11f6e
+  place t11f6e_6 on 6
+  set h_rax to global half 2244
+  place p11f75
+  set h_rcx to h_rax
+  set n11f77_1 to h_rax
+  and 65535 into n11f77_1
+  if global half 2292 is not n11f77_1
+    go to p11f91
+  end
+  place p11f80
+  call nucl_low_high_star_tone
+  set h_rax to answer
+  go to p11fda
+  place p11f8a
+  place t11f8a_8 on 8
+  set h_rax to global half 2244
+  place p11f91
+  set h_rcx to h_rax
+  set n11f93_1 to h_rax
+  and 65535 into n11f93_1
+  if global half 2288 is not n11f93_1
+    go to p11fad
+  end
+  place p11f9c
+  call nucl_low_star_high_tone
+  set h_rax to answer
+  go to p11fda
+  place p11fa6
+  place t11fa6_10 on 10
+  set h_rax to global half 2244
+  place p11fad
+  set h_rcx to h_rax
+  set n11faf_1 to h_rax
+  and 65535 into n11faf_1
+  if global half 2300 is not n11faf_1
+    go to p11fc9
+  end
+  place p11fb8
+  call nucl_high_low_star_tone
+  set h_rax to answer
+  go to p11fda
+  place p11fc2
+  place t11fc2_12 on 12
+  set h_rax to global half 2244
+  place p11fc9
+  set n11fc9_1 to h_rax
+  and 65535 into n11fc9_1
+  if global half 2296 is not n11fc9_1
+    go to p11fda
+  end
+  place p11fd2
+  call nucl_high_star_low_tone
+  set h_rax to answer
+  place p11fda
+  place t11fda_4 on 4
+  place t11fda_5 on 5
+  place t11fda_7 on 7
+  place t11fda_9 on 9
+  place t11fda_11 on 11
+  place t11fda_13 on 13
+  place t11fda_14 on 14
+  call starttest 15
+  set h_rax to answer
+  call lpta_loadp addr g280
+  call setscan_r 4
+  set h_rax to answer
+  if h_rax is not 0
+    go to p12086
+  end
+  place p11ffb
+  set h_rcx to 1
+  call testFldeq 4 9 h_rcx
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p12010
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p1201c
+  call starttest_l 15
+  set h_rax to answer
+  call move_i addr cf0 3
+  set h_rax to answer
+  call modulate_pwind addr cf0
+  set h_rax to answer
+  if h_rax is 0
+    go to p12086
+  end
+  set unwind to 0
+  backtrack
+  place p12086
+  place t12086_15 on 15
+  set h_rax to global word 432
+  set global word 496 to h_rax
+  match
+end
+
+rule first_postnucl_accent takes 1
+  instead
+  local h_rax
+  local n121d8_0
+  place p1210c
+  place p12145
+  place p12178
+  call fence 0 sym eti_null
+  set h_rax to answer
+  set h_rax to global half 554
+  if h_rax is not global half 526
+    give up
+  end
+  place p12199
+  place p121ab
+  place t121ab_1 on 1
+  set h_rax to global half 590
+  if h_rax is global half 510
+    give up
+  end
+  place p121bb
+  place t121bb_2 on 2
+  call starttest 3
+  set h_rax to answer
+  call bspush_ca 4
+  set h_rax to answer
+  set h_rax to global half 3630
+  place p121d8
+  set n121d8_0 to h_rax
+  and 65535 into n121d8_0
+  if n121d8_0 is global half 3626
+    go to p12243
+  end
+  set unwind to 0
+  backtrack
+  place p1220d
+  place t1220d_4 on 4
+  set h_rax to global half 3642
+  go to p121d8
+  place p12243
+  place t12243_5 on 5
+  call eng_first_postnucl_accent
+  set h_rax to answer
+  match
+  place tm_3 on 3
+  place tm_6 on 6
+  match
+end
+
+rule insert_target_t3 takes 1
+  instead
+  local c110 bytes 8
+  local vf8 word
+  local v100 word
+  local h_r13
+  local h_rax
+  local h_rsi
+  local s12503
+  local s1251b
+  local s12610
+  local s12643
+  local s12660
+  local k126cc_0
+  local n12537_0
+  local f123be
+  variable g300 word 420
+  variable g310 word 428
+  variable g490 word 672
+  variable g4a0 word 680
+  variable g4a4 word 684
+  variable gdd0 word 2316
+  place p12274
+  place p122a9
+  place p12309
+  set h_rsi to addr c110
+  call push_ptr_init h_rsi
+  set h_rax to answer
+  set h_r13 to 0
+  set h_rsi to 0
+  call fence h_rsi sym eti_null
+  set h_rax to answer
+  set h_rsi to addr g490
+  call lpta_loadpn h_rsi
+  set h_rax to answer
+  set h_rsi to addr gdd0
+  call rpta_loadpn h_rsi
+  set h_rax to answer
+  call compare_ptas
+  set h_rax to answer
+  if h_rax is not 0
+    go to p1236a
+  end
+  place p1235a
+  call testeq
+  set h_rax to answer
+  if h_rax is 0
+    go to p12739
+  end
+  place p1236a
+  set v100 to addr g490
+  set h_rsi to 3
+  set vf8 to addr g310
+  place p1238d
+  call starttest h_rsi
+  set h_rax to answer
+  set h_rsi to 4
+  call bspush_ca_boa h_rsi
+  set h_rax to answer
+  set h_rsi to addr g490
+  call in_syllable h_rsi addr g300 addr g310
+  set h_rax to answer
+  set f123be to 0
+  if h_rax is 0
+    set f123be to 1
+  end
+  place p123be
+  if f123be is not 0
+    set h_r13 to 1
+  end
+  set h_rsi to h_r13
+  set unwind to h_rsi
+  backtrack
+  place p123fe
+  place t123fe_3 on 3
+  set h_r13 to unwind
+  set h_rax to global half 590
+  if h_rax is global half 510
+    go to p12739
+  end
+  place p12412
+  place t12412_11 on 11
+  set h_r13 to unwind
+  set h_rax to global half 554
+  if h_rax is global half 526
+    go to p12739
+  end
+  place p12426
+  place t12426_12 on 12
+  set h_r13 to unwind
+  set h_rsi to 13
+  call starttest h_rsi
+  set h_rax to answer
+  set h_rsi to 14
+  call bspush_ca h_rsi
+  set h_rax to answer
+  set h_rax to global half 3630
+  go to p12534
+  place p12448
+  place t12448_4 on 4
+  set h_r13 to unwind
+  call bspop_boa
+  set h_rax to answer
+  set h_rsi to addr g300
+  call lpta_loadp h_rsi
+  call setscan_l 7
+  set h_rax to answer
+  if h_rax is not 0
+    go to p12480
+  end
+  place p12462
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    go to p12480
+  end
+  place p1246e
+  place t1246e_6 on 6
+  set h_r13 to unwind
+  set h_rsi to 6
+  call savescptr h_rsi addr c110
+  set h_rax to answer
+  place p12480
+  place t12480_5 on 5
+  set h_r13 to unwind
+  set h_rsi to 7
+  call starttest h_rsi
+  set h_rax to answer
+  set h_rsi to addr g300
+  call lpta_loadp h_rsi
+  call setscan_l 2
+  set h_rax to answer
+  if h_rax is not 0
+    match
+  end
+  place p124a1
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    match
+  end
+  place p124b1
+  set h_rax to global word 676
+  call lpta_loadp addr g490
+  call test_ptr
+  set h_rax to answer
+  if h_rax is not 0
+    match
+  end
+  place p124db
+  place t124db_8 on 8
+  set h_r13 to unwind
+  set h_rsi to 9
+  call bspush_ca_scan h_rsi
+  set h_rax to answer
+  set h_rax to cell c110 value
+  call lpta_loadp addr c110
+  call test_ptr
+  set s12503 to answer
+  set h_rax to s12503
+  set h_rsi to h_r13
+  if h_rax is not 0
+    set unwind to h_rsi
+    backtrack
+  end
+  place p12513
+  go to p12739
+  place p12518
+  place t12518_9 on 9
+  set h_r13 to unwind
+  call advance_tok
+  set s1251b to answer
+  set h_rax to s1251b
+  set h_rsi to h_r13
+  if h_rax is not 0
+    set unwind to h_rsi
+    backtrack
+  end
+  place p1252b
+  go to p124db
+  place p1252d
+  place t1252d_14 on 14
+  set h_r13 to unwind
+  set h_rax to global half 3638
+  place p12534
+  set h_rsi to h_r13
+  set n12537_0 to h_rax
+  and 65535 into n12537_0
+  if n12537_0 is not global half 3626
+    set unwind to h_rsi
+    backtrack
+  end
+  place p12544
+  place t12544_15 on 15
+  set h_r13 to unwind
+  set h_rsi to h_r13
+  if global signed half 682 is less than 101
+    set unwind to h_rsi
+    backtrack
+  end
+  place p12555
+  set h_rsi to addr g490
+  call lpta_loadpn h_rsi
+  set h_rax to answer
+  set h_rsi to addr g310
+  call rpta_loadpn h_rsi
+  set h_rax to answer
+  call compare_ptas
+  set h_rax to answer
+  if h_rax is not 0
+    go to p1258f
+  end
+  place p1257b
+  call testneq
+  set h_rax to answer
+  if h_rax is not 0
+    go to p1258f
+  end
+  place p12587
+  add -100 to global half 682
+  place p1258f
+  place t1258f_16 on 16
+  set h_r13 to unwind
+  set h_rsi to addr g300
+  call lpta_loadp h_rsi
+  call setscan_r 7
+  set h_rax to answer
+  if h_rax is not 0
+    go to p125bb
+  end
+  place p125a1
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    go to p125bb
+  end
+  place p125ad
+  place t125ad_18 on 18
+  set h_r13 to unwind
+  set h_rsi to 18
+  call savescptr h_rsi addr g490
+  set h_rax to answer
+  place p125bb
+  place t125bb_17 on 17
+  set h_r13 to unwind
+  set h_rsi to 19
+  call starttest h_rsi
+  set h_rax to answer
+  set h_rsi to addr g490
+  call lpta_loadp h_rsi
+  call setscan_r 2
+  set h_rax to answer
+  if h_rax is not 0
+    match
+  end
+  place p125dc
+  call advanc
+  set h_rax to answer
+  if h_rax is not 0
+    match
+  end
+  place p125ec
+  place t125ec_20 on 20
+  set h_r13 to unwind
+  set h_rsi to 22
+  call bspush_ca_scan h_rsi
+  set h_rax to answer
+  place p125f7
+  place t125f7_23 on 23
+  set h_r13 to unwind
+  set h_rsi to 23
+  call savescptr h_rsi addr g490
+  set h_rax to answer
+  set h_rsi to 2
+  call testFldeq h_rsi 3 0
+  set s12610 to answer
+  set h_rax to s12610
+  set h_rsi to h_r13
+  if h_rax is not 0
+    set unwind to h_rsi
+    backtrack
+  end
+  place p12620
+  call advance_tok
+  set h_rax to answer
+  set h_rsi to h_r13
+  if h_rax is not 0
+    set unwind to h_rsi
+    backtrack
+  end
+  match
+  place p12638
+  place t12638_21 on 21
+  set h_r13 to unwind
+  call bspop_boa
+  set h_rax to answer
+  call advance_tok
+  set s12643 to answer
+  set h_rax to s12643
+  set h_rsi to h_r13
+  if h_rax is not 0
+    set unwind to h_rsi
+    backtrack
+  end
+  place p12653
+  go to p125ec
+  place p12655
+  place t12655_25 on 25
+  set h_r13 to unwind
+  call bspop_boa
+  set h_rax to answer
+  call advanc
+  set s12660 to answer
+  set h_rax to s12660
+  set h_rsi to h_r13
+  if h_rax is not 0
+    set unwind to h_rsi
+    backtrack
+  end
+  place p12670
+  go to p126e6
+  place p12672
+  place t12672_13 on 13
+  set h_r13 to unwind
+  set h_rsi to 24
+  call starttest h_rsi
+  set h_rax to answer
+  set h_rsi to addr g490
+  call lpta_loadp h_rsi
+  call setscan_r 2
+  set h_rax to answer
+  if h_rax is not 0
+    go to p126f4
+  end
+  place p1268f
+  set h_rsi to 25
+  call bspush_ca_scan_boa h_rsi
+  set h_rax to answer
+  place p1269a
+  place t1269a_26 on 26
+  set h_r13 to unwind
+  set h_rsi to 26
+  call test_synch h_rsi 1 sym eti_s_1b905f
+  set h_rax to answer
+  go to p126cc
+  place p126b1
+  place t126b1_22 on 22
+  set h_r13 to unwind
+  set h_rsi to 21
+  call bspush_ca_scan_boa h_rsi
+  set h_rax to answer
+  set h_rsi to 2
+  call testFldeq h_rsi 3 0
+  set h_rax to answer
+  place p126cc
+  set k126cc_0 to h_rax
+  set f123be to 0
+  if k126cc_0 is 0
+    set f123be to 1
+  end
+  go to p123be
+  place p126d3
+  place t126d3_1 on 1
+  set h_r13 to unwind
+  set h_rsi to 3
+  go to p1238d
+  place p126e6
+  place t126e6_27 on 27
+  set h_r13 to unwind
+  set h_rsi to 27
+  call savescptr h_rsi addr g490
+  set h_rax to answer
+  place p126f4
+  place t126f4_24 on 24
+  set h_r13 to unwind
+  set h_rax to global half 558
+  if h_rax is not global half 526
+    go to p12712
+  end
+  place p12704
+  set h_rax to global half 3530
+  set global half 686 to h_rax
+  place p12712
+  place t12712_28 on 28
+  set h_r13 to unwind
+  set h_rsi to addr g490
+  call insert_f0 h_rsi addr g4a0 addr g4a4
+  set h_rax to answer
+  place p1272b
+  place t1272b_29 on 29
+  set h_r13 to unwind
+  set h_rax to global half 1402
+  set global half 706 to h_rax
+  place p12739
+  place t12739_2 on 2
+  place t12739_10 on 10
+  set h_r13 to unwind
+  set h_rax to global word 2320
+  set global word 676 to h_rax
+  and 0 into global half 682
+  and 0 into global half 686
+  match
+  place tm_7 on 7
+  place tm_19 on 19
+  match
+end
+
+rule insert_phrase_final_tones takes 1
+  instead
+  place p127e0
+  place p1280f
+  place p12865
+  call fence 0 sym eti_null
+  if global half 1402 is not global half 386
+    match
+  end
+  place p1288a
+  call phrase_tone
+  call insert_preset_phrase_tone
+  if global half 590 is not global half 510
+    match
+  end
+  place p128aa
+  call boundary_tone
+  match
+end
+
+rule add_f0_for_next_voice takes 1
+  instead
+  local cf0 bytes 8
+  variable g1330 word 3372
+  variable g13b0 word 3476
+  variable g142c word 3564
+  variable g310 word 428
+  place p128c4
+  place p12901
+  place p12934
+  set cf0 to 65532
+  call fence 0 sym eti_null
+  call starttest 1
+  call bspush_ca 2
+  set global half 3374 to 10
+  call npush_v addr g1330
+  set global half 3478 to 10
+  call npush_v addr g13b0
+  call if_testneq
+  if answer is not 0
+    go to p129e7
+  end
+  place p129aa
+  place t129aa_3 on 3
+  call starttest 1
+  call move_i addr cf0 5
+  call insert_f0 addr g310 addr cf0 addr g142c
+  if answer is 0
+    match
+  end
+  place p129e7
+  set unwind to 0
+  backtrack
+  place p12a0f
+  place t12a0f_2 on 2
+  set global half 3374 to 9
+  call npush_v addr g1330
+  set global half 3478 to 9
+  call npush_v addr g13b0
+  call if_testneq
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p12a41
+  go to p129aa
+  place tm_1 on 1
+  match
+end
+
+rule insert_preset_phrase_tone takes 1
+  instead
+  local vf8 word
+  local h_r13
+  local h_rsi
+  variable g300 word 420
+  variable g4a8 word 688
+  variable g4b8 word 696
+  variable g4bc word 700
+  variable gdd0 word 2316
+  place p12a8f
+  place p12ac4
+  place p12b24
+  set h_r13 to 0
+  set h_rsi to 0
+  call fence h_rsi sym eti_null
+  set h_rsi to addr g4a8
+  set vf8 to addr g4a8
+  call lpta_loadpn h_rsi
+  set h_rsi to addr gdd0
+  call rpta_loadpn h_rsi
+  call compare_ptas
+  if answer is not 0
+    go to p12b7a
+  end
+  place p12b6a
+  call testeq
+  if answer is 0
+    give up
+  end
+  place p12b7a
+  go to p12b8c
+  place t12b8c_1 on 1
+  set h_r13 to unwind
+  place p12b8c
+  set h_rsi to 2
+  call starttest h_rsi
+  set h_rsi to 3
+  call bspush_ca_boa h_rsi
+  set h_rsi to addr g300
+  call lpta_loadp h_rsi
+  call setscan_l 7
+  if answer is not 0
+    go to p12bdf
+  end
+  place p12bb4
+  call lpta_loadp addr g4a8
+  call test_ptr
+  if answer is 0
+    set h_r13 to 1
+  end
+  place p12bdf
+  set h_rsi to h_r13
+  set unwind to h_rsi
+  backtrack
+  go to p12c1a
+  place t12c1a_2 on 2
+  set h_r13 to unwind
+  place p12c1a
+  set global word 692 to global word 440
+  set h_rsi to addr g4a8
+  call insert_f0 h_rsi addr g4b8 addr g4bc
+  go to p12c45
+  place t12c45_4 on 4
+  set h_r13 to unwind
+  place p12c45
+  set global word 692 to global word 2320
+  and 0 into global half 698
+  and 0 into global half 702
+  match
+  go to p12c72
+  place t12c72_3 on 3
+  set h_r13 to unwind
+  place p12c72
+  call bspop_boa
+  give up
+end
+
+rule init_voice_vars takes 1
+  instead
+  local cf0 bytes 8
+  local vf8 word
+  local v100 word
+  local v108 word
+  local h_rax
+  local h_xmm0
+  local n12e89_0
+  local scratch
+  variable g1330 word 3372
+  variable g1590 word 3784
+  variable g15a0 word 3792
+  variable g15c0 word 3808
+  variable g798 word 1068
+  variable g7a8 word 1076
+  variable gd9c word 2262
+  variable gda0 word 2266
+  variable gda4 word 2270
+  variable gda8 word 2274
+  place p12c94
+  place p12cc9
+  place p12d29
+  set cf0 to 65532
+  call fence 0 sym eti_null
+  set h_rax to answer
+  call set_f0_wind_and_base
+  set h_rax to answer
+  set h_rax to addr gd9c
+  set v100 to addr gd9c
+  set h_rax to addr gda0
+  set vf8 to addr gda0
+  set h_rax to addr gda4
+  set v108 to addr gda4
+  place p12d8d
+  place t12d8d_1 on 1
+  set h_xmm0 to global word 3408
+  scale h_xmm0 by 50000 over 10000
+  scale h_xmm0 by 10000 over 100000
+  set h_rax to h_xmm0
+  add 1 to h_rax
+  if h_rax is less than 1
+    subtract 2 from h_rax
+  end
+  truncate h_rax by 1 over 10000
+  set global half 3562 to h_rax
+  call starttest 2
+  set h_rax to answer
+  set global half 3374 to 11
+  call npush_v addr g1330
+  set h_rax to answer
+  call c_assvar addr cf0
+  set h_rax to answer
+  set cell cf0 field to 55537
+  call npush_v addr cf0
+  set h_rax to answer
+  call if_testneq
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p12dfe
+  set global half 3374 to 11
+  call copyvar addr gd9c addr g1330
+  set h_rax to answer
+  place p12e19
+  place t12e19_3 on 3
+  call starttest 4
+  set h_rax to answer
+  set global half 3374 to 12
+  call npush_v addr g1330
+  set h_rax to answer
+  call c_assvar addr cf0
+  set h_rax to answer
+  set cell cf0 field to 55537
+  call npush_v addr cf0
+  set h_rax to answer
+  call if_testneq
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p12e67
+  set global half 3374 to 12
+  call copyvar addr gda0 addr g1330
+  set h_rax to answer
+  place p12e82
+  place t12e82_5 on 5
+  set h_rax to global half 3562
+  set n12e89_0 to h_rax
+  shift left 16 into n12e89_0
+  shift right 16 into n12e89_0
+  if n12e89_0 is at least global signed half 2268
+    go to p12e99
+  end
+  place p12e92
+  set global half 2268 to h_rax
+  place p12e99
+  place t12e99_6 on 6
+  call starttest 7
+  set h_rax to answer
+  set global half 3374 to 13
+  call npush_v addr g1330
+  set h_rax to answer
+  call c_assvar addr cf0
+  set h_rax to answer
+  set cell cf0 field to 55537
+  call npush_v addr cf0
+  set h_rax to answer
+  call if_testneq
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p12ee3
+  set global half 3374 to 13
+  call copyvar addr gda4 addr g1330
+  set h_rax to answer
+  place p12efe
+  place t12efe_8 on 8
+  call starttest 9
+  set h_rax to answer
+  set global half 3374 to 14
+  call npush_v addr g1330
+  set h_rax to answer
+  call c_assvar addr cf0
+  set h_rax to answer
+  set cell cf0 field to 55537
+  call npush_v addr cf0
+  set h_rax to answer
+  call if_testneq
+  set h_rax to answer
+  if h_rax is 0
+    go to p12fa6
+  end
+  set unwind to 0
+  backtrack
+  place p12f76
+  place t12f76_2 on 2
+  or -1 into global half 2264
+  go to p12e19
+  place p12f83
+  place t12f83_4 on 4
+  set h_rax to global half 3810
+  set scratch to h_rax
+  multiply 2 into scratch
+  add h_rax to scratch
+  set h_rax to scratch
+  set global half 2268 to h_rax
+  go to p12e82
+  place p12f99
+  place t12f99_7 on 7
+  and 0 into global half 2272
+  go to p12efe
+  place p12fa6
+  set global half 3374 to 14
+  call copyvar addr gda8 addr g1330
+  set h_rax to answer
+  place p12fc1
+  place t12fc1_10 on 10
+  set h_xmm0 to global word 3796
+  if h_xmm0 is not 0
+    go to p12fd5
+  end
+  match
+  place p12fd5
+  call f0_step addr g15c0 addr g1590 addr gd9c addr gda0 addr g798
+  set h_rax to answer
+  place p13000
+  place t13000_12 on 12
+  call f0_step addr g15c0 addr g15a0 addr gda4 addr gda8 addr g7a8
+  set h_rax to answer
+  match
+  place p1303a
+  place t1303a_9 on 9
+  set global half 2276 to 10
+  go to p12fc1
+  place tm_11 on 11
+  match
+end
+
+rule init_nuclwrd_vars takes 1
+  instead
+  local h_rax
+  local h_rcx
+  variable g5a8 word 820
+  variable g5b8 word 828
+  variable g788 word 1060
+  variable gc98 word 2060
+  place p13080
+  place p130af
+  place p13109
+  call fence 0 sym eti_null
+  set h_rax to answer
+  call fence 1 sym eti_s_1b905e
+  set h_rax to answer
+  set h_rax to global word 2320
+  set global word 1064 to h_rax
+  call starttest 1
+  set h_rax to answer
+  call lpta_loadp addr g5a8
+  call setscan_r 5
+  set h_rax to answer
+  if h_rax is 0
+    go to p13185
+  end
+  place p13162
+  place t13162_1 on 1
+  call starttest 4
+  set h_rax to answer
+  call lpta_loadp addr g5b8
+  call setscan_l 4
+  set h_rax to answer
+  if h_rax is not 0
+    go to p13200
+  end
+  place p13183
+  go to p131a2
+  place p13185
+  call bspush_ca_scan 2
+  set h_rax to answer
+  set h_rcx to 7
+  go to p134b4
+  place p131a2
+  place t131a2_5 on 5
+  call bspush_ca_scan 6
+  set h_rax to answer
+  call npush_fld 4 7
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p131c3
+  call npush_v addr gc98
+  set h_rax to answer
+  call if_testle
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p131e2
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p131f2
+  place t131f2_7 on 7
+  call savescptr 7 addr g788
+  set h_rax to answer
+  place p13200
+  place t13200_4 on 4
+  call starttest 8
+  set h_rax to answer
+  call lpta_loadp addr g788
+  call setscan_r 4
+  set h_rax to answer
+  if h_rax is 0
+    go to p132f4
+  end
+  place p13221
+  place t13221_8 on 8
+  call starttest 10
+  set h_rax to answer
+  call lpta_loadp addr g788
+  call setscan_r 4
+  set h_rax to answer
+  if h_rax is 0
+    go to p1339f
+  end
+  place p13242
+  place t13242_10 on 10
+  call starttest 11
+  set h_rax to answer
+  call lpta_loadp addr g788
+  call setscan_r 4
+  set h_rax to answer
+  if h_rax is 0
+    go to p133d4
+  end
+  place p13263
+  place t13263_11 on 11
+  call starttest 12
+  set h_rax to answer
+  call lpta_loadp addr g788
+  call setscan_r 4
+  set h_rax to answer
+  if h_rax is 0
+    go to p13401
+  end
+  place p13284
+  place t13284_12 on 12
+  call starttest 13
+  set h_rax to answer
+  call lpta_loadp addr g788
+  call setscan_r 4
+  set h_rax to answer
+  if h_rax is 0
+    go to p1342e
+  end
+  place p132a5
+  place t132a5_13 on 13
+  call starttest 14
+  set h_rax to answer
+  call lpta_loadp addr g788
+  call setscan_r 4
+  set h_rax to answer
+  if h_rax is not 0
+    go to p1331c
+  end
+  place p132c2
+  set h_rcx to 5
+  call testFldeq 4 8 h_rcx
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p132db
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p132eb
+  set h_rax to global half 2300
+  go to p13323
+  place p132f4
+  set h_rcx to 0
+  call testFldeq 4 8 h_rcx
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p1330c
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p1331c
+  place t1331c_14 on 14
+  set h_rax to global half 2280
+  place p13323
+  set global half 2244 to h_rax
+  place p1332d
+  place t1332d_9 on 9
+  call starttest 15
+  set h_rax to answer
+  call lpta_loadp addr g788
+  call setscan_r 4
+  set h_rax to answer
+  if h_rax is not 0
+    go to p134fd
+  end
+  place p1334e
+  call npush_fld 4 7
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p13364
+  call npush_v addr gc98
+  set h_rax to answer
+  call if_testlt
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p13383
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p13393
+  set h_rax to global half 2304
+  go to p13504
+  place p1339f
+  set h_rcx to 1
+  call testFldeq 4 8 h_rcx
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p133b8
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p133c8
+  set h_rax to global half 2284
+  go to p13323
+  place p133d4
+  set h_rcx to 2
+  call testFldeq 4 8 h_rcx
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p133e9
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p133f5
+  set h_rax to global half 2288
+  go to p13323
+  place p13401
+  set h_rcx to 3
+  call testFldeq 4 8 h_rcx
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p13416
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p13422
+  set h_rax to global half 2292
+  go to p13323
+  place p1342e
+  set h_rcx to 4
+  call testFldeq 4 8 h_rcx
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p13442
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p1344e
+  set h_rax to global half 2296
+  go to p13323
+  place p1345a
+  call testFldeq 5 2 h_rcx
+  set h_rax to answer
+  if h_rax is 0
+    go to p134b7
+  end
+  set unwind to 0
+  backtrack
+  place p1349b
+  place t1349b_6 on 6
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p134a7
+  go to p131a2
+  place p134ac
+  place t134ac_2 on 2
+  set h_rcx to 8
+  place p134b4
+  go to p1345a
+  place p134b7
+  place t134b7_3 on 3
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p134c3
+  set h_rax to global half 1570
+  set global half 2244 to h_rax
+  set global half 2260 to h_rax
+  set h_rax to global half 558
+  set global half 526 to h_rax
+  set global half 390 to h_rax
+  set h_rax to global word 824
+  set global word 1064 to h_rax
+  match
+  place p134fd
+  place t134fd_15 on 15
+  set h_rax to global half 1570
+  place p13504
+  set global half 2260 to h_rax
+  match
+  place tm_16 on 16
+  match
+end
+
+rule set_f0_wind_and_base takes 1
+  instead
+  local h_xmm1
+  local h_xmm2
+  place p1355c
+  place p13593
+  place p135c2
+  call fence 0 sym eti_null
+  set h_xmm1 to global signed half 3400
+  multiply 10000 into h_xmm1
+  scale h_xmm1 by global word 3408 over 10000
+  scale h_xmm1 by 10000 over 1000000
+  set h_xmm2 to h_xmm1
+  scale h_xmm2 by -90000 over 10000
+  set global word 3796 to h_xmm1
+  scale h_xmm2 by 10000 over 100000
+  add global word 3408 to h_xmm2
+  set global word 3788 to h_xmm2
+  match
+end
+
+rule f0_step takes 6
+  instead
+  local cf0 bytes 8
+  local cf4 bytes 8
+  local cf8 bytes 8
+  local cfc bytes 8
+  local c10c bytes 8
+  local c140 bytes 8
+  local v108 word
+  local v118 word
+  local v120 word
+  local v128 word
+  local v130 word
+  local h_rcx
+  local h_xmm0
+  local h_xmm1
+  local h_xmm2
+  local k13851_2
+  local n1380f_0
+  place p1364a
+  set v108 to arg 5
+  set h_rcx to 94
+  place p1369a
+  set v118 to arg 1
+  set v120 to arg 2
+  set v128 to arg 3
+  set v130 to arg 4
+  place p1371a
+  set h_rcx to -4
+  call get_parm addr c10c arg 1 h_rcx
+  set h_rcx to -4
+  call get_parm addr cfc arg 2 h_rcx
+  set h_rcx to -4
+  call get_parm addr cf8 arg 3 h_rcx
+  set h_rcx to -4
+  call get_parm addr cf4 arg 4 h_rcx
+  set h_rcx to -5
+  call get_parm addr c140 arg 5 h_rcx
+  set cf0 to 65532
+  call fence 0 sym eti_null
+  if cell cfc field is 0
+    give up
+  end
+  place p137c5
+  place p137da
+  place t137da_1 on 1
+  call starttest 3
+  call c_assvar addr cf0
+  set h_rcx to cell cf4 field
+  multiply cell cf8 field into h_rcx
+  add cell cfc field to h_rcx
+  set cell cf0 field to h_rcx
+  set n1380f_0 to h_rcx
+  shift left 16 into n1380f_0
+  shift right 16 into n1380f_0
+  if n1380f_0 is at most 10
+    go to p1384e
+  end
+  set unwind to 0
+  backtrack
+  place p13844
+  place t13844_2 on 2
+  set h_xmm0 to cell c140 value
+  go to p138a7
+  place p1384e
+  set h_rcx to 10
+  subtract cell cfc field from h_rcx
+  set k13851_2 to h_rcx
+  go to p13866
+  place p13855
+  place t13855_3 on 3
+  set h_rcx to cell cf4 field
+  multiply cell cf8 field into h_rcx
+  place p13866
+  set h_xmm0 to h_rcx
+  multiply 10000 into h_xmm0
+  go to p13870
+  place p1386c
+  place t1386c_4 on 4
+  set h_xmm0 to 0
+  place p13870
+  set h_xmm1 to cell cfc field
+  multiply 10000 into h_xmm1
+  set h_xmm2 to h_xmm0
+  add h_xmm1 to h_xmm2
+  set h_xmm0 to h_xmm1
+  scale h_xmm0 by 10000 over h_xmm2
+  call fixed_log h_xmm0
+  set h_xmm0 to answer
+  set h_xmm1 to cell c10c field
+  multiply 10000 into h_xmm1
+  scale h_xmm0 by 10000 over h_xmm1
+  set cell c140 value to h_xmm0
+  place p138a7
+  put h_xmm0 into arg 5 at 4
+  match
+end
+
+rule realize_prenucl_tone takes 1
+  instead
+  variable g280 word 332
+  place p138d0
+  place p13901
+  place p1395d
+  call fence 0 sym eti_null
+  call starttest 1
+  call lpta_loadp addr g280
+  call setscan_r 4
+  if answer is not 0
+    go to p139cc
+  end
+  place p13992
+  call testFldeq 4 8 0
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p139aa
+  call advance_tok
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p139ba
+  call high_tone
+  match
+  place p139cc
+  place t139cc_1 on 1
+  call starttest 4
+  call lpta_loadp addr g280
+  call setscan_r 4
+  if answer is not 0
+    go to p13a1f
+  end
+  place p139e9
+  call testFldeq 4 8 1
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p13a02
+  call advance_tok
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p13a12
+  call low_tone
+  match
+  place p13a1f
+  place t13a1f_4 on 4
+  call starttest 6
+  call lpta_loadp addr g280
+  call setscan_r 4
+  if answer is not 0
+    go to p13a72
+  end
+  place p13a3c
+  call testFldeq 4 8 3
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p13a55
+  call advance_tok
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p13a65
+  call low_high_star_tone
+  match
+  place p13a72
+  place t13a72_6 on 6
+  call starttest 8
+  call lpta_loadp addr g280
+  call setscan_r 4
+  if answer is not 0
+    go to p13ac2
+  end
+  place p13a8f
+  call testFldeq 4 8 2
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p13aa8
+  call advance_tok
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p13ab8
+  call low_star_high_tone
+  match
+  place p13ac2
+  place t13ac2_8 on 8
+  call starttest 10
+  call lpta_loadp addr g280
+  call setscan_r 4
+  if answer is not 0
+    go to p13b10
+  end
+  place p13adf
+  call testFldeq 4 8 5
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p13af4
+  call advance_tok
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p13b00
+  call high_low_star_tone
+  match
+  place p13b10
+  place t13b10_10 on 10
+  call starttest 3
+  call lpta_loadp addr g280
+  call setscan_r 4
+  if answer is not 0
+    match
+  end
+  place p13b30
+  call testFldeq 4 8 4
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p13b44
+  call advance_tok
+  if answer is 0
+    go to p13b85
+  end
+  set unwind to 0
+  backtrack
+  place p13b85
+  call high_star_low_tone
+  match
+  place tm_2 on 2
+  place tm_3 on 3
+  place tm_5 on 5
+  place tm_7 on 7
+  place tm_9 on 9
+  place tm_11 on 11
+  place tm_12 on 12
+  match
+end
+
+rule modulate_pwind takes 2
+  instead
+  local ce0 bytes 8
+  local ve8 word
+  local h_xmm0
+  local h_xmm1
+  local s13c9a
+  local s13cb8
+  local n13ce1_0
+  place p13bc8
+  place p13bfc
+  place p13c58
+  call get_parm addr ce0 arg 1 -4
+  call fence 0 sym eti_null
+  set h_xmm0 to global word 3796
+  set h_xmm1 to 0
+  if h_xmm0 is not h_xmm1
+    go to p13c9a
+  end
+  match
+  place p13c9a
+  set s13c9a to cell ce0 field
+  set h_xmm1 to s13c9a
+  multiply 10000 into h_xmm1
+  set h_xmm0 to 8600
+  set ve8 to h_xmm1
+  call fixed_pow h_xmm0 h_xmm1
+  set s13cb8 to answer
+  set h_xmm0 to answer
+  set h_xmm1 to 10000
+  scale h_xmm1 by 10000 over h_xmm0
+  scale h_xmm1 by 5000 over 10000
+  scale h_xmm1 by global word 3556 over 10000
+  set global word 3556 to h_xmm1
+  set n13ce1_0 to s13c9a
+  shift left 16 into n13ce1_0
+  shift right 16 into n13ce1_0
+  if n13ce1_0 is less than 5
+    go to p13d02
+  end
+  place p13ce8
+  set h_xmm0 to ve8
+  scale h_xmm0 by -100 over 10000
+  add 10500 to h_xmm0
+  go to p13d1a
+  place p13d02
+  set h_xmm0 to ve8
+  scale h_xmm0 by 100 over 10000
+  add 9500 to h_xmm0
+  place p13d1a
+  scale h_xmm0 by global word 3548 over 10000
+  set global word 3548 to h_xmm0
+  match
+end
+
+rule insert_f0 takes 4
+  instead
+  local cf0 bytes 8
+  local cf4 bytes 8
+  local cf8 bytes 8
+  local cfc bytes 8
+  local c100 bytes 8
+  local c104 bytes 8
+  local c128 bytes 8
+  local c138 bytes 8
+  local c160 bytes 8
+  local c170 bytes 8
+  local v110 word
+  local v118 word
+  local v150 word
+  local h_r14
+  local h_rax
+  local h_rcx
+  local h_rsi
+  local h_xmm0
+  local h_xmm1
+  local n13ed7_0
+  local n13efd_0
+  local n14076_1
+  local vxmm0_0
+  local vxmm0_1
+  local vxmm1_0
+  local vxmm1_1
+  variable g1478 word 3604
+  variable g848 word 1132
+  variable g8b8 word 1244
+  place p13d3f
+  set h_r14 to arg 1
+  place p13d7d
+  place p13ddd
+  set h_rsi to addr c170
+  set h_rcx to -6
+  call get_parm h_rsi arg 1 h_rcx
+  set h_rax to answer
+  set h_rsi to addr cf0
+  set h_rcx to -4
+  call get_parm h_rsi arg 2 h_rcx
+  set h_rax to answer
+  set h_rsi to addr c104
+  set h_rcx to -4
+  call get_parm h_rsi arg 3 h_rcx
+  set h_rax to answer
+  set h_rsi to addr c138
+  call push_ptr_init h_rsi
+  set h_rax to answer
+  set h_rsi to addr c128
+  call push_ptr_init h_rsi
+  set h_rax to answer
+  set h_rax to 65532
+  set cell cfc kind to 65532
+  set cell cf8 kind to 65532
+  set cell cf4 kind to 65532
+  set c100 to 65532
+  set h_rsi to addr c160
+  call push_ptr_init h_rsi
+  set h_rax to answer
+  set h_r14 to 0
+  set h_rsi to 0
+  call fence h_rsi sym eti_null
+  set h_rax to answer
+  set h_rax to global word 2320
+  and 0 into cell cfc field
+  and 0 into cell cf8 field
+  set cell c138 value to h_rax
+  set cell c128 value to h_rax
+  set h_rax to cell c104 field
+  set global half 3566 to h_rax
+  set h_rax to global half 518
+  decrement h_rax
+  set cell cf4 field to h_rax
+  set h_rax to addr cf0
+  set h_rcx to cell cf0 field
+  set h_rax to h_rcx
+  set n13ed7_0 to h_rcx
+  shift left 16 into n13ed7_0
+  shift right 16 into n13ed7_0
+  if n13ed7_0 is more than 0
+    go to p13ee9
+  end
+  place p13edc
+  set cell cf0 field to 3
+  set h_rax to 3
+  place p13ee9
+  set h_rcx to h_rax
+  place p13efd
+  set n13efd_0 to h_rcx
+  shift left 16 into n13efd_0
+  shift right 16 into n13efd_0
+  if n13efd_0 is less than 100
+    go to p13f0c
+  end
+  place p13f03
+  set cell cf0 field to 97
+  go to p13f0c
+  place t13f0c_2 on 2
+  set h_rax to unwind
+  set h_r14 to unwind
+  place p13f0c
+  set h_rsi to 3
+  call starttest h_rsi
+  set h_rax to answer
+  set h_rsi to 4
+  call bspush_ca_boa h_rsi
+  set h_rax to answer
+  set h_rsi to addr c170
+  set h_rcx to addr c128
+  call set_f0_range_ptrs h_rsi addr c138 h_rcx addr cf4
+  set h_rax to answer
+  set h_rsi to 1
+  if h_rax is 0
+    set unwind to h_rsi
+    backtrack
+  end
+  place p13f49
+  set h_rsi to h_r14
+  set unwind to h_rsi
+  backtrack
+  go to p13f85
+  place t13f85_1 on 1
+  set h_rax to unwind
+  set h_r14 to unwind
+  place p13f85
+  set h_rcx to cell cf0 field
+  set h_r14 to h_rax
+  go to p13efd
+  go to p13f94
+  place t13f94_3 on 3
+  set h_rax to unwind
+  set h_r14 to unwind
+  place p13f94
+  set h_xmm0 to global word 3796
+  set h_xmm1 to 0
+  if h_xmm0 is not h_xmm1
+    go to p13fca
+  end
+  place p13fa6
+  set h_rax to global word 3788
+  add 1 to h_rax
+  if h_rax is less than 1
+    subtract 2 from h_rax
+  end
+  truncate h_rax by 1 over 10000
+  go to p1407e
+  go to p13fb5
+  place t13fb5_4 on 4
+  set h_rax to unwind
+  set h_r14 to unwind
+  place p13fb5
+  call bspop_boa
+  set h_rax to answer
+  give up
+  go to p13fc2
+  place t13fc2_5 on 5
+  set h_rax to unwind
+  set h_r14 to unwind
+  place p13fc2
+  set h_xmm0 to global word 3796
+  place p13fca
+  set h_rax to cell cf4 field
+  set h_xmm1 to h_rax
+  multiply 10000 into h_xmm1
+  set v110 to h_xmm1
+  set v118 to h_xmm0
+  set h_xmm0 to global word 1072
+  scale h_xmm0 by h_xmm1 over 10000
+  call fixed_exp h_xmm0
+  set h_xmm0 to answer
+  set v150 to h_xmm0
+  set h_xmm0 to v110
+  scale h_xmm0 by global word 1080 over 10000
+  call fixed_exp h_xmm0
+  set h_xmm0 to answer
+  set h_xmm1 to v118
+  scale h_xmm1 by 10000 over h_xmm0
+  set global word 3556 to h_xmm1
+  set h_rax to cell c104 field
+  set h_xmm0 to h_rax
+  multiply 10000 into h_xmm0
+  scale h_xmm0 by h_xmm1 over 10000
+  set h_xmm1 to global word 3788
+  set vxmm1_0 to h_xmm1
+  scale vxmm1_0 by 10000 over v150
+  set vxmm1_1 to h_xmm0
+  scale vxmm1_1 by 10000 over 1000000
+  set vxmm0_0 to vxmm1_0
+  add vxmm1_1 to vxmm0_0
+  set vxmm0_1 to vxmm1_0
+  add vxmm1_1 to vxmm0_1
+  set global word 3548 to vxmm1_0
+  set h_rax to vxmm0_0
+  add 1 to h_rax
+  if h_rax is less than 1
+    subtract 2 from h_rax
+  end
+  truncate h_rax by 1 over 10000
+  set h_rcx to h_rax
+  set h_rsi to global half 3562
+  set n14076_1 to h_rax
+  shift left 16 into n14076_1
+  shift right 16 into n14076_1
+  if global signed half 3562 is more than n14076_1
+    set h_rcx to global half 3562
+  end
+  set h_rax to h_rcx
+  place p1407e
+  set cell cf8 field to h_rax
+  go to p14085
+  place t14085_6 on 6
+  set h_rax to unwind
+  set h_r14 to unwind
+  place p14085
+  set h_r14 to addr c138
+  set h_rsi to addr c138
+  call lpta_rpta_loadp h_rsi addr c128
+  set h_rax to answer
+  set h_rsi to 8
+  call dur_expr h_rsi addr c100
+  set h_rax to answer
+  set h_rax to cell cf0 field
+  set h_rcx to cell c100 field
+  multiply h_rax into h_rcx
+  set h_xmm0 to h_rcx
+  multiply 10000 into h_xmm0
+  scale h_xmm0 by 10000 over 1000000
+  set h_rax to h_xmm0
+  add 1 to h_rax
+  if h_rax is less than 1
+    subtract 2 from h_rax
+  end
+  truncate h_rax by 1 over 10000
+  set cell cfc field to h_rax
+  set h_rsi to addr c138
+  call valid_f0_posn h_rsi addr cfc
+  set h_rax to answer
+  if h_rax is not 0
+    match
+  end
+  place p140ec
+  set h_rsi to addr g848
+  set h_rcx to addr g1478
+  set h_r14 to addr cf8
+  call addStreamArrayPtVal h_rsi addr cf8 h_rcx addr g8b8 addr c160
+  set h_rax to answer
+  set h_rax to cell cf8 field
+  set h_xmm0 to h_rax
+  multiply 10000 into h_xmm0
+  go to p14129
+  go to p14125
+  place t14125_8 on 8
+  set h_rax to unwind
+  set h_r14 to unwind
+  place p14125
+  set h_xmm0 to 0
+  place p14129
+  set h_xmm1 to global word 3608
+  set global word 3316 to h_xmm1
+  set global word 3324 to h_xmm0
+  match
+  place tm_7 on 7
+  match
+end
+
+rule set_f0_range_ptrs takes 5
+  instead
+  local cf2 bytes 8
+  local c120 bytes 8
+  local c150 bytes 8
+  local c160 bytes 8
+  local c170 bytes 8
+  local vee half
+  local v100 word
+  local v108 word
+  local v110 word
+  local v128 word
+  local v130 word
+  local v138 word
+  local v140 word
+  local h_r12
+  local h_r14
+  local h_r15
+  local h_rax
+  local h_rcx
+  local h_rsi
+  local s142b0
+  local s1431c
+  local s14413
+  local s144e6
+  local k14323_0
+  variable g300 word 420
+  variable g310 word 428
+  variable g348 word 456
+  variable g358 word 464
+  variable g368 word 472
+  variable g378 word 480
+  variable g470 word 656
+  place p14178
+  set v110 to arg 4
+  set v108 to arg 3
+  set v100 to arg 2
+  set h_r15 to arg 1
+  place p141c5
+  place p14225
+  set h_r14 to addr c160
+  set h_r12 to -6
+  set h_rsi to addr c160
+  set h_rcx to -6
+  call get_parm h_rsi arg 1 h_rcx
+  set h_rax to answer
+  set h_rsi to addr c150
+  set h_rcx to -6
+  call get_parm h_rsi arg 2 h_rcx
+  set h_rax to answer
+  set h_rsi to addr c120
+  set h_rcx to -6
+  call get_parm h_rsi arg 3 h_rcx
+  set h_rax to answer
+  set h_rsi to addr cf2
+  set h_rcx to -4
+  call get_parm h_rsi arg 4 h_rcx
+  set h_rax to answer
+  set h_rsi to addr c170
+  call push_ptr_init h_rsi
+  set h_rax to answer
+  set h_r15 to 0
+  set h_rsi to 0
+  call fence h_rsi sym eti_null
+  set h_rax to answer
+  set s142b0 to global half 550
+  set h_r12 to s142b0
+  set h_rsi to addr c160
+  call lpta_loadpn h_rsi
+  set h_rax to answer
+  set h_rsi to addr g470
+  call rpta_loadpn h_rsi
+  set h_rax to answer
+  call compare_ptas
+  set h_rax to answer
+  if h_rax is not 0
+    go to p1433c
+  end
+  place p142e2
+  call testeq
+  set h_rax to answer
+  if h_rax is not 0
+    go to p1433c
+  end
+  place p142ee
+  set h_rsi to 1
+  call starttest h_rsi
+  set h_rax to answer
+  set h_rsi to 2
+  call bspush_ca_boa h_rsi
+  set h_rax to answer
+  set h_rcx to addr g310
+  set h_rsi to addr c160
+  call in_syllable h_rsi addr g300 h_rcx
+  set s1431c to answer
+  set h_rax to s1431c
+  set h_rcx to 0
+  set k14323_0 to h_rax
+  set h_rax to 0
+  if k14323_0 is 0
+    set h_rax to 1
+  end
+  set h_rcx to h_rax
+  set h_r14 to h_r12
+  go to p14380
+  place p14334
+  place t14334_1 on 1
+  set h_r15 to unwind
+  set h_r12 to vee
+  place p1433c
+  set h_r14 to h_r12
+  set h_rsi to 3
+  call starttest h_rsi
+  set h_rax to answer
+  set h_rsi to addr c160
+  call lpta_loadp h_rsi
+  call setscan_r 2
+  set h_rax to answer
+  if h_rax is not 0
+    go to p14531
+  end
+  place p14364
+  set h_rsi to 4
+  call bspush_ca_scan_boa h_rsi
+  set h_rax to answer
+  call advanc
+  set h_rax to answer
+  if h_rax is 0
+    set h_r15 to 1
+  end
+  set h_rcx to h_r15
+  place p14380
+  set vee to h_r14
+  set h_rax to addr g368
+  set v140 to addr g368
+  set h_rax to addr g378
+  set v138 to addr g378
+  set h_rax to addr g348
+  set v130 to addr g348
+  set h_rax to addr g358
+  set v128 to addr g358
+  set h_r14 to 2
+  set h_rsi to h_rcx
+  set unwind to h_rsi
+  backtrack
+  place p143ff
+  place t143ff_4 on 4
+  set h_r15 to unwind
+  call bspop_boa
+  set h_rax to answer
+  set h_rsi to 2
+  set h_rcx to 1
+  call testFldeq h_rsi 1 h_rcx
+  set s14413 to answer
+  set h_rax to s14413
+  set h_rsi to h_r15
+  if h_rax is not 0
+    set unwind to h_rsi
+    backtrack
+  end
+  place p1441f
+  call advance_tok
+  set h_rax to answer
+  set h_rsi to h_r15
+  if h_rax is not 0
+    set unwind to h_rsi
+    backtrack
+  end
+  place p1442e
+  place t1442e_5 on 5
+  set h_r15 to unwind
+  set h_rsi to 5
+  call savescptr h_rsi addr c170
+  set h_rax to answer
+  set h_rax to addr g348
+  set h_rcx to addr g358
+  if global half 550 is vee
+    go to p1446c
+  end
+  place p1445e
+  place t1445e_6 on 6
+  set h_r15 to unwind
+  set h_rax to addr g368
+  set h_rcx to addr g378
+  place p1446c
+  set h_rax to through h_rax word 0
+  set cell c150 value to h_rax
+  set h_rax to through h_rcx word 0
+  set cell c120 value to h_rax
+  place p14480
+  place t14480_7 on 7
+  set h_r15 to unwind
+  set h_rsi to 8
+  call starttest h_rsi
+  set h_rax to answer
+  set h_rsi to addr c120
+  call lpta_loadp h_rsi
+  call setscan_r 2
+  set h_rax to answer
+  if h_rax is not 0
+    go to p1458f
+  end
+  place p144a5
+  set h_rsi to 9
+  call bspush_ca_scan_boa h_rsi
+  set h_rax to answer
+  place p144b0
+  place t144b0_10 on 10
+  set h_r15 to unwind
+  set h_rsi to 10
+  set h_rcx to sym eti_s_1b905f
+  call test_synch h_rsi 1 h_rcx
+  set h_rax to answer
+  if h_rax is 0
+    set h_r15 to 1
+  end
+  set h_rsi to h_r15
+  set unwind to h_rsi
+  backtrack
+  place p144d3
+  place t144d3_9 on 9
+  set h_r15 to unwind
+  call bspop_boa
+  set h_rax to answer
+  set h_rsi to 2
+  set h_rcx to 4
+  call testFldeq h_rsi 4 h_rcx
+  set s144e6 to answer
+  set h_rax to s144e6
+  set h_rsi to h_r15
+  if h_rax is not 0
+    set unwind to h_rsi
+    backtrack
+  end
+  place p144f6
+  call advance_tok
+  set h_rax to answer
+  set h_rsi to h_r15
+  if h_rax is not 0
+    set unwind to h_rsi
+    backtrack
+  end
+  place p14509
+  place t14509_11 on 11
+  set h_r15 to unwind
+  set h_rsi to 11
+  go to p1457f
+  place p1450d
+  place t1450d_2 on 2
+  set h_r15 to unwind
+  call bspop_boa
+  set h_rax to answer
+  decrement cell cf2 field
+  set h_r12 to global half 578
+  go to p1433c
+  place p14529
+  place t14529_3 on 3
+  set h_r15 to unwind
+  set h_r14 to vee
+  place p14531
+  set h_rsi to 12
+  call starttest h_rsi
+  set h_rax to answer
+  set h_rsi to addr c160
+  call lpta_loadp h_rsi
+  call setscan_r 2
+  set h_rax to answer
+  set h_rcx to h_r14
+  if h_rax is not 0
+    go to p1458f
+  end
+  place p14555
+  set h_r14 to h_rcx
+  set h_rsi to 13
+  call savescptr h_rsi addr c150
+  set h_rax to answer
+  call advance_tok
+  set h_rax to answer
+  set h_rcx to h_r15
+  if h_rax is not 0
+    go to p14380
+  end
+  place p1457d
+  place t1457d_14 on 14
+  set h_r15 to unwind
+  set h_rsi to 14
+  place p1457f
+  call savescptr h_rsi addr c120
+  set h_rax to answer
+  place p1458f
+  place t1458f_8 on 8
+  place t1458f_12 on 12
+  set h_r15 to unwind
+  set h_rax to cell c150 value
+  set h_rcx to arg 2
+  put h_rax into arg 2 at 4
+  set h_rax to cell c120 value
+  set h_rcx to arg 3
+  put h_rax into arg 3 at 4
+  set h_rax to cell cf2 field
+  set h_rcx to arg 4
+  put h_rax into arg 4 at 2 half
+  match
+  place p145d4
+  place t145d4_13 on 13
+  set h_r15 to unwind
+  set h_rcx to vee
+  go to p14555
+end
+
+rule valid_f0_posn takes 3
+  instead
+  local cf0 bytes 8
+  local cf4 bytes 8
+  local c108 bytes 8
+  local h_xmm0
+  local h_xmm1
+  variable g300 word 420
+  place p14618
+  place p14653
+  place p146b3
+  call get_parm addr c108 arg 1 -6
+  call get_parm addr cf4 arg 2 -4
+  set cf0 to 65532
+  call fence 0 sym eti_null
+  call lpta_rpta_loadp addr g300 addr c108
+  call dur_expr 8 addr cf0
+  set h_xmm1 to cell cf0 field
+  multiply 10000 into h_xmm1
+  add global word 1344 to h_xmm1
+  set h_xmm0 to cell cf4 field
+  multiply 10000 into h_xmm0
+  add h_xmm1 to h_xmm0
+  set global word 3608 to h_xmm0
+  set h_xmm1 to global word 3316
+  if h_xmm1 is less than h_xmm0
+    match
+  end
+  place p1475b
+  if h_xmm1 is not 0
+    give up
+  end
+  place p14769
+  if h_xmm0 is not 0
+    give up
+  end
+  place p14779
+  match
+end
+
+rule shift_tone takes 2
+  instead
+  local ce0 bytes 8
+  local h_rax
+  variable g280 word 332
+  variable g5a8 word 820
+  variable g788 word 1060
+  variable gc98 word 2060
+  place p14794
+  place p147ce
+  place p1482f
+  call get_parm addr ce0 arg 1 -4
+  set h_rax to answer
+  call fence 0 sym eti_null
+  set h_rax to answer
+  call starttest 1
+  set h_rax to answer
+  call lpta_loadp addr g280
+  call setscan_r 4
+  set h_rax to answer
+  if h_rax is not 0
+    go to p14979
+  end
+  place p1487e
+  call npush_fld 4 7
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p14894
+  call npush_v addr gc98
+  set h_rax to answer
+  call if_testlt
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p148b3
+  go to p148ba
+  place p148ba
+  place t148ba_3 on 3
+  call advance_tok
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p148c6
+  place t148c6_2 on 2
+  call bspush_ca_scan 3
+  set h_rax to answer
+  set h_rax to global word 1064
+  call lpta_loadp addr g788
+  call test_ptr
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p148f7
+  call starttest 4
+  set h_rax to answer
+  call lpta_loadp addr g5a8
+  call setscan_r 5
+  set h_rax to answer
+  if h_rax is not 0
+    go to p1496e
+  end
+  place p14918
+  call testFldeq 5 1 3
+  set h_rax to answer
+  if h_rax is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p1492d
+  call advance_tok
+  set h_rax to answer
+  if h_rax is 0
+    go to p1498d
+  end
+  set unwind to 0
+  backtrack
+  place p1496e
+  place t1496e_4 on 4
+  set h_rax to 20
+  place p14972
+  add h_rax to cell ce0 field
+  place p14979
+  place t14979_1 on 1
+  set h_rax to cell ce0 field
+  put h_rax into arg 1 at 2 half
+  match
+  place p1498d
+  set h_rax to 65516
+  go to p14972
+end
+
+rule find_most_stressed_syll takes 1
+  instead
+  variable g2b0 word 356
+  variable g2c0 word 364
+  place p149a4
+  place p149dd
+  place p14a40
+  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1b9061
+  call starttest 1
+  call lpta_loadp addr g2b0
+  call setscan_l 7
+  if answer is 0
+    go to p14a9b
+  end
+  place p14a88
+  place t14a88_1 on 1
+  set global word 368 to global word 352
+  match
+  place p14a9b
+  place p14aa5
+  place t14aa5_2 on 2
+  call bspush_ca_scan 3
+  call test_string_i 7 2 sym eti_s_1b9062
+  if answer is 0
+    go to p14b06
+  end
+  set unwind to 0
+  backtrack
+  place p14af8
+  place t14af8_3 on 3
+  call advance_tok
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p14b04
+  go to p14aa5
+  place p14b06
+  place t14b06_4 on 4
+  call savescptr 4 addr g2c0
+  match
+  place tm_5 on 5
+  match
+end

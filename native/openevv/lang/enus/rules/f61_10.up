@@ -1,0 +1,886 @@
+# The rules of enus, lifted by tools/rules/lift64.py out of ETI
+# Eloquence 6.1 as Apple ships it, by tools/module/lift61.py. Each says
+# `instead' because it is written afresh rather than re-expressed from one of
+# IBM's: nothing of IBM's is under it.
+
+rule generate_acoustic_vals takes 1
+  instead
+  local cf0 bytes 8
+  local c100 bytes 8
+  variable g1068 word 2796
+  variable g1070 word 2804
+  variable g280 word 332
+  variable g300 word 420
+  variable g310 word 428
+  variable g4c8 word 708
+  variable g578 word 796
+  variable g628 word 884
+  variable g638 word 892
+  variable g900 word 1308
+  variable g920 word 1324
+  place p17ed4
+  place p17f07
+  place p17f65
+  call push_ptr_init addr c100
+  call push_ptr_init addr cf0
+  call fence 0 sym eti_null
+  if global half 514 is not 1
+    go to p18055
+  end
+  place p17fa5
+  call set_klattparms
+  go to p17fb4
+  place p17fb4
+  place t17fb4_2 on 2
+  call set_word_default_acoustic_vals
+  place p17fbc
+  place t17fbc_3 on 3
+  call lpta_loadpn addr g300
+  call rpta_loadpn addr g4c8
+  call compare_ptas
+  if answer is not 0
+    go to p18055
+  end
+  place p17fe6
+  call testeq
+  if answer is not 0
+    go to p18055
+  end
+  place p17ff2
+  call starttest 4
+  call lpta_loadpn addr g578
+  call lpta_mover 2
+  call lpta_ctxtl 0
+  call lpta_storep addr c100
+  call text_index addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p18046
+  place t18046_4 on 4
+  call handle_pause addr g578
+  place p18055
+  place t18055_1 on 1
+  call init_syll_acoustic_vars
+  place p1805d
+  place t1805d_5 on 5
+  call insert_syll_level_vals
+  place p18065
+  place t18065_6 on 6
+  call startloop 7
+  call lpta_loadpn addr g300
+  call lpta_mover 2
+  call lpta_storep addr g628
+  call lpta_loadpn addr g310
+  call lpta_mover 2
+  call lpta_storep addr c100
+  call forall_to_test addr g628 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p180e2
+  place t180e2_15 on 15
+  call bspush_ca 9
+  call lpta_loadp addr g628
+  call setscan_r 2
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p18107
+  call advance_tok
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p18117
+  place t18117_10 on 10
+  call savescptr 10 addr g638
+  place p18129
+  place t18129_8 on 8
+  call set_phone_offset_vals
+  place p18131
+  place t18131_11 on 11
+  call starttest 12
+  call lpta_loadp addr g628
+  call setscan_l 2
+  if answer is not 0
+    go to p181dd
+  end
+  place p18156
+  place t18156_13 on 13
+  call savescptr 13 addr cf0
+  call lpta_loadp addr g280
+  call test_ptr
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p18192
+  call lpta_loadp addr cf0
+  call setscan_r 2
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p181ac
+  call testFldeq 2 10 1
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p181c5
+  call advance_tok
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p181d5
+  call word_initial_h
+  place p181dd
+  place t181dd_12 on 12
+  call assign_acoustic_vals
+  place p181e5
+  place t181e5_14 on 14
+  call starttest 9
+  call lpta_loadpn addr g628
+  call lpta_movel 2
+  call lpta_storep addr cf0
+  call synthesizeRange addr g1068 addr cf0 addr g638 addr g900 addr g920 addr g1070
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p18254
+  place t18254_9 on 9
+  call forto_adv_upto_r 7 8 15 2 addr g628 addr c100
+  if answer is 0
+    match
+  end
+  set unwind to 0
+  backtrack
+  place tm_7 on 7
+  match
+end
+
+rule handle_pause takes 2
+  instead
+  local cfc bytes 8
+  local c110 bytes 8
+  local c120 bytes 8
+  local c130 bytes 8
+  local c140 bytes 8
+  local c150 bytes 8
+  local vf8 word
+  local h_xmm0
+  local h_xmm1
+  local s1875b
+  local s1876b
+  variable g1068 word 2796
+  variable g4e8 word 724
+  variable g628 word 884
+  variable g638 word 892
+  variable g658 word 908
+  variable g900 word 1308
+  variable g910 word 1316
+  variable g920 word 1324
+  place p182f4
+  place p18330
+  place p18363
+  call get_parm addr c150 arg 1 -6
+  set cell c130 value to 0
+  set cell c130 kind to 65531
+  set cell c110 value to 0
+  set cell c110 kind to 65531
+  call push_ptr_init addr c140
+  call push_ptr_init addr c120
+  set cfc to 65532
+  call fence 0 sym eti_null
+  set cell c130 value to 0
+  set cell c110 value to 0
+  call starttest 1
+  call lpta_loadp addr c150
+  call setscan_r 2
+  if answer is 0
+    go to p18434
+  end
+  give up
+  place p18434
+  call bspush_ca_scan 2
+  call advanc
+  if answer is not 0
+    go to p18598
+  end
+  place p1844f
+  place t1844f_3 on 3
+  call savescptr 3 addr c150
+  place p18461
+  place t18461_2 on 2
+  call test_string_s 2 1 sym eti_s_1b9068
+  if answer is not 0
+    go to p18598
+  end
+  place p1847e
+  place t1847e_4 on 4
+  call fence 1 sym eti_s_1fe2b4
+  call lpta_loadpn addr c150
+  call lpta_ctxtr 4
+  call lpta_storep addr c140
+  set global half 2308 to 1
+  call startloop 5
+  call lpta_loadpn addr c150
+  call lpta_mover 2
+  call lpta_storep addr g628
+  call lpta_loadpn addr c140
+  call lpta_mover 2
+  call lpta_storep addr c120
+  go to p18528
+  place p18528
+  place t18528_21 on 21
+  call forall_to_test addr g628 addr c120
+  if answer is not 0
+    go to p18598
+  end
+  place p18542
+  place t18542_22 on 22
+  call bspush_ca 7
+  call lpta_loadp addr g628
+  call setscan_r 2
+  if answer is not 0
+    go to p18598
+  end
+  place p18563
+  place t18563_9 on 9
+  go to p18583
+  place p18578
+  call bspush_ca_scan 8
+  place p18583
+  call test_string_s 2 1 sym eti_s_1b9068
+  if answer is 0
+    go to p18578
+  end
+  place p18598
+  set vf8 to addr g628
+  set unwind to 0
+  backtrack
+  place p185e9
+  place t185e9_7 on 7
+  call forto_adv_upto_r 5 6 22 2 addr g628 addr c120
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p18615
+  place t18615_5 on 5
+  and 0 into global half 2308
+  match
+  place p1862c
+  place t1862c_8 on 8
+  call savescptr 8 addr g638
+  place p1863e
+  place t1863e_6 on 6
+  call set_end_of_pause_trans addr g638 addr g658
+  place p18654
+  place t18654_10 on 10
+  call lpta_rpta_loadp addr g628 addr g638
+  call dur_expr 8 addr c130
+  set h_xmm0 to global word 1328
+  set h_xmm1 to global word 1336
+  set global word 1312 to h_xmm0
+  set global word 1320 to h_xmm1
+  add cell c130 value to h_xmm1
+  set global word 1328 to h_xmm1
+  call lpta_rpta_loadp addr g638 addr g658
+  call dur_expr 8 addr cfc
+  set h_xmm0 to cell cfc field
+  multiply 10000 into h_xmm0
+  add global word 1328 to h_xmm0
+  set global word 1336 to h_xmm0
+  if global half 1516 is not 1
+    go to p1872a
+  end
+  place p18700
+  call define_all_params_for_silence addr g628 addr g638 addr g910 addr g920
+  place p18720
+  place t18720_12 on 12
+  call set_klattparms
+  go to p1873a
+  place p1872a
+  place t1872a_11 on 11
+  call set_seg_default_acoustic_vals
+  place p18732
+  place t18732_15 on 15
+  call insert_acoustic_vals
+  place p1873a
+  place t1873a_13 on 13
+  place t1873a_14 on 14
+  call lpta_loadpn addr g658
+  call rpta_loadpn addr g4e8
+  call compare_ptas
+  set s1875b to answer
+  set h_xmm0 to 0
+  if s1875b is not 0
+    go to p18786
+  end
+  place p18768
+  call testneq
+  set s1876b to answer
+  set h_xmm0 to 0
+  if s1876b is not 0
+    go to p18786
+  end
+  place p18778
+  set h_xmm0 to global word 2808
+  go to p18786
+  place p18782
+  place t18782_16 on 16
+  set h_xmm0 to 0
+  place p18786
+  set cell c110 value to h_xmm0
+  place p1878e
+  place t1878e_17 on 17
+  call synthesizeRange addr g1068 addr g628 addr g658 addr g900 addr g920 addr c110
+  place p187c6
+  place t187c6_18 on 18
+  set global word 3332 to global word 896
+  call text_index addr g658
+  place p187e3
+  place t187e3_19 on 19
+  call lpta_loadpn addr g658
+  call rpta_loadpn addr c140
+  call compare_ptas
+  if answer is not 0
+    go to p1881d
+  end
+  place p1880d
+  call testeq
+  if answer is 0
+    go to p18615
+  end
+  place p1881d
+  place t1881d_20 on 20
+  call forall_cont_from 5 6 0 addr g628 addr g658
+  go to p18528
+end
+
+rule init_syll_acoustic_vars takes 1
+  instead
+  place p18894
+  place p188c7
+  place p188f6
+  call fence 0 sym eti_null
+  set global half 538 to global half 562
+  match
+end
+
+rule insert_syll_level_vals takes 1
+  instead
+  local cd0 bytes 8
+  variable g1330 word 3372
+  variable g87c word 1184
+  variable g880 word 1188
+  variable g88c word 1200
+  variable g894 word 1208
+  variable g940 word 1340
+  variable g950 word 1348
+  variable ge10 word 2352
+  place p18945
+  place p18974
+  place p189d2
+  set cd0 to 65532
+  call fence 0 sym eti_null
+  set global half 3374 to 6
+  call if_testeq_v_i addr g1330 100
+  if answer is not 0
+    go to p18a5a
+  end
+  place p18a0c
+  call starttest 1
+  call move_i addr cd0 0
+  call addStreamArraySsVal addr g894 addr cd0 addr g940 addr g950
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p18a53
+  go to p18a5a
+  place p18a5a
+  place t18a5a_1 on 1
+  call addStreamArraySsVal addr g88c addr ge10 addr g940 addr g950
+  place p18a7e
+  place t18a7e_2 on 2
+  call starttest 3
+  call move_i addr cd0 250
+  call addStreamArraySsVal addr g87c addr cd0 addr g940 addr g950
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p18ac4
+  place t18ac4_3 on 3
+  call starttest 4
+  call move_i addr cd0 250
+  call addStreamArraySsVal addr g880 addr cd0 addr g940 addr g950
+  if answer is 0
+    match
+  end
+  set unwind to 0
+  backtrack
+  place tm_4 on 4
+  match
+end
+
+rule set_phone_offset_vals takes 1
+  instead
+  local cf0 bytes 8
+  local h_xmm0
+  variable g12f8 word 3328
+  variable g628 word 884
+  variable g638 word 892
+  variable g658 word 908
+  place p18b58
+  place p18b95
+  place p18bc8
+  set cf0 to 65532
+  call fence 0 sym eti_null
+  set h_xmm0 to global word 1328
+  set global word 1312 to h_xmm0
+  call lpta_rpta_loadp addr g12f8 addr g628
+  call dur_expr 8 addr cf0
+  set h_xmm0 to cell cf0 field
+  multiply 10000 into h_xmm0
+  add global word 1328 to h_xmm0
+  set global word 1320 to h_xmm0
+  call lpta_rpta_loadp addr g628 addr g638
+  call dur_expr 8 addr cf0
+  set h_xmm0 to cell cf0 field
+  multiply 10000 into h_xmm0
+  add global word 1320 to h_xmm0
+  set global word 1328 to h_xmm0
+  call lpta_loadpn addr g638
+  call lpta_mover 2
+  call lpta_storep addr g658
+  call lpta_rpta_loadp addr g638 addr g658
+  call dur_expr 8 addr cf0
+  set h_xmm0 to cell cf0 field
+  multiply 10000 into h_xmm0
+  add global word 1328 to h_xmm0
+  set global word 1336 to h_xmm0
+  match
+end
+
+rule word_initial_h takes 1
+  instead
+  local cf0 bytes 8
+  local vf8 word
+  variable g1230 word 3152
+  variable g280 word 332
+  variable g628 word 884
+  variable g648 word 900
+  variable g898 word 1212
+  variable g900 word 1308
+  variable g910 word 1316
+  place p18d09
+  place p18d46
+  place p18d79
+  set cf0 to 65532
+  call fence 0 sym eti_null
+  call do_h_amps addr g280
+  set vf8 to addr g900
+  place p18dc9
+  place t18dc9_1 on 1
+  call lpta_loadpn addr g628
+  call lpta_movel 2
+  call lpta_storep addr g648
+  call starttest_l 2
+  call move_i addr cf0 0
+  call doAV addr cf0 addr g900 addr g910 addr g648 addr g628
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p18e28
+  place t18e28_2 on 2
+  call starttest 3
+  call move_i addr cf0 0
+  call doAF addr cf0 addr g900 addr g910 addr g648 addr g628
+  if answer is 0
+    go to p18e97
+  end
+  set unwind to 0
+  backtrack
+  place p18e97
+  place t18e97_3 on 3
+  call addStreamArraySsVal addr g898 addr g1230 addr g900 addr g910
+  match
+  place tm_4 on 4
+  match
+end
+
+rule assign_acoustic_vals takes 1
+  instead
+  variable g320 word 436
+  variable g330 word 444
+  variable g628 word 884
+  variable g638 word 892
+  place p18f04
+  place p18f31
+  place p18f89
+  call fence 0 sym eti_null
+  if global half 562 is not global half 538
+    go to p18fee
+  end
+  place p18faa
+  call lpta_loadpn addr g628
+  call rpta_loadpn addr g320
+  call compare_ptas
+  if answer is not 0
+    go to p18fee
+  end
+  place p18fd4
+  call testeq
+  if answer is not 0
+    go to p18fee
+  end
+  place p18fe0
+  set global half 538 to global half 566
+  place p18fee
+  call set_seg_default_acoustic_vals
+  if global half 566 is not global half 538
+    go to p19010
+  end
+  place p19006
+  call nucleus_vals
+  go to p19018
+  place p19010
+  call con_vals
+  place p19018
+  if global half 566 is not global half 538
+    go to p1906c
+  end
+  place p19028
+  call lpta_loadpn addr g638
+  call rpta_loadpn addr g330
+  call compare_ptas
+  if answer is not 0
+    go to p1906c
+  end
+  place p19052
+  call testeq
+  if answer is not 0
+    go to p1906c
+  end
+  place p1905e
+  set global half 538 to global half 570
+  place p1906c
+  set global word 3332 to global word 896
+  match
+end
+
+rule define_all_params_for_silence takes 5
+  instead
+  local cf0 bytes 8
+  local c100 bytes 8
+  local c110 bytes 8
+  local c120 bytes 8
+  local c130 bytes 8
+  variable g1330 word 3372
+  variable g848 word 1132
+  variable g84c word 1136
+  variable g850 word 1140
+  variable g854 word 1144
+  variable g858 word 1148
+  variable g85c word 1152
+  variable g860 word 1156
+  variable g864 word 1160
+  variable g868 word 1164
+  variable g86c word 1168
+  variable g870 word 1172
+  variable g874 word 1176
+  variable g878 word 1180
+  variable g87c word 1184
+  variable g880 word 1188
+  variable g884 word 1192
+  variable g888 word 1196
+  variable g88c word 1200
+  variable g890 word 1204
+  variable g894 word 1208
+  variable g898 word 1212
+  variable g89c word 1216
+  variable g8a0 word 1220
+  variable g8a4 word 1224
+  variable g8a8 word 1228
+  variable g8ac word 1232
+  variable g8b0 word 1236
+  variable g8b4 word 1240
+  variable gef0 word 2552
+  place p1908e
+  place p190cf
+  place p19133
+  call get_parm addr c130 arg 1 -6
+  call get_parm addr c120 arg 2 -6
+  call get_parm addr c110 arg 3 -5
+  call get_parm addr c100 arg 4 -5
+  set cf0 to 65532
+  call fence 0 sym eti_null
+  set global half 3374 to 3
+  set global half 2554 to 3
+  call copyvar addr g1330 addr gef0
+  call starttest 1
+  call move_i addr cf0 1000
+  call addStreamArraySsVal addr g848 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p19216
+  go to p1921d
+  place p1921d
+  place t1921d_1 on 1
+  call starttest 2
+  call move_i addr cf0 500
+  call addStreamArraySsVal addr g84c addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p19267
+  place t19267_2 on 2
+  call starttest 3
+  call move_i addr cf0 1000
+  call addStreamArraySsVal addr g850 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p192b1
+  place t192b1_3 on 3
+  call starttest 4
+  call move_i addr cf0 1500
+  call addStreamArraySsVal addr g854 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p192fb
+  place t192fb_4 on 4
+  call starttest 5
+  call move_i addr cf0 4000
+  call addStreamArraySsVal addr g858 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p19345
+  place t19345_5 on 5
+  call starttest 6
+  call move_i addr cf0 4500
+  call addStreamArraySsVal addr g85c addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p1938f
+  place t1938f_6 on 6
+  call starttest 7
+  call move_i addr cf0 100
+  call addStreamArraySsVal addr g860 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p193d7
+  place t193d7_7 on 7
+  call starttest 8
+  call move_i addr cf0 100
+  call addStreamArraySsVal addr g864 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p1941f
+  place t1941f_8 on 8
+  call starttest 9
+  call move_i addr cf0 100
+  call addStreamArraySsVal addr g868 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p19467
+  place t19467_9 on 9
+  call starttest 10
+  call move_i addr cf0 100
+  call addStreamArraySsVal addr g86c addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p194af
+  place t194af_10 on 10
+  call starttest 11
+  call move_i addr cf0 100
+  call addStreamArraySsVal addr g870 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p194f7
+  place t194f7_11 on 11
+  call starttest 12
+  call move_i addr cf0 270
+  call addStreamArraySsVal addr g874 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p19541
+  place t19541_12 on 12
+  call starttest 13
+  call move_i addr cf0 270
+  call addStreamArraySsVal addr g878 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p1958b
+  place t1958b_13 on 13
+  call starttest 14
+  call move_i addr cf0 500
+  call addStreamArraySsVal addr g87c addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p195d5
+  place t195d5_14 on 14
+  call starttest 15
+  call move_i addr cf0 500
+  call addStreamArraySsVal addr g880 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p1961f
+  place t1961f_15 on 15
+  call starttest 16
+  call move_i addr cf0 0
+  call addStreamArraySsVal addr g884 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p19666
+  place t19666_16 on 16
+  call starttest 17
+  call move_i addr cf0 50
+  call addStreamArraySsVal addr g888 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p196ae
+  place t196ae_17 on 17
+  call starttest 18
+  call move_i addr cf0 0
+  call addStreamArraySsVal addr g88c addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p196f5
+  place t196f5_18 on 18
+  call starttest 19
+  call move_i addr cf0 0
+  call addStreamArraySsVal addr g890 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p1973c
+  place t1973c_19 on 19
+  call starttest 20
+  call move_i addr cf0 0
+  call addStreamArraySsVal addr g894 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p19783
+  place t19783_20 on 20
+  call starttest 21
+  call move_i addr cf0 0
+  call addStreamArraySsVal addr g898 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p197ca
+  place t197ca_21 on 21
+  call starttest 22
+  call move_i addr cf0 0
+  call addStreamArraySsVal addr g89c addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p19811
+  place t19811_22 on 22
+  call starttest 23
+  call move_i addr cf0 0
+  call addStreamArraySsVal addr g8a0 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p19858
+  place t19858_23 on 23
+  call starttest 24
+  call move_i addr cf0 0
+  call addStreamArraySsVal addr g8a4 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p1989f
+  place t1989f_24 on 24
+  call starttest 25
+  call move_i addr cf0 0
+  call addStreamArraySsVal addr g8a8 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p198e6
+  place t198e6_25 on 25
+  call starttest 26
+  call move_i addr cf0 0
+  call addStreamArraySsVal addr g8ac addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p1992d
+  place t1992d_26 on 26
+  call starttest 27
+  call move_i addr cf0 0
+  call addStreamArraySsVal addr g8b0 addr cf0 addr c110 addr c100
+  if answer is not 0
+    set unwind to 0
+    backtrack
+  end
+  place p19970
+  place t19970_27 on 27
+  call starttest 28
+  call move_i addr cf0 0
+  call addStreamArraySsVal addr g8b4 addr cf0 addr c110 addr c100
+  if answer is 0
+    match
+  end
+  set unwind to 0
+  backtrack
+  place tm_28 on 28
+  match
+end

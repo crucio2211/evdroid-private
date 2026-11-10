@@ -124,6 +124,15 @@ class Code:
         self.entries = entries
         self.imm = imm
         self.syms = syms
+        # How many bytes name a place in the rule being read: two, unless it
+        # is longer than 65,535 bytes, which is when it is three.
+        self.jw = 2
+
+    def place(self, p):
+        v = 0
+        for i in range(self.jw):
+            v |= self.code[p + i] << (8 * i)
+        return v
 
     def u16(self, p):
         return self.code[p] | (self.code[p + 1] << 8)
@@ -182,10 +191,10 @@ class Code:
             return (('call', self.entries[which]),
                     (self.code[q + 2], self.code[q + 3]), ops, [], q + 4)
         if op == 'jump':
-            return ('jump',), (), ops, [self.u16(q)], q + 2
+            return ('jump',), (), ops, [self.place(q)], q + self.jw
         if op == 'branch':
             return (('branch', COND[self.code[q]]), (), ops,
-                    [self.u16(q + 1)], q + 3)
+                    [self.place(q + 1)], q + 1 + self.jw)
         if op == 'cmp':
             return two(CMPK)
         if op == 'alu2':
@@ -206,8 +215,8 @@ class Code:
             a, _av, q2 = one(q)
             n = self.u16(q2)
             q2 += 2
-            targets = [self.u16(q2 + 2 * i) for i in range(n)]
-            return ('switch', a), (n,), ops, targets, q2 + 2 * n
+            targets = [self.place(q2 + self.jw * i) for i in range(n)]
+            return ('switch', a), (n,), ops, targets, q2 + self.jw * n
         if op == 'map':
             a, _av, q2 = one(q + 2)
             return ('map', a), (self.u16(q),), ops, [], q2 + 1
@@ -272,10 +281,14 @@ class Code:
         that is where a patch has to go."""
         out = {}
         p = 0
-        while p < length:
-            shape, vals, ops, targets, nxt = self.insn(start + p)
-            out[p] = (shape, vals, ops, targets, nxt - start - p)
-            p = nxt - start
+        self.jw = 3 if length > 0xffff else 2
+        try:
+            while p < length:
+                shape, vals, ops, targets, nxt = self.insn(start + p)
+                out[p] = (shape, vals, ops, targets, nxt - start - p)
+                p = nxt - start
+        finally:
+            self.jw = 2
         return out
 
 

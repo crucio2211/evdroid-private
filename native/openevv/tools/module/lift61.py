@@ -32,14 +32,16 @@ from evv import ROOT, sibling
 dgl = sibling("module/globals")
 
 
-LANG_NAMES = {"fifi": "Finnish", "ptbr": "Brazilian Portuguese",
+LANG_NAMES = {"enus": "American English",
+              "fifi": "Finnish", "ptbr": "Brazilian Portuguese",
               "kokr": "Korean", "zhcn": "Mandarin Chinese",
               "zhtw": "Taiwanese Mandarin"}
 
 # The family and dialect each is, which are 6.1's own numbers -- the sections
 # of the eci.ini Apple's engine reads -- and the library name its settings
 # carry.
-LANG_NUMBERS = {"fifi": (9, 0, "Static Engine FIN"),
+LANG_NUMBERS = {"enus": (1, 0, "Static Engine ENU"),
+                "fifi": (9, 0, "Static Engine FIN"),
                 "ptbr": (7, 0, "Static Engine PTB")}
 
 
