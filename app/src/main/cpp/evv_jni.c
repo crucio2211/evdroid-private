@@ -18,6 +18,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <android/log.h>
 
 #include "eci.h"
@@ -437,20 +440,93 @@ JNIEXPORT void JNICALL Java_org_evvdroid_EvvNative_releaseDictionaryLease(
    eciLoadDict reaches eciLoadDictVolume inside the engine, so a Root volume
    with tens of thousands of entries is parsed as one native operation rather
    than thousands of public eciUpdateDict calls from the JNI bridge. */
+static long long monotonic_millis(void) {
+	struct timespec now;
+	if (clock_gettime(CLOCK_MONOTONIC, &now) != 0)
+		return -1;
+	return (long long)now.tv_sec * 1000LL + now.tv_nsec / 1000000LL;
+}
+
+static int nonempty_regular_file(const char* path) {
+	struct stat info;
+	return path != NULL && stat(path, &info) == 0 &&
+		S_ISREG(info.st_mode) && info.st_size > 0;
+}
+
 static int load_dictionary_volume(ECIHand eci, ECIDictHand dict,
                                   int volume, const char* path) {
-	clock_t started = clock();
+	long long started = monotonic_millis();
 	int answer = eciLoadDict(eci, dict, volume, path);
-	clock_t finished = clock();
-	long long elapsed_ms = 0;
-	if (started != (clock_t)-1 && finished != (clock_t)-1 && finished >= started)
-		elapsed_ms = (long long)((finished - started) * 1000.0 / CLOCKS_PER_SEC);
+	long long finished = monotonic_millis();
+	long long elapsed_ms = started >= 0 && finished >= started
+		? finished - started : -1;
 	if (answer == 0)
 		LOGI("dictionary volume %d loaded natively in %lld ms: %s",
 			volume, elapsed_ms, path);
 	else
 		LOGE("native loader refused dictionary volume %d (%d): %s",
 			volume, answer, path);
+	return answer;
+}
+
+/* Text snapshots are immutable and content-addressed, but the ECI engine
+   still has to parse every line when a new engine instance is created. Save
+   the engine's own binary volume beside that snapshot after the first load.
+   It is scoped to the snapshot directory, so a source change naturally gets
+   a different cache path and stale caches retire with their snapshot. */
+static int load_dictionary_volume_cached(ECIHand eci, ECIDictHand dict,
+                                         int volume, const char* source_path) {
+	static const char suffix[] = ".evv-native";
+	static const char temporary_suffix[] = ".evv-native.tmp";
+	size_t length = strlen(source_path);
+	char* cache_path = (char*)malloc(length + sizeof(suffix));
+	char* temporary_path = (char*)malloc(length + sizeof(temporary_suffix));
+	int answer = -1;
+	if (cache_path == NULL || temporary_path == NULL)
+		goto done;
+	snprintf(cache_path, length + sizeof(suffix), "%s%s", source_path, suffix);
+	snprintf(temporary_path, length + sizeof(temporary_suffix), "%s%s",
+		source_path, temporary_suffix);
+
+	if (nonempty_regular_file(cache_path)) {
+		answer = load_dictionary_volume(eci, dict, volume, cache_path);
+		if (answer == 0) {
+			LOGI("dictionary volume %d used its compiled native cache", volume);
+			goto done;
+		}
+		LOGE("discarding rejected native dictionary cache for volume %d", volume);
+		unlink(cache_path);
+	}
+
+	unlink(temporary_path);
+	answer = load_dictionary_volume(eci, dict, volume, source_path);
+	if (answer == 0) {
+		int saved = eciSaveDict(eci, dict, volume, temporary_path);
+		if (saved == 0 && nonempty_regular_file(temporary_path)) {
+			int fd = open(temporary_path, O_RDONLY);
+			if (fd >= 0) {
+				fsync(fd);
+				close(fd);
+			}
+			chmod(temporary_path, S_IRUSR);
+			if (rename(temporary_path, cache_path) == 0) {
+				LOGI("compiled native dictionary cache for volume %d: %s",
+					volume, cache_path);
+			} else {
+				LOGE("could not publish native dictionary cache for volume %d",
+					volume);
+				unlink(temporary_path);
+			}
+		} else {
+			LOGE("could not compile native dictionary cache for volume %d (code %d)",
+				volume, saved);
+			unlink(temporary_path);
+		}
+	}
+
+done:
+	free(cache_path);
+	free(temporary_path);
 	return answer;
 }
 
@@ -511,7 +587,7 @@ JNIEXPORT jint JNICALL Java_org_evvdroid_EvvNative_replaceDictionaries(
 		for (int volume = 0; volume < 3; volume++) {
 			if (names[volume] == NULL)
 				continue;
-			int rc = load_dictionary_volume(in->eci, candidate, volume, names[volume]);
+			int rc = load_dictionary_volume_cached(in->eci, candidate, volume, names[volume]);
 			if (rc != 0) {
 				LOGE("dictionary volume %d refused %s: %d", volume, names[volume], rc);
 				goto publish_done;
