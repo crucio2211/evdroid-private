@@ -191,8 +191,20 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		if (closed) -1 else EvvNative.getVoiceParam(handle, Eci.VOICE_CURRENT, param)
 	}
 
-	/** Hands a tab-separated text file or saved dictionary to the native loader.
-	 *  Nought is success. */
+	/** Publishes a complete Main/Root/Abbreviations set. A failed volume
+	 *  leaves the previously active native set untouched. */
+	fun replaceDictionaries(paths: Array<String?>): Boolean = synchronized(dictionaryGuard) {
+		val current = synchronized(guard) { if (closed) 0L else handle }
+		current != 0L && EvvNative.replaceDictionaries(current, paths) == 0
+	}
+
+	/** A lease spans one utterance. Native replacement waits for every lease
+	 *  to close before swapping or deleting the active dictionary handle. */
+	fun acquireDictionaryLease(): AutoCloseable? = synchronized(dictionaryGuard) {
+		val current = synchronized(guard) { if (closed) 0L else handle }
+		if (current == 0L || !EvvNative.acquireDictionaryLease(current)) return@synchronized null
+		AutoCloseable { EvvNative.releaseDictionaryLease(current) }
+	}
 
 	/** Queues [text] and starts the engine. The samples come out of [read].
 	 *  The rate and pitch asked for go in front of the words rather than into
