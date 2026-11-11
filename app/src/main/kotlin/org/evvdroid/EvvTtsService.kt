@@ -64,8 +64,7 @@ class EvvTtsService : TextToSpeechService() {
 		}
 		engine?.close()
 		engine = null
-		dictionarySnapshot?.retire()
-		dictionarySnapshot = null
+		retireDictionarySnapshot()
 	}
 
 	// ---- languages -------------------------------------------------------
@@ -209,8 +208,7 @@ class EvvTtsService : TextToSpeechService() {
 		if (held != null && held.language == language) return held
 		held?.close()
 		engine = null
-		dictionarySnapshot?.retire()
-		dictionarySnapshot = null
+		retireDictionarySnapshot()
 		val made = EvvEngine.open(language)
 		engine = made
 		if (made != null) applySettings(made)
@@ -244,6 +242,11 @@ class EvvTtsService : TextToSpeechService() {
 		} else {
 			null
 		}
+	}
+
+	private fun retireDictionarySnapshot() = synchronized(dictionarySnapshotLock) {
+		dictionarySnapshot?.retire()
+		dictionarySnapshot = null
 	}
 
 	/** Builds one immutable snapshot for the active language, then publishes
