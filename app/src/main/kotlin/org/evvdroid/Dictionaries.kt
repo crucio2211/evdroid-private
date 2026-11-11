@@ -9,10 +9,9 @@ import java.io.File
  * A saved binary volume is passed unchanged to the engine's native volume
  * loader. Text dictionaries are decoded as UTF-8 when valid, otherwise as
  * Windows-1252, then encoded for the active language and staged as immutable
- * files. The JNI bridge inserts their entries into a detached ECI dictionary
- * handle before publishing all selected volumes together. The native ECI
- * bulk loader consumes each completed file in one operation; it is not
- * expanded into one JNI/API call per dictionary entry.
+ * files. The native ECI bulk loader reads each complete volume into a
+ * detached dictionary handle before the service publishes all selected
+ * volumes together. It is not expanded into one JNI/API call per entry.
  *
  * A line is a key, a tab, and what to say instead. What to say is either a
  * respelling ("dee oe jeigh") or a pronunciation in the engine's own alphabet
