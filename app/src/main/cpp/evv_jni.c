@@ -433,66 +433,24 @@ JNIEXPORT void JNICALL Java_org_evvdroid_EvvNative_releaseDictionaryLease(
 	pthread_mutex_unlock(&in->lock);
 }
 
-/* The ECI file loader accepts the engine's saved binary format, not the
-   text files users import. Text snapshots are already normalized to the
-   engine's byte set, so read each line and update the detached native handle
-   directly. This keeps the whole dictionary in ECI's own structures: no
-   Kotlin word map, no per-word JNI calls, and no active-set mutation. */
+/* Load a complete immutable volume with OpenEVV's own bulk loader.
+   eciLoadDict reaches eciLoadDictVolume inside the engine, so a Root volume
+   with tens of thousands of entries is parsed as one native operation rather
+   than thousands of public eciUpdateDict calls from the JNI bridge. */
 static int load_dictionary_volume(ECIHand eci, ECIDictHand dict,
                                   int volume, const char* path) {
-	FILE* file = fopen(path, "rb");
-	unsigned char head[8192];
-	size_t got;
-	int answer = 0;
-	int entries = 0;
-	char line[1024];
-	size_t length;
-	if (file == NULL)
-		return -1;
-	got = fread(head, 1, sizeof head, file);
-	if (ferror(file)) {
-		fclose(file);
-		return -1;
-	}
-	if (memchr(head, 0, got) != NULL) {
-		fclose(file);
-		return eciLoadDict(eci, dict, volume, path);
-	}
-	if (fseek(file, 0, SEEK_SET) != 0) {
-		fclose(file);
-		return -1;
-	}
-	while (fgets(line, sizeof line, file) != NULL) {
-		char* tab;
-		length = strlen(line);
-		if (length == sizeof line - 1 && line[length - 1] != '\n' && !feof(file)) {
-			LOGE("dictionary volume %d contains an oversized text line in %s", volume, path);
-			answer = -1;
-			break;
-		}
-		while (length > 0 && (line[length - 1] == '\n' || line[length - 1] == '\r'))
-			line[--length] = 0;
-		if (length == 0 || line[0] == '#' || line[0] == ';' ||
-			(line[0] == '/' && line[1] == '/'))
-			continue;
-		tab = strchr(line, '\t');
-		if (tab == NULL)
-			continue;
-		*tab++ = 0;
-		if (line[0] == 0 || tab[0] == 0)
-			continue;
-		answer = eciUpdateDict(eci, dict, volume, line, tab);
-		if (answer != 0) {
-			LOGE("dictionary volume %d rejected an entry in %s: %d", volume, path, answer);
-			break;
-		}
-		entries++;
-	}
-	if (ferror(file) && answer == 0)
-		answer = -1;
-	fclose(file);
+	clock_t started = clock();
+	int answer = eciLoadDict(eci, dict, volume, path);
+	clock_t finished = clock();
+	long long elapsed_ms = 0;
+	if (started != (clock_t)-1 && finished != (clock_t)-1 && finished >= started)
+		elapsed_ms = (long long)((finished - started) * 1000.0 / CLOCKS_PER_SEC);
 	if (answer == 0)
-		LOGI("dictionary volume %d staged %d text entries from %s", volume, entries, path);
+		LOGI("dictionary volume %d loaded natively in %lld ms: %s",
+			volume, elapsed_ms, path);
+	else
+		LOGE("native loader refused dictionary volume %d (%d): %s",
+			volume, answer, path);
 	return answer;
 }
 
