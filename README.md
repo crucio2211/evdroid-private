@@ -225,6 +225,15 @@ handle and retire the previous one. A failed volume leaves the previous
 complete set active. The bridge logs native load time separately for Main,
 Root and Abbreviations, making a slow volume identifiable.
 
+
+The service prewarms the system-locale engine as soon as Android creates the
+TTS service, so dictionary loading can begin before the screen reader sends
+its first utterance. A warm snapshot is checked against the source content
+hashes and its manifest/file sizes; the app does not reread and hash every
+generated Root volume before the native loader reads it. If the native loader
+rejects a cached volume, the snapshot is rebuilt from the original source
+files and retried once. Startup and per-volume native load times are logged.
+
 Each utterance holds a native dictionary lease and a snapshot-file lease.
 Replacement waits for outstanding utterances to finish, and retired snapshot
 files are deleted only after their last lease closes. No per-word Kotlin
