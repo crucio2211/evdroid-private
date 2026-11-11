@@ -150,6 +150,9 @@ internal class DictionarySnapshot private constructor(
                         stagedSource.delete()
                     }
                     FileOutputStream(destination, true).use { it.fd.sync() }
+                    if (!destination.setReadOnly()) {
+                        throw java.io.IOException("cannot mark dictionary volume $volume immutable")
+                    }
                     outputDigests[volume] = sha256(destination)
                 }
 
@@ -164,6 +167,9 @@ internal class DictionarySnapshot private constructor(
                 FileOutputStream(manifestFile).use { stream ->
                     stream.write(manifest.toByteArray(Charsets.UTF_8))
                     stream.fd.sync()
+                }
+                if (!manifestFile.setReadOnly()) {
+                    throw java.io.IOException("cannot mark dictionary manifest immutable")
                 }
 
                 if (finalDir.exists()) {
