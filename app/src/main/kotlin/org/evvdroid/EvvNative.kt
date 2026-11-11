@@ -33,6 +33,14 @@ internal object EvvNative {
 
 	external fun stop(handle: Long)
 
+	/** Atomically replaces all three native dictionary volumes as one set. */
+	external fun replaceDictionaries(handle: Long, paths: Array<String?>): Int
+
+	/** Keeps the active native dictionary set stable for one utterance. */
+	external fun acquireDictionaryLease(handle: Long): Boolean
+
+	external fun releaseDictionaryLease(handle: Long)
+
 	external fun setParam(handle: Long, param: Int, value: Int): Int
 
 	external fun getParam(handle: Long, param: Int): Int
@@ -43,14 +51,6 @@ internal object EvvNative {
 
 	external fun copyVoice(handle: Long, from: Int, to: Int): Int
 
-	/** Answers one of the eciDict codes, so nought is success. */
-	external fun loadDictionary(handle: Long, volume: Int, path: String): Int
-
-	external fun teachWord(handle: Long, volume: Int, key: ByteArray, say: ByteArray): Int
-
-	external fun lookUpWord(handle: Long, volume: Int, key: ByteArray): String?
-
-	external fun forgetDictionaries(handle: Long)
 
 	external fun languages(): IntArray
 

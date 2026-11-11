@@ -78,11 +78,16 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		setSampleRate(Eci.sampleRateHz(EvvNative.getParam(handle, Eci.PARAM_SAMPLE_RATE)))
 	}
 
-	fun setPauseMode(mode: Int) = synchronized(guard) {
-		if (closed) return
+	fun setPauseMode(mode: Int): Boolean = synchronized(guard) {
+		if (closed) return@synchronized false
 		val clamped = mode.coerceIn(Eci.PAUSES_NONE, Eci.PAUSES_ALWAYS)
-		EvvNative.setParam(handle, Eci.PARAM_PAUSES, clamped)
-		pauseMode = clamped
+		if (EvvNative.setParam(handle, Eci.PARAM_PAUSES, clamped) >= 0) {
+			pauseMode = clamped
+			true
+		} else {
+			Log.e(TAG, "the engine refused pause mode $clamped")
+			false
+		}
 	}
 
 	fun setSampleRate(hz: Int) = synchronized(guard) {
@@ -188,28 +193,19 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		if (closed) -1 else EvvNative.getVoiceParam(handle, Eci.VOICE_CURRENT, param)
 	}
 
-	/** Hands a tab-separated text file or saved dictionary to the native loader.
-	 *  Nought is success. */
-	fun loadDictionary(volume: Int, path: String): Int = synchronized(dictionaryGuard) {
+	/** Publishes a complete Main/Root/Abbreviations set. A failed volume
+	 *  leaves the previously active native set untouched. */
+	fun replaceDictionaries(paths: Array<String?>): Boolean = synchronized(dictionaryGuard) {
 		val current = synchronized(guard) { if (closed) 0L else handle }
-		if (current == 0L) -1 else EvvNative.loadDictionary(current, volume, path)
+		current != 0L && EvvNative.replaceDictionaries(current, paths) == 0
 	}
 
-	fun teachWord(volume: Int, key: String, say: String): Int = synchronized(dictionaryGuard) {
+	/** A lease spans one utterance. Native replacement waits for every lease
+	 *  to close before swapping or deleting the active dictionary handle. */
+	fun acquireDictionaryLease(): AutoCloseable? = synchronized(dictionaryGuard) {
 		val current = synchronized(guard) { if (closed) 0L else handle }
-		if (current == 0L) -1 else EvvNative.teachWord(
-			current, volume, EngineText.encode(language, key), EngineText.encode(language, say)
-		)
-	}
-
-	fun lookUpWord(volume: Int, key: String): String? = synchronized(dictionaryGuard) {
-		val current = synchronized(guard) { if (closed) 0L else handle }
-		if (current == 0L) null else EvvNative.lookUpWord(current, volume, EngineText.encode(language, key))
-	}
-
-	fun forgetDictionaries() = synchronized(dictionaryGuard) {
-		val current = synchronized(guard) { if (closed) 0L else handle }
-		if (current != 0L) EvvNative.forgetDictionaries(current)
+		if (current == 0L || !EvvNative.acquireDictionaryLease(current)) return@synchronized null
+		AutoCloseable { EvvNative.releaseDictionaryLease(current) }
 	}
 
 	/** Queues [text] and starts the engine. The samples come out of [read].

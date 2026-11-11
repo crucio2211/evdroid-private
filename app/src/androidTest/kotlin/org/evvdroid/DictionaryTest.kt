@@ -1,273 +1,352 @@
 package org.evvdroid
 
-import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Teaching the engine how to say a word.
- *
- * The dictionaries people share for this engine are text, and the engine's own
- * loader does not take them, so what is checked here is our reading of the file
- * and the engine's answer to being taught a word at a time.
- *
- * The sample is written here rather than shipped from anywhere. The dictionaries
- * worth loading belong to the people who wrote them.
+ * The speech service publishes one immutable three-volume snapshot through
+ * the engine's native dictionary handle. These tests cover content identity,
+ * file leases, all-or-nothing native replacement, and the replacement barrier.
  */
 @RunWith(AndroidJUnit4::class)
 class DictionaryTest {
 
-	@Test
-	fun aWordCanBeTaughtAndIsThenSaidDifferently() {
-		val e = open()
-		try {
-			val before = samples(e, "DOJ")
-			assertEquals("the engine refused the word", 0, e.teachWord(Eci.DICT_MAIN, "DOJ", "dee oe jeigh"))
-			assertEquals("dee oe jeigh", e.lookUpWord(Eci.DICT_MAIN, "DOJ"))
-			val after = samples(e, "DOJ")
-			assertTrue("teaching the word changed nothing", after != before)
-		} finally {
-			e.close()
-		}
-	}
+    @Test
+    fun contentHashDetectsSameSizeSameTimestampReplacement() {
+        val source = write("DOJ\tdee oh jay\n")
+        val fixedTime = 1_700_000_000_000L
+        assertTrue(source.setLastModified(fixedTime))
+        val root = File(dir(), "snapshots-hash")
+        val first = DictionarySnapshot.prepare(root, LANGUAGE, mapOf(Eci.DICT_MAIN to source), null)
+        val firstIdentity = first.identity
+        val firstPath = File(first.paths[Eci.DICT_MAIN]!!)
 
-	@Test
-	fun aPronunciationInTheEnginesOwnAlphabetIsTaken() {
-		val e = open()
-		try {
-			assertEquals(0, e.teachWord(Eci.DICT_MAIN, "DOS", "`[das]"))
-			assertEquals("`[das]", e.lookUpWord(Eci.DICT_MAIN, "DOS"))
-			assertTrue(samples(e, "DOS") > 0)
-		} finally {
-			e.close()
-		}
-	}
+        source.writeText("DOJ\tbee oh jay\n", Charsets.ISO_8859_1)
+        assertEquals("replacement fixture must keep its byte length", 15L, source.length())
+        assertTrue(source.setLastModified(fixedTime))
+        val second = DictionarySnapshot.prepare(root, LANGUAGE, mapOf(Eci.DICT_MAIN to source), first)
+        try {
+            assertNotEquals("same size and timestamp hid changed contents", firstIdentity, second.identity)
+            assertTrue("first immutable snapshot disappeared while still owned", firstPath.exists())
+            assertTrue("new snapshot was not published", File(second.paths[Eci.DICT_MAIN]!!).exists())
+        } finally {
+            first.retire()
+            second.retire()
+        }
+    }
 
-	@Test
-	fun aFileOfEntriesLoads() {
-		val e = open()
-		try {
-			val file = write(SAMPLE)
-			assertEquals("the file was miscounted", 6, Dictionaries.count(file))
-			assertEquals("not every entry went in", 6, Dictionaries.load(e, Eci.DICT_MAIN, file))
-			assertEquals("dee oe jeigh", e.lookUpWord(Eci.DICT_MAIN, "DOJ"))
-			assertEquals("`[das]", e.lookUpWord(Eci.DICT_MAIN, "DOS"))
-			assertNotNull("a Latin-1 key was lost", e.lookUpWord(Eci.DICT_MAIN, "café"))
-		} finally {
-			e.close()
-		}
-	}
+    @Test
+    fun snapshotDirectoryLivesUntilItsLastLeaseCloses() {
+        val source = write("DOJ\tdee oh jay\n")
+        val snapshot = DictionarySnapshot.prepare(
+            File(dir(), "snapshots-lease"),
+            LANGUAGE,
+            mapOf(Eci.DICT_MAIN to source),
+            null
+        )
+        val volume = File(snapshot.paths[Eci.DICT_MAIN]!!)
+        val directory = volume.parentFile!!
+        val lease = snapshot.acquire()
+        snapshot.retire()
+        assertTrue("retirement deleted a leased snapshot", directory.exists())
+        lease.close()
+        assertFalse("last lease did not release the snapshot directory", directory.exists())
+    }
 
-	@Test
-	fun linesThatAreNotEntriesAreSkipped() {
-		val e = open()
-		try {
-			val file = write("no tab here\nDOJ\tdee oe jeigh\n   \n")
-			assertEquals(1, Dictionaries.count(file))
-			assertEquals(1, Dictionaries.load(e, Eci.DICT_MAIN, file))
-		} finally {
-			e.close()
-		}
-	}
+    @Test
+    fun allThreeVolumesAreLoadedAsOneNativeSet() {
+        val e = open()
+        val root = File(dir(), "three-volumes")
+        val main = write("walk\tthis is the special main pronunciation\n")
+        val rootFile = write("walking\twalk\n")
+        val abbr = write("LOL\tthis is the special abbreviation pronunciation\n")
+        val beforeMain = samples(e, "walk")
+        val beforeRoot = samples(e, "walking")
+        val beforeAbbr = samples(e, "LOL")
+        val snapshot = DictionarySnapshot.prepare(
+            root, LANGUAGE,
+            mapOf(
+                Eci.DICT_MAIN to main,
+                Eci.DICT_ROOT to rootFile,
+                Eci.DICT_ABBREVIATION to abbr
+            ),
+            null
+        )
+        try {
+            assertTrue("native engine rejected the complete three-volume set", e.replaceDictionaries(snapshot.paths))
+            val afterMain = samples(e, "walk")
+            val afterRoot = samples(e, "walking")
+            val afterAbbr = samples(e, "LOL")
+            assertTrue("main baseline speech failed", beforeMain > 0)
+            assertTrue("root baseline speech failed", beforeRoot > 0)
+            assertTrue("abbreviation baseline speech failed", beforeAbbr > 0)
+            assertTrue("main dictionary speech failed", afterMain > 0)
+            assertTrue("root dictionary speech failed", afterRoot > 0)
+            assertTrue("abbreviation dictionary speech failed", afterAbbr > 0)
+            assertNotEquals("main volume was not applied", beforeMain, afterMain)
+            assertNotEquals("root volume was not applied", beforeRoot, afterRoot)
+            assertNotEquals("abbreviation volume was not applied", beforeAbbr, afterAbbr)
 
-	/** A real dictionary is a few thousand entries, and this is what says
-	 *  loading one is something the speech service can afford when it starts. */
-	@Test
-	fun thousandsOfEntriesLoadQuickly() {
-		val e = open()
-		try {
-			val many = buildString {
-				for (n in 0 until MANY) {
-					append("evvword")
-					append(n)
-					append('\t')
-					append("evv word ")
-					append(n)
-					append("\r\n")
-				}
-			}
-			val file = write(many)
-			assertEquals(MANY, Dictionaries.count(file))
-			val took = System.currentTimeMillis()
-			val taught = Dictionaries.load(e, Eci.DICT_ROOT, file)
-			val spent = System.currentTimeMillis() - took
-			Log.e(TAG, "$MANY entries in ${spent}ms")
-			assertEquals("not every entry went in", MANY, taught)
-			assertTrue("loading took ${spent}ms", spent < 8000)
-		} finally {
-			e.close()
-		}
-	}
+            // The first native load compiles each volume to ECI's saved binary
+            // format. A fresh engine must then be able to load those caches
+            // and preserve the same dictionary behavior.
+            for (volume in Eci.DICT_VOLUMES) {
+                val sourcePath = snapshot.paths[volume] ?: continue
+                val compiled = File("$sourcePath.evv-native")
+                assertTrue("native binary cache was not created for volume $volume", compiled.isFile)
+                assertTrue("native binary cache is empty for volume $volume", compiled.length() > 0)
+            }
+            val cachedEngine = open()
+            try {
+                assertTrue(
+                    "fresh engine could not load the saved native dictionary set",
+                    cachedEngine.replaceDictionaries(snapshot.paths)
+                )
+                assertNotEquals(
+                    "compiled Main volume was not applied",
+                    beforeMain,
+                    samples(cachedEngine, "walk")
+                )
+                assertNotEquals(
+                    "compiled Root volume was not applied",
+                    beforeRoot,
+                    samples(cachedEngine, "walking")
+                )
+                assertNotEquals(
+                    "compiled Abbreviations volume was not applied",
+                    beforeAbbr,
+                    samples(cachedEngine, "LOL")
+                )
+            } finally {
+                cachedEngine.close()
+            }
+        } finally {
+            snapshot.retire()
+            e.close()
+        }
+    }
 
-	@Test
-	fun sharedNamesRouteToTheirVolumes() {
-		assertEquals(Eci.DICT_MAIN, Dictionaries.volumeForFile("enumain.dic"))
-		assertEquals(Eci.DICT_ROOT, Dictionaries.volumeForFile("enuroot.dic"))
-		assertEquals(Eci.DICT_ABBREVIATION, Dictionaries.volumeForFile("enuabbr.dic"))
-		assertEquals(Eci.DICT_MAIN, Dictionaries.volumeForFile("ESPMAIN.DIC"))
-		assertEquals(Eci.DICT_ABBREVIATION, Dictionaries.volumeForFile("esmabbrev.dic"))
-		assertNull(Dictionaries.volumeForFile("mydict.dic"))
-		assertNull(Dictionaries.volumeForFile("main.dic"))
-	}
 
-	@Test
-	fun sharedNamesSayTheirLanguages() {
-		assertEquals("American English", Dictionaries.languageForFile("enumain.dic"))
-		assertEquals("British English", Dictionaries.languageForFile("engroot.dic"))
-		assertEquals("Castilian Spanish", Dictionaries.languageForFile("espabbr.dic"))
-		assertEquals("French", Dictionaries.languageForFile("fraMain.dic"))
-		assertNull(Dictionaries.languageForFile("mydict.dic"))
-	}
+    @Test
+    fun largeRootVolumeLoadsThroughNativeBulkPathAndKeepsItsLastEntry() {
+        val e = open()
+        val rows = buildString(900_000) {
+            for (i in 0 until 20_000) {
+                append("rootfixture")
+                append(i.toString().padStart(5, '0'))
+                append("\tunused pronunciation\n")
+            }
+            // Keep the pronunciation we check as the final actual entry.
+            append("walking\twalk\n")
+        }
+        val rootFile = write(rows)
+        val before = samples(e, "walking")
+        val snapshot = DictionarySnapshot.prepare(
+            File(dir(), "large-root"),
+            LANGUAGE,
+            mapOf(Eci.DICT_ROOT to rootFile),
+            null
+        )
+        try {
+            val staged = File(snapshot.paths[Eci.DICT_ROOT]!!)
+            val bytes = staged.readBytes()
+            assertTrue(
+                "native text volume must end with a blank-line terminator",
+                bytes.size >= 2 && bytes[bytes.lastIndex - 1] == '\n'.code.toByte() &&
+                    bytes[bytes.lastIndex] == '\n'.code.toByte()
+            )
+            assertTrue("native engine rejected the large Root volume", e.replaceDictionaries(snapshot.paths))
+            val after = samples(e, "walking")
+            assertTrue("baseline Root test speech failed", before > 0)
+            assertTrue("Root dictionary speech failed after bulk loading", after > 0)
+            assertNotEquals("the final Root entry was dropped or not applied", before, after)
+        } finally {
+            snapshot.retire()
+            e.close()
+        }
+    }
 
-	@Test
-	fun binaryFilesAreKnown() {
-		assertTrue(Dictionaries.isBinary(writeBytes(byteArrayOf(0x41, 0x09, 0x42, 0x00, 0x43))))
-		assertFalse(Dictionaries.isBinary(write("DOJ\tdee oe jeigh\n")))
-		assertFalse(Dictionaries.isBinary(File(dir(), "not-there.dic")))
-	}
+    @Test
+    fun loadedNativeDictionarySurvivesSnapshotRetirementAndLanguageSwitch() {
+        val english = open()
+        val german = EvvEngine.open(0x00040000)
+        assertNotNull("no German engine", german)
+        val germanEngine = german!!
+        germanEngine.setSampleRate(11025)
+        germanEngine.setAbbreviations(true)
+        germanEngine.applyVoice(0)
 
-	@Test
-	fun unusableEntriesAreKnown() {
-		assertTrue(Dictionaries.isUsable("DOJ", "dee oe jeigh"))
-		assertFalse(Dictionaries.isUsable("", "dee oe jeigh"))
-		assertFalse(Dictionaries.isUsable("DOJ", ""))
-		assertFalse(Dictionaries.isUsable("DOJ", "say\tnothing"))
-		assertFalse(Dictionaries.isUsable("DOJ", "say\rnothing"))
-		assertFalse(Dictionaries.isUsable("D".repeat(129), "dee"))
-		assertFalse(Dictionaries.isUsable("DOJ", "d".repeat(513)))
-	}
+        val source = write("DOJ\tthis is the retained English pronunciation\n")
+        val snapshot = DictionarySnapshot.prepare(
+            File(dir(), "retained-native"),
+            LANGUAGE,
+            mapOf(Eci.DICT_MAIN to source),
+            null
+        )
+        val snapshotDirectory = File(snapshot.paths[Eci.DICT_MAIN]!!).parentFile!!
+        try {
+            assertTrue("English native dictionary set was not loaded", english.replaceDictionaries(snapshot.paths))
+            val englishWithDictionary = samples(english, "DOJ")
+            assertTrue("English baseline with dictionary failed", englishWithDictionary > 0)
 
-	@Test
-	fun parsedEntriesComeBackByTheirExactKey() {
-		val file = write("DOJ\tdee oe jeigh\nLOL\tell oe ell\nno tab here\n")
-		val entries = Dictionaries.parse(file)
-		assertEquals(2, entries.size)
-		assertEquals("DOJ", entries["DOJ"]?.first)
-		assertEquals("dee oe jeigh", entries["DOJ"]?.second)
-		assertEquals("ell oe ell", entries["LOL"]?.second)
-		assertNull("the key was folded to lowercase", entries["doj"])
-	}
+            // ECI has consumed the volume into its native handle. Retiring the
+            // immutable source must not make the live native dictionary vanish.
+            snapshot.retire()
+            assertFalse("retired snapshot directory was not released", snapshotDirectory.exists())
 
-	@Test
-	fun laterDuplicatesOfTheSameKeyWin() {
-		val file = write("DOJ\tfirst\nDOJ\tsecond\n")
-		assertEquals("second", Dictionaries.parse(file)["DOJ"]?.second)
-	}
+            val germanSource = write("DOJ\tdas ist die deutsche Aussprache\n")
+            val germanSnapshot = DictionarySnapshot.prepare(
+                File(dir(), "retained-native-de"),
+                0x00040000,
+                mapOf(Eci.DICT_MAIN to germanSource),
+                null
+            )
+            try {
+                assertTrue("German native dictionary set was not loaded", germanEngine.replaceDictionaries(germanSnapshot.paths))
+                assertTrue("German dictionary speech failed", samples(germanEngine, "DOJ") > 0)
+                assertEquals(
+                    "switching to another ECI engine disturbed the retained English dictionary",
+                    englishWithDictionary,
+                    samples(english, "DOJ")
+                )
+            } finally {
+                germanSnapshot.retire()
+            }
+        } finally {
+            snapshot.retire()
+            germanEngine.close()
+            english.close()
+        }
+    }
 
-	@Test
-	fun entriesThatDifferOnlyInCaseAreKeptApart() {
-		val file = write("US\tyou ess\nus\tuss\nUs\tuhss\n")
-		val entries = Dictionaries.parse(file)
-		assertEquals(3, entries.size)
-		assertEquals("you ess", entries["US"]?.second)
-		assertEquals("uss", entries["us"]?.second)
-		assertEquals("uhss", entries["Us"]?.second)
-	}
+    @Test
+    fun failedVolumeKeepsThePreviouslyPublishedSet() {
+        val e = open()
+        val valid = write("DOJ\tthis is the stable active pronunciation\n")
+        val snapshot = DictionarySnapshot.prepare(
+            File(dir(), "atomic-old"),
+            LANGUAGE,
+            mapOf(Eci.DICT_MAIN to valid),
+            null
+        )
+        try {
+            val original = samples(e, "DOJ")
+            assertTrue("baseline speech failed", original > 0)
+            assertTrue(e.replaceDictionaries(snapshot.paths))
+            val before = samples(e, "DOJ")
+            assertTrue("published dictionary speech failed", before > 0)
+            assertNotEquals("initial dictionary set was not applied", original, before)
+            val bad = arrayOf(valid.absolutePath, File(dir(), "missing-root.dic").absolutePath, null)
+            assertFalse("invalid root volume was published", e.replaceDictionaries(bad))
+            assertEquals("failed replacement disturbed the active main volume", before, samples(e, "DOJ"))
+        } finally {
+            snapshot.retire()
+            e.close()
+        }
+    }
 
-	@Test
-	fun windowsWesternLettersInTheC1RangeAreUsable() {
-		// 0x92 is a curly apostrophe and 0x9C is oe in the engine's code set.
-		assertTrue(Dictionaries.isUsable("l\u0092heure", "leur"))
-		assertTrue(Dictionaries.isUsable("c\u009Cur", "keur"))
-		assertFalse(Dictionaries.isUsable("a\u0001b", "ab"))
-		assertFalse(Dictionaries.isUsable("a\u007Fb", "ab"))
-	}
+    @Test
+    fun nativeReplacementWaitsForTheUtteranceLease() {
+        val e = open()
+        val source = write("DOJ\tdee oh jay\n")
+        val snapshot = DictionarySnapshot.prepare(
+            File(dir(), "lease-barrier"),
+            LANGUAGE,
+            mapOf(Eci.DICT_MAIN to source),
+            null
+        )
+        val lease = e.acquireDictionaryLease()
+        assertNotNull("native dictionary lease was refused", lease)
+        val started = CountDownLatch(1)
+        val finished = CountDownLatch(1)
+        val succeeded = AtomicBoolean(false)
+        val thread = Thread({
+            started.countDown()
+            succeeded.set(e.replaceDictionaries(snapshot.paths))
+            finished.countDown()
+        }, "dictionary-replacement-test")
+        try {
+            thread.start()
+            assertTrue(started.await(2, TimeUnit.SECONDS))
+            assertFalse("replacement passed an outstanding utterance lease", finished.await(200, TimeUnit.MILLISECONDS))
+            lease!!.close()
+            assertTrue("replacement did not resume after lease release", finished.await(5, TimeUnit.SECONDS))
+            assertTrue("native replacement failed after lease release", succeeded.get())
+        } finally {
+            if (finished.count == 1L) lease?.close()
+            snapshot.retire()
+            e.close()
+        }
+    }
 
-	@Test
-	fun theEngineMatchesAKeyInTheCaseItWasTaught() {
-		val e = open()
-		try {
-			val before = samples(e, "Fatima")
-			assertEquals(0, e.teachWord(Eci.DICT_MAIN, "fatima", "one two three four five"))
-			assertTrue("the key did not touch its own case", samples(e, "fatima") != before)
-			assertEquals("a key in one case touched another", before, samples(e, "Fatima"))
-		} finally {
-			e.close()
-		}
-	}
+    @Test
+    fun textAndBinaryFilesAreDistinguishedForSnapshotPreparation() {
+        assertFalse(Dictionaries.isBinary(write("DOJ\tdee oh jay\n")))
+        assertTrue(Dictionaries.isBinary(writeBytes(byteArrayOf(0x41, 0x09, 0x42, 0x00, 0x43))))
+    }
 
-	@Test
-	fun garbageLinesCountForNothing() {
-		val file = write("no tab here\nDOJ\t\n\tdee oe jeigh\n")
-		assertEquals(0, Dictionaries.count(file))
-		assertTrue(Dictionaries.parse(file).isEmpty())
-	}
+    @Test
+    fun sharedNamesRouteToTheirVolumesAndLanguages() {
+        assertEquals(Eci.DICT_MAIN, Dictionaries.volumeForFile("enumain.dic"))
+        assertEquals(Eci.DICT_ROOT, Dictionaries.volumeForFile("enuroot.dic"))
+        assertEquals(Eci.DICT_ABBREVIATION, Dictionaries.volumeForFile("enuabbr.dic"))
+        assertEquals(Eci.DICT_MAIN, Dictionaries.volumeForFile("ESPMAIN.DIC"))
+        assertEquals(Eci.DICT_ABBREVIATION, Dictionaries.volumeForFile("esmabbrev.dic"))
+        assertEquals("American English", Dictionaries.languageForFile("enumain.dic"))
+        assertEquals("British English", Dictionaries.languageForFile("engroot.dic"))
+    }
 
-	@Test
-	fun forgettingPutsTheEngineBack() {		val e = open()
-		try {
-			e.teachWord(Eci.DICT_MAIN, "DOJ", "dee oe jeigh")
-			assertNotNull(e.lookUpWord(Eci.DICT_MAIN, "DOJ"))
-			e.forgetDictionaries()
-			assertNull("the set was not put aside", e.lookUpWord(Eci.DICT_MAIN, "DOJ"))
-		} finally {
-			e.close()
-		}
-	}
+    private fun open(): EvvEngine {
+        val engine = EvvEngine.open(LANGUAGE)
+        assertNotNull("no engine", engine)
+        val target = engine!!
+        target.setSampleRate(11025)
+        target.setAbbreviations(true)
+        target.applyVoice(0)
+        return target
+    }
 
-	private fun open(): EvvEngine {
-		val e = EvvEngine.open(0x00010000)
-		assertNotNull("no engine", e)
-		e!!.setSampleRate(11025)
-		e.applyVoice(0)
-		return e
-	}
+    private fun samples(engine: EvvEngine, text: String): Int {
+        if (!engine.speak(text)) return -1
+        var total = 0
+        val buffer = ByteArray(4096)
+        while (true) {
+            val count = engine.read(buffer)
+            if (count <= 0) break
+            total += count
+        }
+        return total
+    }
 
-	private fun write(text: String): File {
-		val to = InstrumentationRegistry.getInstrumentation().targetContext
-		val file = File(to.cacheDir, "test.dic")
-		file.writeBytes(text.toByteArray(Charsets.ISO_8859_1))
-		return file
-	}
+    private fun write(text: String): File {
+        val file = File(dir(), "dict-${System.nanoTime()}.dic")
+        file.writeBytes(text.toByteArray(Charsets.ISO_8859_1))
+        return file
+    }
 
-	private fun dir(): File {
-		val to = InstrumentationRegistry.getInstrumentation().targetContext
-		return File(to.cacheDir, "dicttests").apply { mkdirs() }
-	}
+    private fun writeBytes(bytes: ByteArray): File {
+        val file = File(dir(), "binary-${System.nanoTime()}.dic")
+        file.writeBytes(bytes)
+        return file
+    }
 
-	private var fileNumber = 0
+    private fun dir(): File {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        return File(context.cacheDir, "dictionary-tests").apply { mkdirs() }
+    }
 
-	private fun writeBytes(bytes: ByteArray): File {
-		val file = File(dir(), "bytes-${fileNumber++}.dic")
-		file.writeBytes(bytes)
-		return file
-	}
-
-	private fun samples(e: EvvEngine, text: String): Int {
-		if (!e.speak(text)) return -1
-		var total = 0
-		val buffer = ByteArray(4096)
-		while (true) {
-			val n = e.read(buffer)
-			if (n <= 0) break
-			total += n
-		}
-		return total
-	}
-
-	private companion object {
-		const val TAG = "evvdict"
-		const val MANY = 3000
-
-		/** The shape the files in the wild have: a key, a tab, and either a
-		 *  respelling or a pronunciation in the engine's own alphabet. The bytes
-		 *  are Latin-1 and the lines end CRLF, both of which are what real ones
-		 *  do. */
-		val SAMPLE = listOf(
-			"DOJ\tdee oe jeigh",
-			"DOS\t`[das]",
-			"ACLU\tay cea ell yue",
-			"café\t`[kaf1e]",
-			"SNES\tess en ee ess",
-			"evvdroid\tee vee vee droid"
-		).joinToString("\r\n", postfix = "\r\n")
-	}
+    private companion object {
+        const val LANGUAGE = 0x00010000
+    }
 }

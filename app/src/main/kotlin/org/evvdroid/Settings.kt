@@ -28,11 +28,26 @@ class Settings(context: Context) {
 	private val prefs: SharedPreferences = context.applicationContext
 		.getSharedPreferences("${context.packageName}_preferences", Context.MODE_PRIVATE)
 
-	@Volatile
-	var revision: Int = 0
-		private set
+	/** Persisted so a new TextToSpeechService instance in the same process can
+	 *  recognize that its retained native engines still have current settings. */
+	val revision: Int get() = prefs.getInt(KEY_SETTINGS_REVISION, 0)
 
-	private val watcher = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> revision++ }
+	private val watcher = SharedPreferences.OnSharedPreferenceChangeListener { changed, key ->
+		if (key != KEY_SETTINGS_REVISION) {
+			synchronized(REVISION_LOCK) {
+				val next = changed.getInt(KEY_SETTINGS_REVISION, 0) + 1
+				prefs.edit().putInt(KEY_SETTINGS_REVISION, next).apply()
+			}
+		}
+	}
+
+	/** Call when the contents of an imported dictionary file change even if
+	 *  its stored path and display name remain identical. */
+	fun invalidateRevision() {
+		synchronized(REVISION_LOCK) {
+			prefs.edit().putInt(KEY_SETTINGS_REVISION, revision + 1).apply()
+		}
+	}
 
 	init {
 		carryOverTheOldKeys()
@@ -104,7 +119,7 @@ class Settings(context: Context) {
 	/** How much of the engine's own pausing to keep. One of the Pauses
 	 *  constants, and not a voice's business. */
 	var pauses: Int
-		get() = prefs.getInt(KEY_PAUSES, Pauses.ALL).coerceIn(Pauses.KEEP, Pauses.ALL)
+		get() = prefs.getInt(KEY_PAUSES, Eci.PAUSES_DEFAULT).coerceIn(Pauses.KEEP, Pauses.ALL)
 		set(value) = prefs.edit().putInt(KEY_PAUSES, value).apply()
 
 	/** Whether the engine guesses at phrase boundaries and shapes the
@@ -369,6 +384,8 @@ class Settings(context: Context) {
 		const val KEY_REGEX_PATH = "regex_path"
 		const val KEY_REGEX_NAME = "regex_name"
 		const val KEY_USE_DICT_PREFIX = "use_dict_"
+		private const val KEY_SETTINGS_REVISION = "evvdroid_settings_revision"
+		private val REVISION_LOCK = Any()
 		const val DEFAULT_SAMPLE_RATE = 11025
 
 		/** The seven, in the order the settings screen shows them. Gender is not

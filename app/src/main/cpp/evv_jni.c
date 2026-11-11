@@ -16,13 +16,18 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <time.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <android/log.h>
 
 #include "eci.h"
 
 #define TAG "evvdroid"
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
 
 /* What the engine writes at a time, in samples, and what the ring holds, in
    bytes. The ring has to be bigger than one frame or the callback would wait
@@ -52,6 +57,8 @@ typedef struct {
 	int             pending;
 	int             busy;
 	int             quitting;
+	int             dictionary_leases;
+	int             dictionary_replacing;
 	unsigned char*  text;
 	ECIDictHand     dict;
 	short           frame[FRAME_SAMPLES];
@@ -155,15 +162,6 @@ static jboolean finished(instance* in) {
 	return JNI_FALSE;
 }
 
-/* Waits for the worker to be out of the engine, which is what makes it safe to
-   put the next utterance in. The lock must not be held. */
-static void wait_until_idle(instance* in) {
-	pthread_mutex_lock(&in->lock);
-	while (in->busy)
-		pthread_cond_wait(&in->work, &in->lock);
-	pthread_mutex_unlock(&in->lock);
-}
-
 /* Runs on the engine's synthesis thread. It may not call back into the same
    instance, and it does not: everything it touches is ours. */
 static int ECICALL on_message(ECIHand handle, ECIMessage message, int param, void* data) {
@@ -193,15 +191,14 @@ JNIEXPORT jlong JNICALL Java_org_evvdroid_EvvNative_create(JNIEnv* env, jclass c
 	instance* in;
 	(void)env;
 	(void)cls;
-	/* Synthesize high rates natively instead of upsampling 11 kHz. The
-	 * engine holds 11 kHz output up through a converter unless EVV_UPSAMPLE
-	 * is "none", in which case rates above it are synthesized outright with
-	 * resonator tables built for the rate (klatt_buildRateTables, verified
-	 * entry by entry against IBM's own). Read once per process, so this runs
-	 * before the first engine exists. 8k and 11k are untouched either way.
-	 * Upstream's wideband companion stays out: at our rates it is
-	 * inaudible, and the flag never engages under native synthesis. */
-	setenv("EVV_UPSAMPLE", "none", 1);
+	/* Keep OpenEVV's default sample-rate pipeline. At 16 kHz the engine uses
+	 * its direct native synthesizer; above 16 kHz it automatically enables
+	 * the 22.05 kHz wideband companion, then its default sinc converter raises
+	 * the combined stream to the requested output rate. EVV_UPSAMPLE=none
+	 * bypasses that path and disables the companion; it is an experiment
+	 * switch, not the Android output mode. Clear any inherited override before
+	 * the first engine opens, since the native rate policy is cached process-wide. */
+	unsetenv("EVV_UPSAMPLE");
 	/* The heteronym filter stays on: its forced readings are written in
 	 * the words' place when they match and honoured literally, stress
 	 * marks and all -- measured in the oracle, where persona answers
@@ -267,6 +264,10 @@ JNIEXPORT void JNICALL Java_org_evvdroid_EvvNative_destroy(JNIEnv* env, jclass c
 		pthread_join(in->worker, NULL);
 		in->running = 0;
 	}
+	pthread_mutex_lock(&in->lock);
+	while (in->dictionary_leases > 0)
+		pthread_cond_wait(&in->work, &in->lock);
+	pthread_mutex_unlock(&in->lock);
 	if (in->dict != NULL_DICT_HAND)
 		eciDeleteDict(in->eci, in->dict);
 	eciDelete(in->eci);
@@ -299,8 +300,14 @@ JNIEXPORT jboolean JNICALL Java_org_evvdroid_EvvNative_speak(JNIEnv* env, jclass
 		return JNI_FALSE;
 	(*env)->GetByteArrayRegion(env, text, 0, n, (jbyte*)buf);
 	buf[n] = 0;
-	wait_until_idle(in);
 	pthread_mutex_lock(&in->lock);
+	while ((in->busy || in->dictionary_replacing) && !in->quitting)
+		pthread_cond_wait(&in->work, &in->lock);
+	if (in->quitting) {
+		pthread_mutex_unlock(&in->lock);
+		free(buf);
+		return JNI_FALSE;
+	}
 	in->aborted = 0;
 	in->started = 0;
 	in->done = 0;
@@ -375,6 +382,8 @@ JNIEXPORT void JNICALL Java_org_evvdroid_EvvNative_stop(JNIEnv* env, jclass cls,
 	if (in == NULL)
 		return;
 	pthread_mutex_lock(&in->lock);
+	while (in->dictionary_replacing && !in->quitting)
+		pthread_cond_wait(&in->work, &in->lock);
 	in->aborted = 1;
 	in->head = in->tail = in->count = 0;
 	pthread_cond_broadcast(&in->room);
@@ -390,108 +399,223 @@ JNIEXPORT void JNICALL Java_org_evvdroid_EvvNative_stop(JNIEnv* env, jclass cls,
 	eciStop(in->eci);
 }
 
-/* The instance's own dictionary set, made the first time one is wanted. An
-   instance has one set in force at a time and the three volumes live in it. */
-static int ensure_dict(instance* in) {
-	if (in->dict != NULL_DICT_HAND)
-		return 1;
-	in->dict = eciNewDict(in->eci);
-	if (in->dict == NULL_DICT_HAND) {
-		LOGE("the engine would not make a dictionary set");
-		return 0;
-	}
-	/* An error code rather than a flag, so nought is success. */
-	if (eciSetDict(in->eci, in->dict) != 0) {
-		LOGE("the engine would not take the dictionary set");
-		return 0;
-	}
-	return 1;
-}
-
-/* Hands a file to the engine's own dictionary loader. Answers one of the
-   eciDict codes, so nought is success. */
-JNIEXPORT jint JNICALL Java_org_evvdroid_EvvNative_loadDictionary(JNIEnv* env, jclass cls, jlong handle, jint volume, jstring path) {
-	instance*   in = unwrap(handle);
-	const char* name;
-	jint        answer;
-	(void)cls;
-	if (in == NULL || path == NULL)
-		return -1;
-	wait_until_idle(in);
-	if (!ensure_dict(in))
-		return -1;
-	name = (*env)->GetStringUTFChars(env, path, NULL);
-	if (name == NULL)
-		return -1;
-	answer = eciLoadDict(in->eci, in->dict, volume, name);
-	(*env)->ReleaseStringUTFChars(env, path, name);
-	return answer;
-}
-
-/* Teaches one word, which is the other way in and the one that does not depend
-   on the engine agreeing about a file format. */
-JNIEXPORT jint JNICALL Java_org_evvdroid_EvvNative_teachWord(JNIEnv* env, jclass cls, jlong handle, jint volume, jbyteArray key, jbyteArray say) {
-	instance*      in = unwrap(handle);
-	jsize          keyLen;
-	jsize          sayLen;
-	unsigned char* pair;
-	jint           answer;
-	(void)cls;
-	if (in == NULL || key == NULL || say == NULL)
-		return -1;
-	wait_until_idle(in);
-	if (!ensure_dict(in))
-		return -1;
-	keyLen = (*env)->GetArrayLength(env, key);
-	sayLen = (*env)->GetArrayLength(env, say);
-	pair = (unsigned char*)malloc((size_t)keyLen + (size_t)sayLen + 2);
-	if (pair == NULL)
-		return -1;
-	(*env)->GetByteArrayRegion(env, key, 0, keyLen, (jbyte*)pair);
-	pair[keyLen] = 0;
-	(*env)->GetByteArrayRegion(env, say, 0, sayLen, (jbyte*)(pair + keyLen + 1));
-	pair[keyLen + 1 + sayLen] = 0;
-	answer = eciUpdateDict(in->eci, in->dict, volume, pair, pair + keyLen + 1);
-	free(pair);
-	return answer;
-}
-
-/* What a key was taught, or nothing. This is how a test says a dictionary
-   really went in rather than that a call answered nought. */
-JNIEXPORT jstring JNICALL Java_org_evvdroid_EvvNative_lookUpWord(JNIEnv* env, jclass cls, jlong handle, jint volume, jbyteArray key) {
-	instance*      in = unwrap(handle);
-	jsize          keyLen;
-	unsigned char* want;
-	const char*    found;
-	jstring        answer;
-	(void)cls;
-	if (in == NULL || key == NULL || in->dict == NULL_DICT_HAND)
-		return NULL;
-	wait_until_idle(in);
-	keyLen = (*env)->GetArrayLength(env, key);
-	want = (unsigned char*)malloc((size_t)keyLen + 1);
-	if (want == NULL)
-		return NULL;
-	(*env)->GetByteArrayRegion(env, key, 0, keyLen, (jbyte*)want);
-	want[keyLen] = 0;
-	found = eciDictLookup(in->eci, in->dict, volume, want);
-	answer = found == NULL ? NULL : (*env)->NewStringUTF(env, found);
-	free(want);
-	return answer;
-}
-
-/* Puts the set aside and takes it away, so the engine is back to the language's
-   own dictionary. */
-JNIEXPORT void JNICALL Java_org_evvdroid_EvvNative_forgetDictionaries(JNIEnv* env, jclass cls, jlong handle) {
+/* An utterance holds a lease for the whole time its words may be read. A
+   replacement marks itself in progress before building a new set, so no new
+   lease or utterance can enter until publication has finished. */
+JNIEXPORT jboolean JNICALL Java_org_evvdroid_EvvNative_acquireDictionaryLease(
+    JNIEnv* env, jclass cls, jlong handle) {
 	instance* in = unwrap(handle);
 	(void)env;
 	(void)cls;
-	if (in == NULL || in->dict == NULL_DICT_HAND)
+	if (in == NULL)
+		return JNI_FALSE;
+	pthread_mutex_lock(&in->lock);
+	while (in->dictionary_replacing && !in->quitting)
+		pthread_cond_wait(&in->work, &in->lock);
+	if (in->quitting) {
+		pthread_mutex_unlock(&in->lock);
+		return JNI_FALSE;
+	}
+	in->dictionary_leases++;
+	pthread_mutex_unlock(&in->lock);
+	return JNI_TRUE;
+}
+
+JNIEXPORT void JNICALL Java_org_evvdroid_EvvNative_releaseDictionaryLease(
+    JNIEnv* env, jclass cls, jlong handle) {
+	instance* in = unwrap(handle);
+	(void)env;
+	(void)cls;
+	if (in == NULL)
 		return;
-	wait_until_idle(in);
-	eciSetDict(in->eci, NULL_DICT_HAND);
-	eciDeleteDict(in->eci, in->dict);
-	in->dict = NULL_DICT_HAND;
+	pthread_mutex_lock(&in->lock);
+	if (in->dictionary_leases > 0)
+		in->dictionary_leases--;
+	pthread_cond_broadcast(&in->work);
+	pthread_mutex_unlock(&in->lock);
+}
+
+/* Load a complete immutable volume with OpenEVV's own bulk loader.
+   eciLoadDict reaches eciLoadDictVolume inside the engine, so a Root volume
+   with tens of thousands of entries is parsed as one native operation rather
+   than thousands of public eciUpdateDict calls from the JNI bridge. */
+static long long monotonic_millis(void) {
+	struct timespec now;
+	if (clock_gettime(CLOCK_MONOTONIC, &now) != 0)
+		return -1;
+	return (long long)now.tv_sec * 1000LL + now.tv_nsec / 1000000LL;
+}
+
+static int nonempty_regular_file(const char* path) {
+	struct stat info;
+	return path != NULL && stat(path, &info) == 0 &&
+		S_ISREG(info.st_mode) && info.st_size > 0;
+}
+
+static int load_dictionary_volume(ECIHand eci, ECIDictHand dict,
+                                  int volume, const char* path) {
+	long long started = monotonic_millis();
+	int answer = eciLoadDict(eci, dict, volume, path);
+	long long finished = monotonic_millis();
+	long long elapsed_ms = started >= 0 && finished >= started
+		? finished - started : -1;
+	if (answer == 0)
+		LOGI("dictionary volume %d loaded natively in %lld ms: %s",
+			volume, elapsed_ms, path);
+	else
+		LOGE("native loader refused dictionary volume %d (%d): %s",
+			volume, answer, path);
+	return answer;
+}
+
+/* Text snapshots are immutable and content-addressed, but the ECI engine
+   still has to parse every line when a new engine instance is created. Save
+   the engine's own binary volume beside that snapshot after the first load.
+   It is scoped to the snapshot directory, so a source change naturally gets
+   a different cache path and stale caches retire with their snapshot. */
+static int load_dictionary_volume_cached(ECIHand eci, ECIDictHand dict,
+                                         int volume, const char* source_path) {
+	static const char suffix[] = ".evv-native";
+	static const char temporary_suffix[] = ".evv-native.tmp";
+	size_t length = strlen(source_path);
+	char* cache_path = (char*)malloc(length + sizeof(suffix));
+	char* temporary_path = (char*)malloc(length + sizeof(temporary_suffix));
+	int answer = -1;
+	if (cache_path == NULL || temporary_path == NULL)
+		goto done;
+	snprintf(cache_path, length + sizeof(suffix), "%s%s", source_path, suffix);
+	snprintf(temporary_path, length + sizeof(temporary_suffix), "%s%s",
+		source_path, temporary_suffix);
+
+	if (nonempty_regular_file(cache_path)) {
+		answer = load_dictionary_volume(eci, dict, volume, cache_path);
+		if (answer == 0) {
+			LOGI("dictionary volume %d used its compiled native cache", volume);
+			goto done;
+		}
+		LOGE("discarding rejected native dictionary cache for volume %d", volume);
+		unlink(cache_path);
+	}
+
+	unlink(temporary_path);
+	answer = load_dictionary_volume(eci, dict, volume, source_path);
+	if (answer == 0) {
+		int saved = eciSaveDict(eci, dict, volume, temporary_path);
+		if (saved == 0 && nonempty_regular_file(temporary_path)) {
+			int fd = open(temporary_path, O_RDONLY);
+			if (fd >= 0) {
+				fsync(fd);
+				close(fd);
+			}
+			chmod(temporary_path, S_IRUSR);
+			if (rename(temporary_path, cache_path) == 0) {
+				LOGI("compiled native dictionary cache for volume %d: %s",
+					volume, cache_path);
+			} else {
+				LOGE("could not publish native dictionary cache for volume %d",
+					volume);
+				unlink(temporary_path);
+			}
+		} else {
+			LOGE("could not compile native dictionary cache for volume %d (code %d)",
+				volume, saved);
+			unlink(temporary_path);
+		}
+	}
+
+done:
+	free(cache_path);
+	free(temporary_path);
+	return answer;
+}
+
+/* Build all three volumes in a detached ECI dictionary handle. Only after
+   every selected file loads do we activate the candidate and retire the old
+   handle. A bad volume therefore cannot leave a half-updated dictionary set. */
+JNIEXPORT jint JNICALL Java_org_evvdroid_EvvNative_replaceDictionaries(
+    JNIEnv* env, jclass cls, jlong handle, jobjectArray paths) {
+	instance* in = unwrap(handle);
+	char* names[3] = { NULL, NULL, NULL };
+	ECIDictHand candidate = NULL_DICT_HAND;
+	ECIDictHand previous;
+	int any = 0;
+	int answer = -1;
+	jsize count;
+	(void)cls;
+	if (in == NULL || paths == NULL)
+		return -1;
+	count = (*env)->GetArrayLength(env, paths);
+	if (count != 3)
+		return -1;
+	for (jsize i = 0; i < count; i++) {
+		jstring path = (jstring)(*env)->GetObjectArrayElement(env, paths, i);
+		if (path != NULL) {
+			const char* text = (*env)->GetStringUTFChars(env, path, NULL);
+			if (text == NULL) {
+				(*env)->DeleteLocalRef(env, path);
+				goto cleanup;
+			}
+			names[i] = strdup(text);
+			(*env)->ReleaseStringUTFChars(env, path, text);
+			(*env)->DeleteLocalRef(env, path);
+			if (names[i] == NULL)
+				goto cleanup;
+			any = 1;
+		} else {
+			(*env)->DeleteLocalRef(env, path);
+		}
+	}
+
+	pthread_mutex_lock(&in->lock);
+	while ((in->busy || in->dictionary_leases > 0 || in->dictionary_replacing)
+			&& !in->quitting)
+		pthread_cond_wait(&in->work, &in->lock);
+	if (in->quitting) {
+		pthread_mutex_unlock(&in->lock);
+		goto cleanup;
+	}
+	in->dictionary_replacing = 1;
+	pthread_mutex_unlock(&in->lock);
+
+	if (any) {
+		candidate = eciNewDict(in->eci);
+		if (candidate == NULL_DICT_HAND) {
+			LOGE("the engine would not create a replacement dictionary set");
+			goto publish_done;
+		}
+		for (int volume = 0; volume < 3; volume++) {
+			if (names[volume] == NULL)
+				continue;
+			int rc = load_dictionary_volume_cached(in->eci, candidate, volume, names[volume]);
+			if (rc != 0) {
+				LOGE("dictionary volume %d refused %s: %d", volume, names[volume], rc);
+				goto publish_done;
+			}
+		}
+	}
+	if (eciSetDict(in->eci, candidate) != 0) {
+		LOGE("the engine would not activate the replacement dictionary set");
+		goto publish_done;
+	}
+	previous = in->dict;
+	in->dict = candidate;
+	candidate = NULL_DICT_HAND;
+	if (previous != NULL_DICT_HAND)
+		eciDeleteDict(in->eci, previous);
+	answer = 0;
+
+publish_done:
+	if (candidate != NULL_DICT_HAND)
+		eciDeleteDict(in->eci, candidate);
+	pthread_mutex_lock(&in->lock);
+	in->dictionary_replacing = 0;
+	pthread_cond_broadcast(&in->work);
+	pthread_mutex_unlock(&in->lock);
+
+cleanup:
+	for (int i = 0; i < 3; i++)
+		free(names[i]);
+	return answer;
 }
 
 JNIEXPORT jint JNICALL Java_org_evvdroid_EvvNative_setParam(JNIEnv* env, jclass cls, jlong handle, jint param, jint value) {

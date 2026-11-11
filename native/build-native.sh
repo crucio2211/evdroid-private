@@ -147,7 +147,6 @@ triple_for() {
 		arm64-v8a)   echo "aarch64-linux-android$API" ;;
 		armeabi-v7a) echo "armv7a-linux-androideabi$API" ;;
 		x86_64)      echo "x86_64-linux-android$API" ;;
-		x86)         echo "i686-linux-android$API" ;;
 		*)           echo "unknown ABI $1" >&2; exit 1 ;;
 	esac
 }

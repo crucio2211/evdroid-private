@@ -251,7 +251,6 @@ class SettingsModel(context: Context) {
 				val name = nameOf(uri) ?: pending.name
 				val source = app.contentResolver.openInputStream(uri)
 					?: throw java.io.IOException("the selected dictionary could not be opened")
-				Dictionaries.invalidate(pending)
 				source.use { input -> pending.outputStream().use { output -> input.copyTo(output) } }
 				val binary = Dictionaries.isBinary(pending)
 				val routed = Dictionaries.volumeForFile(name) ?: volume
@@ -310,9 +309,6 @@ class SettingsModel(context: Context) {
 				if (!pending.exists()) throw java.io.IOException("the pending dictionary is missing")
 				pending.copyTo(file, overwrite = true)
 				pending.delete()
-				into.listFiles()?.filter { it.name.startsWith(".evvdroid-volume-$slot-") }?.forEach { it.delete() }
-				Dictionaries.invalidate(file)
-				if (!binary) Dictionaries.prepareForEngine(file, language)
 			}
 			mainHandler.post {
 				dictionaryImporting = false
@@ -326,6 +322,7 @@ class SettingsModel(context: Context) {
 				settings.setDictionaryLanguage(slot, language)
 				dictionaries = dictionaries + (slot to said)
 				chooseUseDictionary(slot, true)
+				settings.invalidateRevision()
 				pendingDictSlot = null
 				pendingDictBinary = false
 				pendingDictEntries = 0
@@ -343,17 +340,14 @@ class SettingsModel(context: Context) {
 			settings.dictionaryPath(volume)?.let {
 				val file = java.io.File(it)
 				file.delete()
-				Dictionaries.invalidate(file)
 			}
 			settings.setDictionary(volume, null, null)
 		}
-		java.io.File(app.filesDir, "dictionaries").listFiles()
-			?.filter { it.name.startsWith(".evvdroid-") }
-			?.forEach { it.delete() }
 		dictionaries = emptyMap()
 		settings.regexDictionaryPath()?.let { java.io.File(it).delete() }
 		settings.setRegexDictionary(null, null)
 		chooseRegexDictionaryEnabled(false)
+		settings.invalidateRevision()
 		regexDictionary = app.getString(R.string.dictionary_none)
 		regexEntries = emptyList()
 	}
@@ -383,6 +377,7 @@ class SettingsModel(context: Context) {
 		if (patterns == 0) {
 			file.delete()
 			settings.setRegexDictionary(null, null)
+			settings.invalidateRevision()
 			regexDictionary = app.getString(R.string.dictionary_none)
 			regexEntries = emptyList()
 			return
@@ -391,6 +386,7 @@ class SettingsModel(context: Context) {
 		settings.setRegexDictionary(file.absolutePath, said)
 		regexDictionary = said
 		chooseRegexDictionaryEnabled(true)
+		settings.invalidateRevision()
 		refreshRegexEntries()
 	}
 
@@ -416,6 +412,7 @@ class SettingsModel(context: Context) {
 		if (!RegexDictionaries.appendEntry(file, RegexDictionaries.withCase(pattern, matchCase), replacement)) return false
 		refreshRegexName(file)
 		chooseRegexDictionaryEnabled(true)
+		settings.invalidateRevision()
 		refreshRegexEntries()
 		return true
 	}
@@ -432,6 +429,7 @@ class SettingsModel(context: Context) {
 		} else {
 			refreshRegexName(file)
 		}
+		settings.invalidateRevision()
 		refreshRegexEntries()
 		return true
 	}
@@ -443,6 +441,7 @@ class SettingsModel(context: Context) {
 			return false
 		}
 		refreshRegexName(file)
+		settings.invalidateRevision()
 		refreshRegexEntries()
 		return true
 	}
@@ -453,6 +452,7 @@ class SettingsModel(context: Context) {
 		settings.regexDictionaryPath()?.let { java.io.File(it).delete() }
 		settings.setRegexDictionary(null, null)
 		chooseRegexDictionaryEnabled(false)
+		settings.invalidateRevision()
 		regexDictionary = app.getString(R.string.dictionary_none)
 		regexEntries = emptyList()
 	}
@@ -568,8 +568,7 @@ class SettingsModel(context: Context) {
 			stripBackquotes = !settings.backquoteTags,
 			punctLevel = settings.punctLevel.takeIf { settings.punctProcessing }
 		)
-		val text = Prosody.prefix(settings.phrasePrediction) +
-			Pauses.apply(heard, settings.pauses, true)
+		val text = Prosody.prefix(settings.phrasePrediction) + heard
 		preview?.say(
 			text,
 			voice,

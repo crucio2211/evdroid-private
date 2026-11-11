@@ -8,12 +8,15 @@ plugins {
 
 val abis = (findProperty("evvdroid.abis") as String? ?: "arm64-v8a,armeabi-v7a,x86_64")
 	.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+require(abis.all { it == "arm64-v8a" || it == "armeabi-v7a" || it == "x86_64" }) {
+	"Supported Android ABIs are arm64-v8a, armeabi-v7a and x86_64"
+}
 val rulesForm = findProperty("evvdroid.rules") as String? ?: "c"
 val languages = findProperty("evvdroid.langs") as String? ?: "lang/enus"
 // CI passes its run number so every build installs as an update over the
 // last: same versionCode twice and Android may keep the old APK in place.
 val versionCodeNumber = (findProperty("evvdroid.versionCode") as String?)?.toIntOrNull() ?: 1
-val versionNameText = findProperty("evvdroid.versionName") as String? ?: "0.1.0"
+val versionNameText = findProperty("evvdroid.versionName") as String? ?: "2.0"
 val nativeOut = layout.buildDirectory.dir("native/jniLibs")
 
 // The engine is built by its own Makefile rather than by CMake, because that

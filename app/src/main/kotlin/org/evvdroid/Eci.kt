@@ -12,7 +12,8 @@ object Eci {
 	const val PARAM_REAL_WORLD_UNITS = 8
 	const val PARAM_LANGUAGE_DIALECT = 9
 	const val PARAM_NUMBER_MODE = 10
-	const val PARAM_PAUSES = 22
+	// Public eciSetParam uses the legacy parameter 33; OpenEVV forwards it internally to parameter 22.
+	const val PARAM_PAUSES = 33
 
 	const val PAUSES_NONE = 0
 	const val PAUSES_AT_END = 1
@@ -92,21 +93,19 @@ object Eci {
 		return Math.round(percent.coerceIn(0, PERCENT_MAX) * top / 100.0).toInt()
 	}
 
-	/** The rates the app offers, in hertz. 8k and 11k use IBM's own tables;
-	 *  16k is synthesized natively with resonator tables built for the
-	 *  rate, and everything above takes the wideband companion (the bridge
-	 *  sets EVV_UPSAMPLE=none, so 16k itself is never upsampled). 48k is
-	 *  refused by the engine under this setup -- asking lands back on
-	 *  11025, which the engine-rate row shows -- so 44100 is the top.
-	 *  Higher rates cost proportionally more CPU per second of speech.
+	/** The rates the app offers, in hertz. 8k and 11k use IBM's own tables.
+	 *  16k uses the engine's direct native wideband synthesizer. Above 16k,
+	 *  OpenEVV automatically enables its 22.05k wideband companion and uses
+	 *  the default sinc converter to produce the requested output rate, up
+	 *  through 48k. Higher rates cost proportionally more CPU per second.
 	 *
 	 *  The engine's own numbering is NOT positional -- 16000 is code 3, not
 	 *  2 -- so [RATE_CODES] maps explicitly and must stay explicit. Appending
 	 *  here and indexing positionally would ask for the wrong rate. */
-	val SAMPLE_RATES = intArrayOf(8000, 11025, 16000, 22050, 32000, 44100)
+	val SAMPLE_RATES = intArrayOf(8000, 11025, 16000, 22050, 32000, 44100, 48000)
 
 	private val RATE_CODES = mapOf(
-		8000 to 0, 11025 to 1, 22050 to 2, 16000 to 3, 32000 to 4, 44100 to 5
+		8000 to 0, 11025 to 1, 22050 to 2, 16000 to 3, 32000 to 4, 44100 to 5, 48000 to 6
 	)
 
 	/** [hz] as one of [SAMPLE_RATES]. Anything else -- including a rate a

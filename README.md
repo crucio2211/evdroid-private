@@ -35,9 +35,11 @@ redistributing anything.
   breathiness and volume.
 * Speech rate and pitch from the system settings.
 * Pronunciation dictionaries.
-* Android 6 and later. arm64-v8a, armeabi-v7a, x86_64.
+* Android 6 and later. Native libraries are included for 64-bit ARM (arm64-v8a),
+  32-bit ARM (armeabi-v7a) and x86_64 emulators. Android installs the matching
+  ABI library, so architecture selection does not add work to the speech path.
 
-`app/src/androidTest` runs on a device. 58 checks.
+`app/src/androidTest` contains the native dictionary and pause-mode regression checks; run them on a device or emulator.
 
 ## Turning it on
 
@@ -57,8 +59,8 @@ Studio. No Gradle install, the wrapper fetches its own.
 
 ```
 export ANDROID_NDK_HOME=/path/to/ndk
-./gradlew installDebug
-./gradlew connectedDebugAndroidTest
+./gradlew installDebug -Pevvdroid.abis=arm64-v8a
+./gradlew connectedDebugAndroidTest -Pevvdroid.abis=arm64-v8a
 ```
 
 First build is about four minutes per ABI. Most of that is the engine: every
@@ -68,7 +70,7 @@ first ABI pays for it.
 
 | property | default | effect |
 | --- | --- | --- |
-| `evvdroid.abis` | `arm64-v8a,armeabi-v7a,x86_64` | which ABIs to build |
+| `evvdroid.abis` | `arm64-v8a,armeabi-v7a,x86_64` | which Android ABIs to build |
 | `evvdroid.rules` | `c` | `bytecode` builds in 30s and runs at under half the speed |
 | `evvdroid.langs` | `lang/enus` | language modules to link in |
 | `evvdroid.abiSplits` | `false` | one APK per ABI |
@@ -89,7 +91,8 @@ Launcher icon, or the gear beside the engine in the text-to-speech settings.
 
 Dialogs for the seven voice parameters, plus voice, force language,
 force speech rate, force pitch, an output volume with a peak limiter,
-sample rate (8, 11, 16, 22, 32 and 44.1 kHz, all synthesized natively),
+sample rate (8, 11, 16, 22.05, 32, 44.1 and 48 kHz; 16 kHz native, higher
+rates use the automatic Wide Band companion and sinc conversion),
 pauses, phrase prediction, abbreviations, backquote voice tags, emoji,
 numbers, camel case, punctuation, volume dictionaries and a regex dictionary.
 "Speak a sample" sits under the voice rows, speaking through the same rewrites
@@ -136,22 +139,11 @@ every preset and made all eight voices wrong the same way.
 
 ## Pauses
 
-Eloquence pauses generously, which reads well in prose and badly in a screen
-reader where most utterances are a few words. The engine has no setting for it,
-but it takes an annotation: `` `p `` and a number is a pause of that many
-milliseconds, and one placed in front of a punctuation mark replaces the pause
-that mark would have had.
+The three choices go directly to the engine's native ECI pause-mode parameter:
+Never (0), At end of text only (1), and Always (2). The default is At end of
+text only. The engine itself applies the selected mode; Android does not
+rewrite punctuation or inject pause annotations.
 
-"Pauses" offers three choices. Do not shorten leaves the engine alone. Shorten
-at end of text trims only the gap after the last thing said. Shorten all pauses
-trims punctuation as well, which is the default. On a sentence with commas that
-took 65 percent of the original time.
-
-The rule is davidacm's, from the
-[NVDA IBMTTS driver](https://github.com/davidacm/NVDA-IBMTTS-Driver), which
-calls these JAWS-like pauses. A mark counts when it follows a letter, digit or
-space and is followed by whitespace, a slash or the end, which is what leaves
-the point in 3.14, the colon in 2:30 and the comma in 1,024 alone.
 
 ## Voice, phrase prediction, abbreviations
 
@@ -213,57 +205,97 @@ digit; modifiers standing alone are dropped.
 
 ## Dictionaries
 
-Three rows pick a file each for the main, root and abbreviation volumes,
-each with a switch for whether it is used. A shared name says which volume
-it is: an enuabbr picked on the main row still goes to abbreviations, and
-so for every language prefix. A fourth row opens the regex dictionary,
-with a switch to turn it on and off. "Remove dictionaries" clears all
-four.
+Three rows pick a file each for the Main, Root and Abbreviations volumes, each
+with a switch for whether it is used. A shared filename identifies its volume
+and language, such as `enumain.dic`, `enuroot.dic` or `enuabbr.dic`. A fourth
+row opens the regex dictionary, with its own enable switch. "Remove
+dictionaries" clears the selected files and the regex dictionary.
 
-A binary dictionary is refused outright -- it belongs to the engine's own
-loader, and teaching its bytes as words can silence the engine -- as is a
-file with nothing usable in it. Unsavable entries are skipped line by line,
-and one bad volume never takes an utterance down with it.
+The speech service builds one immutable snapshot for the active language. It
+normalizes text files into the engine's byte encoding and preserves saved
+binary dictionaries unchanged. The snapshot contains all selected volumes
+together and is identified by SHA-256 content hashes, not file size or
+timestamps; replacing a file with different bytes is detected even when its
+size and modification time stay the same.
 
-The files people share are text: a word, a tab, then either a respelling
-(`dee oe jeigh`) or a pronunciation in the engine's own alphabet
-(`` `[Ekspoz1e] ``).
-[mohamed00/altibmttsdictionaries](https://github.com/mohamed00/altibmttsdictionaries)
-has the English pair.
+The native bridge loads each complete volume through OpenEVV's own
+`eciLoadDict` bulk-volume API into a detached ECI dictionary handle. It does
+not parse Root entries in JNI or call `eciUpdateDict` once per word. Text
+volumes are normalized with the engine's required blank-line terminator,
+which prevents the native reader from dropping the final entry at EOF.
+Only after every selected volume succeeds does the bridge activate the new
+handle and retire the previous one. A failed volume leaves the previous
+complete set active.
 
-The engine's own loader will not read them. `eciLoadDict` answers
-`eciDictAccessError` for every one, because it expects IBM's saved binary form.
-So the text is parsed here into memory when the files change -- tens of
-milliseconds even for tens of thousands of entries -- and the engine is
-taught a word the first time it is spoken, a call or two per utterance
-rather than sixty thousand up front. That is what keeps a big dictionary
-like the 65,000-word root set from hanging the first utterance after it is
-picked.
+After a text or imported binary volume is loaded successfully for the first
+time, the bridge also saves it through ECI's native `eciSaveDict` API as a
+compiled binary volume beside the immutable snapshot. On later engine
+initializations, the saved ECI volume is loaded directly. A rejected or
+incomplete compiled cache is discarded and regenerated from the original
+snapshot. The cache lives inside the content-addressed snapshot directory,
+so changing a source volume produces a new cache automatically. This makes
+the first load after a dictionary change the expensive conversion; subsequent
+engine starts can bypass text parsing. It does not remove the one-time native
+load or the memory needed by the engine to hold the dictionary.
+
+The service prewarms the system-locale engine as soon as Android creates the
+TTS service, so dictionary loading can begin before the screen reader sends
+its first utterance. A warm snapshot is checked against source content hashes
+and its manifest/file sizes; the app does not reread and hash every generated
+Root volume before the native loader reads it. If native loading rejects a
+cached volume, the snapshot is rebuilt from the original source files and
+retried once. Native timings use a monotonic wall clock and distinguish
+compiled-cache loads from source loads.
+
+The service retains one OpenEVV ECI engine per language, matching
+Apple's per-language native engine slots. The engine pool, applied settings revisions, compiled regex dictionary and
+dictionary snapshots live for the Android application process, not only for
+one TextToSpeechService instance. The settings revision is persisted so that
+a service recreation can distinguish unchanged preferences from actual
+settings changes. If nothing changed, the first utterance reuses the native
+engine and regex state without re-hashing the large Root source. Re-importing
+a dictionary invalidates the revision even when its path and display name are
+unchanged. When Android unbinds and recreates the TTS service while the
+process remains alive, the next instance reuses the same native handles and
+loaded Main/Root/Abbreviations tables. Android reclaims those handles when
+the process exits. Switching languages also leaves the previous language's
+native dictionary tables loaded. The Apple-only
+`eciSetDictionaryPath` call is not used: the adapter uses OpenEVV's
+`eciNewDict`, `eciLoadDict` and `eciSetDict` APIs.
+
+Each utterance holds a native dictionary lease and a snapshot-file lease.
+Replacement waits for outstanding utterances to finish, and retired snapshot
+files are deleted only after their last lease closes. Engine teardown is
+serialized behind any pending dictionary load; the ECI handles are never
+destroyed concurrently with their loaders. A failed dictionary setup is not
+repeated before every utterance, which would otherwise keep re-hashing and
+reloading a large Root file. No per-word Kotlin dictionary map is built,
+cached, or scanned during speech.
 
 A picked file is copied into app storage. A content URI belongs to whichever
-app supplied it, may not be readable later, and the speech service reads it
-from another process.
+app supplied it, may not be readable later, and the speech service reads the
+private copy. Text files with no usable entries are refused at import; invalid
+lines are skipped while building the snapshot.
 
-A regex dictionary is one more text file: a pattern, a tab, and what to put
+A regex dictionary is a separate text file: a pattern, a tab, and what to put
 in its place, so `NVDA` with a tab and `en vee dee ay` says the letters.
 Lines starting with `#` are comments, blank lines are skipped, and a pattern
 that does not compile is skipped and logged rather than sinking the file.
-Replacements use `$1` group references. It applies after the crash guards
-and readability fixes, closest to the engine, so what is written there is
-what gets said. Picking a file turns it on.
+Replacements use `$1` group references. It applies after the readability
+fixes, closest to the engine, so what is written there is what gets said.
+Picking a file turns it on.
 
-The regex row opens the entries themselves: every pattern in file
-order, one stop each, where pressing one offers editing it in place or
-deleting it after asking. Adding offers a Match case switch, off by
-default so chatgpt fixes ChatGpt too; importing a file to replace it, and
-exporting a copy elsewhere. Remove all entries sits at the bottom, behind
-its own asking.
+The regex row opens the entries themselves: every pattern in file order, one
+stop each, where pressing one offers editing it in place or deleting it after
+asking. Adding offers a Match case switch, off by default so chatgpt fixes
+ChatGpt too; importing a file to replace it, and exporting a copy elsewhere.
+Remove all entries sits at the bottom, behind its own asking.
 
 No dictionary is shipped here. See LICENSE.
 
-The volume dictionaries teach Western bytes and do not cover Japanese,
-which travels Shift-JIS encoded; the regex dictionary rewrites text and
-works in every language.
+The volume dictionaries use the active language's native ECI encoding. The
+regex dictionary rewrites text and works in every language.
+
 
 ## Heteronyms
 
@@ -298,7 +330,8 @@ speaking before, about 1000 ms after.
 
 ## Wear OS
 
-Runs on a watch. Tested on a Pixel Watch 4, which is armeabi-v7a.
+Runs on compatible Wear OS watches. The APK includes arm64-v8a and armeabi-v7a
+native libraries, so compatible 32-bit ARM watches remain supported.
 
 A Pixel Watch has no USB, so adb is wireless. On the watch: Settings, System,
 About, Versions, tap Build number seven times. Then Developer options, ADB
