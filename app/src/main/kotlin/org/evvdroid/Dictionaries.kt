@@ -21,10 +21,9 @@ import java.io.File
  */
 object Dictionaries {
 
-	/** Whether [file] looks like the engine's saved binary form rather than
-	 *  text. Its bytes are never taught as words, which can fault the engine
-	 *  into silence: a file with nought bytes in its head is never parsed as text and
-	 *  is passed to the native loader unchanged. */
+	/** Whether [file] is a saved binary ECI volume. Binary files bypass
+	 *  text decoding and are passed unchanged to eciLoadDict; text files are
+	 *  normalized and inserted through the native dictionary-update API. */
 	fun isBinary(file: File): Boolean = try {
 		file.inputStream().use { source ->
 			val head = ByteArray(8192)
@@ -63,16 +62,15 @@ object Dictionaries {
 	}
 
 	/** The language a shared file names, if its name says: enumain is
-	 *  American English, engmain is British, and so on. For showing, not
-	 *  for routing: every picked file is taught to whichever language
-	 *  engine is speaking. */
+	 *  American English, engmain is British, and so on. The service only
+	 *  includes a selected volume in the snapshot for that language. */
 	fun languageForFile(name: String): String? {
 		val match = FILE_VOLUME.find(name.trim()) ?: return null
 		return LANGUAGE_NAMES[match.groupValues[1].lowercase()]
 	}
 
-	/** Writes one normalized text dictionary for an immutable snapshot.
-	 *  The engine's native loader receives the complete file; no per-word map
+	/** Writes one normalized text volume for an immutable snapshot. The native
+	 *  bridge reads it into a detached ECI dictionary handle; no per-word map
 	 *  is retained or rebuilt by the speech service. */
 	fun writeEngineFile(file: File, language: Int, destination: File) {
 		var written = 0
