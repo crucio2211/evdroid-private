@@ -561,10 +561,6 @@ class EvvTtsService : TextToSpeechService() {
 		val pace = Pace(target.sampleRateHz * BYTES_PER_SAMPLE)
 		// Piece by piece, so that asking for silence waits out a piece rather
 		// than the whole message: the engine cannot abandon what it is saying.
-		// Pauses are shortened after the split rather than before it: the
-		// annotation sits in front of the full stop, and a piece boundary is
-		// found by looking at the end of a word.
-		val pauses = settings?.pauses ?: Pauses.ALL
 		val prosody = Prosody.prefix(settings?.phrasePrediction ?: false)
 		// No loudness tricks: an exclamation must read as one from its
 		// tune alone. Snapshot.boost stays off (1) until intonation lands.
@@ -591,10 +587,10 @@ class EvvTtsService : TextToSpeechService() {
 			val pieces = TextPieces.split(text)
 			for ((at, part) in pieces.withIndex()) {
 				if (stopped) break
-				val piece = prosody + Pauses.apply(
-					part, pauses,
-					at == pieces.lastIndex && ri == rawPieces.lastIndex
-				)
+				// Pause behavior is handled by the engine pause-mode parameter.
+				// Do not inject Kotlin `p annotations as well: that would apply
+				// a second, overlapping pause rewrite.
+				val piece = prosody + part
 		if (!target.speak(piece)) {
 			Log.e(TAG, "the engine refused ${piece.length} characters")
 			callback.error(TextToSpeech.ERROR_SYNTHESIS)
