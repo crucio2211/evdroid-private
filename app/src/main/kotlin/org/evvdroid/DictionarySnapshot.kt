@@ -6,6 +6,7 @@ import java.security.MessageDigest
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * One immutable, language-specific publication of all three ECI volumes.
@@ -19,6 +20,27 @@ import java.util.concurrent.atomic.AtomicInteger
  * snapshot retires the old owner reference, and its directory is removed only
  * after the last utterance lease has gone away.
  */
+private object DictionarySnapshotDirectories {
+    private val references = ConcurrentHashMap<String, AtomicInteger>()
+
+    fun retain(directory: File) {
+        references.compute(directory.absolutePath) { _, count ->
+            (count ?: AtomicInteger()).also { it.incrementAndGet() }
+        }
+    }
+
+    fun release(directory: File) {
+        val key = directory.absolutePath
+        val count = references[key] ?: return
+        if (count.decrementAndGet() == 0 && references.remove(key, count)) {
+            directory.deleteRecursively()
+        }
+    }
+
+    fun isInUse(directory: File): Boolean =
+        (references[directory.absolutePath]?.get() ?: 0) > 0
+}
+
 internal class DictionarySnapshot private constructor(
     val language: Int,
     val identity: String,
@@ -27,6 +49,8 @@ internal class DictionarySnapshot private constructor(
 ) {
     private val references = AtomicInteger(1)
     private val retired = AtomicBoolean(false)
+
+    init { directory?.let(DictionarySnapshotDirectories::retain) }
 
     fun acquire(): Lease {
         while (true) {
@@ -41,7 +65,7 @@ internal class DictionarySnapshot private constructor(
     }
 
     private fun release() {
-        if (references.decrementAndGet() == 0) directory?.deleteRecursively()
+        if (references.decrementAndGet() == 0) directory?.let(DictionarySnapshotDirectories::release)
     }
 
     class Lease internal constructor(private val snapshot: DictionarySnapshot) : AutoCloseable {
@@ -136,7 +160,7 @@ internal class DictionarySnapshot private constructor(
                     if (validSnapshot(finalDir, digests, expectedManifest.toString())) {
                         staging.deleteRecursively()
                     } else {
-                        if (!finalDir.deleteRecursively()) {
+                        if (DictionarySnapshotDirectories.isInUse(finalDir)) {\n                            throw java.io.IOException("an active lease holds an invalid dictionary snapshot")\n                        }\n                        if (!finalDir.deleteRecursively()) {
                             throw java.io.IOException("cannot replace an invalid dictionary snapshot")
                         }
                         if (!staging.renameTo(finalDir)) {
@@ -202,7 +226,7 @@ internal class DictionarySnapshot private constructor(
                     digest.update(buffer, 0, count)
                 }
             }
-            return digest.digest().joinToString("") { "%02x".format(it) }
+            return digest.digest().joinToString("") { "%02x".format(it.toInt() and 0xff) }
         }
 
         private fun sha256(bytes: ByteArray): String =
