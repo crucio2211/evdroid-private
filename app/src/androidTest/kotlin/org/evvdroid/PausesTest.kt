@@ -24,15 +24,16 @@ class PausesTest {
     fun allThreeModesAreAcceptedByTheEngine() {
         val engine = EvvEngine.open(ENGLISH)
         assertNotNull(engine)
+        val target = engine!!
         try {
-            engine!!.setPauseMode(Pauses.KEEP)
-            assertEquals(Pauses.KEEP, engine.pauseMode)
-            engine.setPauseMode(Pauses.END_ONLY)
-            assertEquals(Pauses.END_ONLY, engine.pauseMode)
-            engine.setPauseMode(Pauses.ALL)
-            assertEquals(Pauses.ALL, engine.pauseMode)
+            target.setPauseMode(Pauses.KEEP)
+            assertEquals(Pauses.KEEP, target.pauseMode)
+            target.setPauseMode(Pauses.END_ONLY)
+            assertEquals(Pauses.END_ONLY, target.pauseMode)
+            target.setPauseMode(Pauses.ALL)
+            assertEquals(Pauses.ALL, target.pauseMode)
         } finally {
-            engine?.close()
+            target.close()
         }
     }
 
@@ -40,22 +41,23 @@ class PausesTest {
     fun nativeAlwaysModeShortensMoreThanEndOnlyAndNever() {
         val engine = EvvEngine.open(ENGLISH)
         assertNotNull(engine)
+        val target = engine!!
         try {
-            engine!!.setSampleRate(11025)
-            engine.applyVoice(0)
-            engine.setPauseMode(Pauses.KEEP)
-            val never = say(engine, SENTENCE)
-            engine.setPauseMode(Pauses.END_ONLY)
-            val endOnly = say(engine, SENTENCE)
-            engine.setPauseMode(Pauses.ALL)
-            val always = say(engine, SENTENCE)
+            target.setSampleRate(11025)
+            target.applyVoice(0)
+            target.setPauseMode(Pauses.KEEP)
+            val never = say(target, SENTENCE)
+            target.setPauseMode(Pauses.END_ONLY)
+            val endOnly = say(target, SENTENCE)
+            target.setPauseMode(Pauses.ALL)
+            val always = say(target, SENTENCE)
             android.util.Log.e("evvpause", "never=$never endOnly=$endOnly always=$always")
             assertTrue("no speech was generated", never > 0)
             assertTrue("end-only mode did not shorten the final pause", endOnly < never)
             assertTrue("always mode did not shorten punctuation pauses", always < endOnly)
             assertTrue("too much speech disappeared", always > never / 2)
         } finally {
-            engine?.close()
+            target.close()
         }
     }
 
