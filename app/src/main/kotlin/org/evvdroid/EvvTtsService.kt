@@ -220,12 +220,13 @@ class EvvTtsService : TextToSpeechService() {
 		target.setSampleRate(s.sampleRateHz)
 		target.setPauseMode(s.pauses)
 		target.setAbbreviations(s.abbreviations)
-		loadDictionaries(target, s)
+		val dictionariesReady = loadDictionaries(target, s)
 		loadRegexDictionary(s)
 		// A voice is written, so the engine can refuse it while it is speaking.
-		// One that did not land is left unrecorded and asked for again at the
-		// next utterance rather than believed.
-		if (target.applyVoice(s.voice, s.shape(s.voice))) appliedRevision = s.revision
+		// A failed dictionary publication or voice update is retried next turn.
+		if (target.applyVoice(s.voice, s.shape(s.voice)) && dictionariesReady) {
+			appliedRevision = s.revision
+		}
 	}
 
 	/** The regex dictionary is recompiled when the settings change, which is
@@ -253,7 +254,7 @@ class EvvTtsService : TextToSpeechService() {
 	 *  Main, Root and Abbreviations together through a fresh native ECI handle.
 	 *  Content hashes detect same-size/same-timestamp replacements. A failed
 	 *  snapshot or native load leaves the previously active set untouched. */
-	private fun loadDictionaries(target: EvvEngine, s: Settings) = synchronized(dictionarySnapshotLock) {
+	private fun loadDictionaries(target: EvvEngine, s: Settings): Boolean = synchronized(dictionarySnapshotLock) {
 		val selected = s.dictionaryPaths().filterKeys { volume ->
 			s.useDictionary(volume) && (volume != Eci.DICT_ABBREVIATION || s.abbreviations)
 		}
@@ -272,17 +273,19 @@ class EvvTtsService : TextToSpeechService() {
 			)
 		} catch (failed: Exception) {
 			Log.e(TAG, "could not build the dictionary snapshot; keeping the active set", failed)
-			return
+			return@synchronized false
 		}
-		if (snapshot === dictionarySnapshot) return
+		if (snapshot === dictionarySnapshot) return@synchronized true
 		val previous = dictionarySnapshot
 		if (target.replaceDictionaries(snapshot.paths)) {
 			dictionarySnapshot = snapshot
 			previous?.retire()
 			Log.i(TAG, "published dictionary snapshot ${snapshot.identity.take(16)} for 0x%08x".format(target.language))
+			true
 		} else {
 			snapshot.retire()
 			Log.e(TAG, "native engine refused the complete dictionary snapshot; keeping the active set")
+			false
 		}
 	}
 
