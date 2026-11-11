@@ -6,7 +6,7 @@ plugins {
 	alias(libs.plugins.kotlin.compose)
 }
 
-val abis = (findProperty("evvdroid.abis") as String? ?: "arm64-v8a,armeabi-v7a,x86_64")
+val abis = (findProperty("evvdroid.abis") as String? ?: "arm64-v8a")
 	.split(",").map { it.trim() }.filter { it.isNotEmpty() }
 val rulesForm = findProperty("evvdroid.rules") as String? ?: "c"
 val languages = findProperty("evvdroid.langs") as String? ?: "lang/enus"

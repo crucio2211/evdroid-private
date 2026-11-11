@@ -35,7 +35,7 @@ redistributing anything.
   breathiness and volume.
 * Speech rate and pitch from the system settings.
 * Pronunciation dictionaries.
-* Android 6 and later. arm64-v8a, armeabi-v7a, x86_64.
+* Android 6 and later. This verification build is arm64-v8a only; 32-bit ABIs are excluded.
 
 `app/src/androidTest` runs on a device. 58 checks.
 
@@ -68,7 +68,7 @@ first ABI pays for it.
 
 | property | default | effect |
 | --- | --- | --- |
-| `evvdroid.abis` | `arm64-v8a,armeabi-v7a,x86_64` | which ABIs to build |
+| `evvdroid.abis` | `arm64-v8a` | which ABIs to build; this verification build targets 64-bit ARM only |
 | `evvdroid.rules` | `c` | `bytecode` builds in 30s and runs at under half the speed |
 | `evvdroid.langs` | `lang/enus` | language modules to link in |
 | `evvdroid.abiSplits` | `false` | one APK per ABI |
@@ -136,22 +136,17 @@ every preset and made all eight voices wrong the same way.
 
 ## Pauses
 
-Eloquence pauses generously, which reads well in prose and badly in a screen
-reader where most utterances are a few words. The engine has no setting for it,
-but it takes an annotation: `` `p `` and a number is a pause of that many
-milliseconds, and one placed in front of a punctuation mark replaces the pause
-that mark would have had.
+Eloquence's native ECI pause policy is used directly; there is no
+client-side punctuation rewrite or injected pause annotation. "Pauses" offers
+the same three modes as Apple's native pause policy:
 
-"Pauses" offers three choices. Do not shorten leaves the engine alone. Shorten
-at end of text trims only the gap after the last thing said. Shorten all pauses
-trims punctuation as well, which is the default. On a sentence with commas that
-took 65 percent of the original time.
+* Do not shorten (0) leaves every engine pause alone.
+* At end only (1) shortens the pause at the end of the utterance.
+* All pauses (2) also shortens the pauses at punctuation.
 
-The rule is davidacm's, from the
-[NVDA IBMTTS driver](https://github.com/davidacm/NVDA-IBMTTS-Driver), which
-calls these JAWS-like pauses. A mark counts when it follows a letter, digit or
-space and is followed by whitespace, a slash or the end, which is what leaves
-the point in 3.14, the colon in 2:30 and the comma in 1,024 alone.
+The selected mode is sent to the OpenEVV engine through its native pause
+parameter. This keeps timing decisions inside the synthesizer and avoids
+shortening the same silence twice.
 
 ## Voice, phrase prediction, abbreviations
 
@@ -298,20 +293,12 @@ speaking before, about 1000 ms after.
 
 ## Wear OS
 
-Runs on a watch. Tested on a Pixel Watch 4, which is armeabi-v7a.
-
-A Pixel Watch has no USB, so adb is wireless. On the watch: Settings, System,
-About, Versions, tap Build number seven times. Then Developer options, ADB
-debugging on, Wireless debugging on, Pair new device. Watch and computer on the
-same Wi-Fi, with the watch's Wi-Fi actually on rather than dropped for
-Bluetooth.
+This verification build is 64-bit ARM only. It will not install on a
+32-bit-only watch or other device that exposes only `armeabi-v7a`.
+Check a device's supported ABIs with:
 
 ```
-adb mdns services                 # the watch announces both ports
-adb pair 192.168.x.x:PAIRPORT     # then the six digits on screen
-adb connect 192.168.x.x:PORT
-adb -s SERIAL shell getprop ro.product.cpu.abilist
-./gradlew installDebug -Pevvdroid.abis=armeabi-v7a
+adb shell getprop ro.product.cpu.abilist
 ```
 
 ## Layout
