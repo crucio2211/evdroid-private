@@ -358,11 +358,15 @@ class EvvTtsService : TextToSpeechService() {
 			Log.e(TAG, "could not prepare the dictionary snapshot; keeping the active set", failed)
 			return@synchronized false
 		}
+		val prepareElapsed = android.os.SystemClock.elapsedRealtime() - started
+		Log.i(TAG, "dictionary snapshot preparation for 0x%08x took ${prepareElapsed} ms".format(target.language))
 		if (snapshot === previous) {
 			Log.i(TAG, "dictionary snapshot already warm for 0x%08x".format(target.language))
 			return@synchronized true
 		}
+		val nativeStarted = android.os.SystemClock.elapsedRealtime()
 		var loaded = target.replaceDictionaries(snapshot.paths)
+		Log.i(TAG, "native dictionary publication for 0x%08x took ${android.os.SystemClock.elapsedRealtime() - nativeStarted} ms".format(target.language))
 		if (!loaded) {
 			// The cache manifest and file sizes are checked on warm starts to
 			// avoid rereading a large Root volume. If native loading rejects that
@@ -414,7 +418,12 @@ class EvvTtsService : TextToSpeechService() {
 		val wanted = findVoice(request.voiceName)
 		val language = resolveLanguage(s, wanted?.first ?: found.first)
 		selectedEngineLanguage = language
+		val engineWaitStarted = android.os.SystemClock.elapsedRealtime()
 		val target = ensureEngine(language)
+		val engineWait = android.os.SystemClock.elapsedRealtime() - engineWaitStarted
+		if (engineWait >= 250) {
+			Log.w(TAG, "first synthesis waited ${engineWait} ms for engine 0x%08x".format(language))
+		}
 		if (target == null) {
 			callback.error(TextToSpeech.ERROR_SERVICE)
 			return
