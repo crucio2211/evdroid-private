@@ -178,6 +178,59 @@ class DictionaryTest {
     }
 
     @Test
+    fun loadedNativeDictionarySurvivesSnapshotRetirementAndLanguageSwitch() {
+        val english = open()
+        val german = EvvEngine.open(0x00040000)
+        assertNotNull("no German engine", german)
+        val germanEngine = german!!
+        germanEngine.setSampleRate(11025)
+        germanEngine.setAbbreviations(true)
+        germanEngine.applyVoice(0)
+
+        val source = write("DOJ\\tthis is the retained English pronunciation\\n")
+        val snapshot = DictionarySnapshot.prepare(
+            File(dir(), "retained-native"),
+            LANGUAGE,
+            mapOf(Eci.DICT_MAIN to source),
+            null
+        )
+        val snapshotDirectory = File(snapshot.paths[Eci.DICT_MAIN]!!).parentFile!!
+        try {
+            assertTrue("English native dictionary set was not loaded", english.replaceDictionaries(snapshot.paths))
+            val englishWithDictionary = samples(english, "DOJ")
+            assertTrue("English baseline with dictionary failed", englishWithDictionary > 0)
+
+            // ECI has consumed the volume into its native handle. Retiring the
+            // immutable source must not make the live native dictionary vanish.
+            snapshot.retire()
+            assertFalse("retired snapshot directory was not released", snapshotDirectory.exists())
+
+            val germanSource = write("DOJ\\tdas ist die deutsche Aussprache\\n")
+            val germanSnapshot = DictionarySnapshot.prepare(
+                File(dir(), "retained-native-de"),
+                0x00040000,
+                mapOf(Eci.DICT_MAIN to germanSource),
+                null
+            )
+            try {
+                assertTrue("German native dictionary set was not loaded", germanEngine.replaceDictionaries(germanSnapshot.paths))
+                assertTrue("German dictionary speech failed", samples(germanEngine, "DOJ") > 0)
+                assertEquals(
+                    "switching to another ECI engine disturbed the retained English dictionary",
+                    englishWithDictionary,
+                    samples(english, "DOJ")
+                )
+            } finally {
+                germanSnapshot.retire()
+            }
+        } finally {
+            snapshot.retire()
+            germanEngine.close()
+            english.close()
+        }
+    }
+
+    @Test
     fun failedVolumeKeepsThePreviouslyPublishedSet() {
         val e = open()
         val valid = write("DOJ\tthis is the stable active pronunciation\n")
