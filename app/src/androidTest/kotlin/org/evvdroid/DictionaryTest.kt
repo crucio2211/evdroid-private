@@ -97,6 +97,40 @@ class DictionaryTest {
             assertNotEquals("main volume was not applied", beforeMain, afterMain)
             assertNotEquals("root volume was not applied", beforeRoot, afterRoot)
             assertNotEquals("abbreviation volume was not applied", beforeAbbr, afterAbbr)
+
+            // The first native load compiles each volume to ECI's saved binary
+            // format. A fresh engine must then be able to load those caches
+            // and preserve the same dictionary behavior.
+            for (volume in Eci.DICT_VOLUMES) {
+                val sourcePath = snapshot.paths[volume] ?: continue
+                val compiled = File("$sourcePath.evv-native")
+                assertTrue("native binary cache was not created for volume $volume", compiled.isFile)
+                assertTrue("native binary cache is empty for volume $volume", compiled.length() > 0)
+            }
+            val cachedEngine = open()
+            try {
+                assertTrue(
+                    "fresh engine could not load the saved native dictionary set",
+                    cachedEngine.replaceDictionaries(snapshot.paths)
+                )
+                assertNotEquals(
+                    "compiled Main volume was not applied",
+                    beforeMain,
+                    samples(cachedEngine, "walk")
+                )
+                assertNotEquals(
+                    "compiled Root volume was not applied",
+                    beforeRoot,
+                    samples(cachedEngine, "walking")
+                )
+                assertNotEquals(
+                    "compiled Abbreviations volume was not applied",
+                    beforeAbbr,
+                    samples(cachedEngine, "LOL")
+                )
+            } finally {
+                cachedEngine.close()
+            }
         } finally {
             snapshot.retire()
             e.close()
