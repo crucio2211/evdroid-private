@@ -13,6 +13,7 @@ class PausesTest {
 
     @Test
     fun modeValuesMatchTheNativeEciParameter() {
+        assertEquals("Apple ECI pause-mode parameter", 33, Eci.PARAM_PAUSES)
         assertEquals(Eci.PAUSES_NONE, Pauses.KEEP)
         assertEquals(Eci.PAUSES_AT_END, Pauses.END_ONLY)
         assertEquals(Eci.PAUSES_ALWAYS, Pauses.ALL)
