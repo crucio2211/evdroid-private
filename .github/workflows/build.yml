@@ -26,9 +26,8 @@ concurrency:
 
 env:
   NDK_VERSION: 26.1.10909125
-  # arm64 for phones, 32-bit ARM for older phones and watches. x86_64 is
-  # emulator-only and nobody installs there, so it does not ship.
-  EVVDROID_ABIS: arm64-v8a,armeabi-v7a
+  # Ship 64-bit Android targets only; exclude all 32-bit ABIs.
+  EVVDROID_ABIS: arm64-v8a,x86_64
   # Every language the vendored engine ships. Korean and Chinese are still
   # absent: the SDK this engine was transcribed from never had them.
   # Japanese travels as Shift-JIS through a path of its own; Polish keeps
