@@ -53,7 +53,7 @@ internal class DictionarySnapshot private constructor(
     private val references = AtomicInteger(1)
     private val retired = AtomicBoolean(false)
 
-    init { directory?.let(DictionarySnapshotDirectories::retain) }
+    init { directory?.let { DictionarySnapshotDirectories.retain(it) } }
 
     fun acquire(): Lease {
         while (true) {
@@ -68,7 +68,7 @@ internal class DictionarySnapshot private constructor(
     }
 
     private fun release() {
-        if (references.decrementAndGet() == 0) directory?.let(DictionarySnapshotDirectories::release)
+        if (references.decrementAndGet() == 0) directory?.let { DictionarySnapshotDirectories.release(it) }
     }
 
     class Lease internal constructor(private val snapshot: DictionarySnapshot) : AutoCloseable {
