@@ -283,27 +283,45 @@ class EvvTtsService : TextToSpeechService() {
 			val file = java.io.File(path)
 			if (file.isFile && file.canRead()) sources[volume] = file
 		}
-		val snapshot = try {
-			DictionarySnapshot.prepare(
-				java.io.File(filesDir, "dictionary-snapshots"),
-				target.language,
-				sources,
-				dictionarySnapshot
-			)
+		val root = java.io.File(filesDir, "dictionary-snapshots")
+		val started = android.os.SystemClock.elapsedRealtime()
+		var snapshot = try {
+			DictionarySnapshot.prepare(root, target.language, sources, dictionarySnapshot)
 		} catch (failed: Exception) {
-			Log.e(TAG, "could not build the dictionary snapshot; keeping the active set", failed)
+			Log.e(TAG, "could not prepare the dictionary snapshot; keeping the active set", failed)
 			return@synchronized false
 		}
-		if (snapshot === dictionarySnapshot) return@synchronized true
+		if (snapshot === dictionarySnapshot) {
+			Log.i(TAG, "dictionary snapshot already warm for 0x%08x".format(target.language))
+			return@synchronized true
+		}
+
 		val previous = dictionarySnapshot
-		if (target.replaceDictionaries(snapshot.paths)) {
+		var loaded = target.replaceDictionaries(snapshot.paths)
+		if (!loaded) {
+			// The cache manifest and file sizes are checked on warm starts to
+			// avoid rereading a large Root volume. If native loading rejects that
+			// cached image (for example after storage corruption), rebuild it
+			// from the source dictionaries once before declaring failure.
+			Log.w(TAG, "native dictionary load failed; rebuilding the cached snapshot")
+			snapshot.retire()
+			snapshot = try {
+				DictionarySnapshot.prepare(root, target.language, sources, null, forceRebuild = true)
+			} catch (failed: Exception) {
+				Log.e(TAG, "dictionary snapshot rebuild failed; keeping the active set", failed)
+				return@synchronized false
+			}
+			loaded = target.replaceDictionaries(snapshot.paths)
+		}
+		if (loaded) {
 			dictionarySnapshot = snapshot
 			previous?.retire()
-			Log.i(TAG, "published dictionary snapshot ${snapshot.identity.take(16)} for 0x%08x".format(target.language))
+			val elapsed = android.os.SystemClock.elapsedRealtime() - started
+			Log.i(TAG, "published dictionary snapshot ${snapshot.identity.take(16)} for 0x%08x in ${elapsed} ms".format(target.language))
 			true
 		} else {
 			snapshot.retire()
-			Log.e(TAG, "native engine refused the complete dictionary snapshot; keeping the active set")
+			Log.e(TAG, "native engine refused the rebuilt dictionary snapshot; keeping the active set")
 			false
 		}
 	}
