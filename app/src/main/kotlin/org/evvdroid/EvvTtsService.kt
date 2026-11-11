@@ -397,8 +397,6 @@ class EvvTtsService : TextToSpeechService() {
 			callback.start(target.sampleRateHz, AudioFormat.ENCODING_PCM_16BIT, 1)
 			callback.done()
 		}
-	}
-
 		} finally {
 			nativeLease.close()
 			snapshotLease?.close()
