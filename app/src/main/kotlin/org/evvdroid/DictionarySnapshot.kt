@@ -111,12 +111,14 @@ internal class DictionarySnapshot private constructor(
                 return current
             }
 
+            root.mkdirs()
             if (digests.isEmpty()) {
+                cleanupStale(root, null)
                 return DictionarySnapshot(language, identity, arrayOfNulls(Eci.DICT_VOLUMES.size), null)
             }
 
-            root.mkdirs()
             val finalDir = File(root, "snapshot-${language.toString(16)}-$identity")
+            cleanupStale(root, finalDir)
             val expectedManifest = StringBuilder()
                 .append(VERSION).append('\n')
                 .append(language).append('\n')
@@ -184,6 +186,18 @@ internal class DictionarySnapshot private constructor(
             } catch (failed: Exception) {
                 staging.deleteRecursively()
                 throw failed
+            }
+        }
+
+        private fun cleanupStale(root: File, keep: File?) {
+            root.listFiles()?.forEach { candidate ->
+                if (candidate.name.startsWith(".snapshot-") && candidate.name.endsWith(".tmp")) {
+                    candidate.deleteRecursively()
+                } else if (candidate.name.startsWith("snapshot-") &&
+                    (keep == null || candidate.absolutePath != keep.absolutePath) &&
+                    !DictionarySnapshotDirectories.isInUse(candidate)) {
+                    candidate.deleteRecursively()
+                }
             }
         }
 
