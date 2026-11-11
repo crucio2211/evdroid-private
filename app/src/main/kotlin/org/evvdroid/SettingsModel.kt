@@ -339,7 +339,6 @@ class SettingsModel(context: Context) {
 			settings.dictionaryPath(volume)?.let {
 				val file = java.io.File(it)
 				file.delete()
-				Dictionaries.invalidate(file)
 			}
 			settings.setDictionary(volume, null, null)
 		}
