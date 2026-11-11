@@ -1,7 +1,6 @@
 package org.evvdroid
 
 import android.util.Log
-import java.io.File
 
 /**
  * One engine instance and the settings in force on it.
@@ -62,7 +61,7 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 				Log.e(TAG, "no engine instance for language 0x%08x".format(language))
 				return null
 			}
-			return EvvEngine(handle, language).apply { configure() }
+		return EvvEngine(handle, language).apply { configure() }
 		}
 	}
 
@@ -156,17 +155,17 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 	}
 
 	/** Load saved binary dictionaries through ECI; read text dictionaries and
-	 * teach their entries through the established per-word API. */
+	 * teach their entries using the established per-word API. */
 	fun loadDictionary(volume: Int, path: String): Int = synchronized(dictionaryGuard) {
 		val current = synchronized(guard) { if (closed) 0L else handle }
 		if (current == 0L) return@synchronized -1
-		val file = File(path)
+		val file = java.io.File(path)
 		if (!file.isFile || !file.canRead()) return@synchronized -1
 		if (Dictionaries.isBinary(file)) {
 			EvvNative.loadDictionary(current, volume, file.absolutePath)
 		} else {
-			val loaded = Dictionaries.load(this, volume, file)
-			if (loaded > 0) 0 else -1
+			Dictionaries.load(this, volume, file)
+			0
 		}
 	}
 
