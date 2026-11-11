@@ -16,6 +16,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <sys/types.h>
 #include <time.h>
 #include <android/log.h>
 
@@ -429,6 +431,65 @@ JNIEXPORT void JNICALL Java_org_evvdroid_EvvNative_releaseDictionaryLease(
 	pthread_mutex_unlock(&in->lock);
 }
 
+/* The ECI file loader accepts the engine's saved binary format, not the
+   text files users import. Text snapshots are already normalized to the
+   engine's byte set, so read each line and update the detached native handle
+   directly. This keeps the whole dictionary in ECI's own structures: no
+   Kotlin word map, no per-word JNI calls, and no active-set mutation. */
+static int load_dictionary_volume(ECIHand eci, ECIDictHand dict,
+                                  int volume, const char* path) {
+	FILE* file = fopen(path, "rb");
+	unsigned char head[8192];
+	size_t got;
+	int answer = 0;
+	int entries = 0;
+	char* line = NULL;
+	size_t capacity = 0;
+	ssize_t length;
+	if (file == NULL)
+		return -1;
+	got = fread(head, 1, sizeof head, file);
+	if (ferror(file)) {
+		fclose(file);
+		return -1;
+	}
+	if (memchr(head, 0, got) != NULL) {
+		fclose(file);
+		return eciLoadDict(eci, dict, volume, path);
+	}
+	if (fseek(file, 0, SEEK_SET) != 0) {
+		fclose(file);
+		return -1;
+	}
+	while ((length = getline(&line, &capacity, file)) >= 0) {
+		char* tab;
+		while (length > 0 && (line[length - 1] == '\n' || line[length - 1] == '\r'))
+			line[--length] = 0;
+		if (length == 0 || line[0] == '#' || line[0] == ';' ||
+			(line[0] == '/' && line[1] == '/'))
+			continue;
+		tab = strchr(line, '\t');
+		if (tab == NULL)
+			continue;
+		*tab++ = 0;
+		if (line[0] == 0 || tab[0] == 0)
+			continue;
+		answer = eciUpdateDict(eci, dict, volume, line, tab);
+		if (answer != 0) {
+			LOGE("dictionary volume %d rejected an entry in %s: %d", volume, path, answer);
+			break;
+		}
+		entries++;
+	}
+	if (ferror(file) && answer == 0)
+		answer = -1;
+	free(line);
+	fclose(file);
+	if (answer == 0)
+		LOGE("dictionary volume %d staged %d text entries from %s", volume, entries, path);
+	return answer;
+}
+
 /* Build all three volumes in a detached ECI dictionary handle. Only after
    every selected file loads do we activate the candidate and retire the old
    handle. A bad volume therefore cannot leave a half-updated dictionary set. */
@@ -486,7 +547,7 @@ JNIEXPORT jint JNICALL Java_org_evvdroid_EvvNative_replaceDictionaries(
 		for (int volume = 0; volume < 3; volume++) {
 			if (names[volume] == NULL)
 				continue;
-			int rc = eciLoadDict(in->eci, candidate, volume, names[volume]);
+			int rc = load_dictionary_volume(in->eci, candidate, volume, names[volume]);
 			if (rc != 0) {
 				LOGE("dictionary volume %d refused %s: %d", volume, names[volume], rc);
 				goto publish_done;
