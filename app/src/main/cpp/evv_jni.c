@@ -486,7 +486,7 @@ static int load_dictionary_volume(ECIHand eci, ECIDictHand dict,
 	free(line);
 	fclose(file);
 	if (answer == 0)
-		LOGE("dictionary volume %d staged %d text entries from %s", volume, entries, path);
+		LOGI("dictionary volume %d staged %d text entries from %s", volume, entries, path);
 	return answer;
 }
 
