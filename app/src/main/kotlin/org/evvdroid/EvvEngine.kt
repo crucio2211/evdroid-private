@@ -195,6 +195,21 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		if (current == 0L) -1 else EvvNative.loadDictionary(current, volume, path)
 	}
 
+	/** Builds and publishes a complete Main/Root/Abbreviations set. A failed
+	 *  load leaves the previously active set untouched. */
+	fun replaceDictionaries(paths: Array<String?>): Boolean = synchronized(dictionaryGuard) {
+		val current = synchronized(guard) { if (closed) 0L else handle }
+		current != 0L && EvvNative.replaceDictionaries(current, paths) == 0
+	}
+
+	/** A lease spans one whole utterance. Native replacement waits for every
+	 *  lease to close before swapping the active dictionary handle. */
+	fun acquireDictionaryLease(): AutoCloseable? {
+		val current = synchronized(guard) { if (closed) 0L else handle }
+		if (current == 0L || !EvvNative.acquireDictionaryLease(current)) return null
+		return AutoCloseable { EvvNative.releaseDictionaryLease(current) }
+	}
+
 	fun teachWord(volume: Int, key: String, say: String): Int = synchronized(dictionaryGuard) {
 		val current = synchronized(guard) { if (closed) 0L else handle }
 		if (current == 0L) -1 else EvvNative.teachWord(
