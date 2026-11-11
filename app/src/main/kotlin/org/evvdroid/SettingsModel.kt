@@ -312,7 +312,6 @@ class SettingsModel(context: Context) {
 				pending.delete()
 				into.listFiles()?.filter { it.name.startsWith(".evvdroid-volume-$slot-") }?.forEach { it.delete() }
 				Dictionaries.invalidate(file)
-				if (!binary) Dictionaries.prepareForEngine(file, language)
 			}
 			mainHandler.post {
 				dictionaryImporting = false
