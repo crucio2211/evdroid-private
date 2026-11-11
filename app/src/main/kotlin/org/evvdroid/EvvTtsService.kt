@@ -75,15 +75,29 @@ class EvvTtsService : TextToSpeechService() {
 
 	override fun onDestroy() {
 		super.onDestroy()
-		engineExecutor.shutdown()
-		try {
-			engineExecutor.awaitTermination(2, java.util.concurrent.TimeUnit.SECONDS)
-		} catch (interrupted: InterruptedException) {
-			Thread.currentThread().interrupt()
+		// Engine creation and native dictionary loading can take longer than
+		// two seconds for a large Root volume. Closing the ECI handle after a
+		// timed-out wait races the still-running loader and can leave the
+		// native worker in a damaged state. Queue destruction behind every
+		// pending engine task instead; the handle is closed only after loading
+		// or replacement has returned.
+		synchronized(engineLoadLock) {
+			try {
+				engineExecutor.execute {
+					try {
+						engine?.close()
+					} catch (failed: Exception) {
+						Log.e(TAG, "could not close the ECI engine cleanly", failed)
+					} finally {
+						engine = null
+						retireDictionarySnapshot()
+					}
+				}
+			} catch (rejected: java.util.concurrent.RejectedExecutionException) {
+				Log.w(TAG, "engine cleanup was already queued", rejected)
+			}
+			engineExecutor.shutdown()
 		}
-		engine?.close()
-		engine = null
-		retireDictionarySnapshot()
 	}
 
 	// ---- languages -------------------------------------------------------
