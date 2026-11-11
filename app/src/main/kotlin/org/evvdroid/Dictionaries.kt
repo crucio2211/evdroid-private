@@ -98,62 +98,6 @@ object Dictionaries {
 		java.io.FileOutputStream(destination, true).use { it.fd.sync() }
 	}
 
-	/**
-	 * Merge multiple text sources into one native volume. Sources are passed
-	 * from lowest to highest priority; a later duplicate replaces an earlier
-	 * one, matching the Apple dictionary manager. The German Root volume uses
-	 * case-insensitive key identity while retaining the winning key's spelling.
-	 * Binary ECI volumes cannot be merged with text and are handled separately
-	 * by DictionarySnapshot.
-	 */
-	fun writeEngineFiles(files: List<File>, language: Int, volume: Int, destination: File) {
-		if (files.isEmpty()) throw java.io.IOException("no dictionary sources")
-		val merged = HashMap<String, Pair<String, String>>()
-		for (file in files) {
-			if (isBinary(file)) throw java.io.IOException("binary dictionaries cannot be merged")
-			forEachEntry(file) { entry ->
-				val key = entry.first
-				val say = entry.second
-				if (!isUsable(key, say)) return@forEachEntry
-				val keyBytes = EngineText.encode(language, key)
-				val sayBytes = EngineText.encode(language, say)
-				if (keyBytes.isEmpty() || keyBytes.size > MAX_KEY ||
-					sayBytes.isEmpty() || sayBytes.size > MAX_SAY) return@forEachEntry
-				val delimiter = { byte: Byte ->
-					byte == 0.toByte() || byte == '\t'.code.toByte() ||
-						byte == '\r'.code.toByte() || byte == '\n'.code.toByte()
-				}
-				if (keyBytes.any(delimiter) || sayBytes.any(delimiter)) return@forEachEntry
-				val identity = if (language == 0x00040000 && volume == Eci.DICT_ROOT) {
-					buildString(key.length) {
-						for (ch in key) append(
-							if ((ch in 'A'..'Z') || (ch.code in 0xC0..0xDE && ch.code != 0xD7))
-								ch.lowercaseChar() else ch
-						)
-					}
-				} else key
-				merged[identity] = key to say
-			}
-		}
-		if (merged.isEmpty()) throw java.io.IOException("dictionary sources contain no usable entries")
-		var written = 0
-		java.io.BufferedOutputStream(destination.outputStream()).use { out ->
-			for ((key, say) in merged.values.sortedBy { it.first }) {
-				val keyBytes = EngineText.encode(language, key)
-				val sayBytes = EngineText.encode(language, say)
-				out.write(keyBytes)
-				out.write('\t'.code)
-				out.write(sayBytes)
-				out.write('\n'.code)
-				written++
-			}
-			// Required by OpenEVV: its volume reader discards a final line
-			// that reaches EOF without a following blank line.
-			if (written > 0) out.write('\n'.code)
-		}
-		java.io.FileOutputStream(destination, true).use { it.fd.sync() }
-	}
-
 	/** One key and what to say, or null when it is no entry.
 	 *  Accepts tab separation or whitespace, ignores comments (#, //, ;),
 	 *  and ensures phoneme entries starting with [ carry the required backtick. */
