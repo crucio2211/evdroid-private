@@ -187,7 +187,7 @@ class DictionaryTest {
         germanEngine.setAbbreviations(true)
         germanEngine.applyVoice(0)
 
-        val source = write("DOJ\\tthis is the retained English pronunciation\\n")
+        val source = write("DOJ\tthis is the retained English pronunciation\n")
         val snapshot = DictionarySnapshot.prepare(
             File(dir(), "retained-native"),
             LANGUAGE,
@@ -205,7 +205,7 @@ class DictionaryTest {
             snapshot.retire()
             assertFalse("retired snapshot directory was not released", snapshotDirectory.exists())
 
-            val germanSource = write("DOJ\\tdas ist die deutsche Aussprache\\n")
+            val germanSource = write("DOJ\tdas ist die deutsche Aussprache\n")
             val germanSnapshot = DictionarySnapshot.prepare(
                 File(dir(), "retained-native-de"),
                 0x00040000,
