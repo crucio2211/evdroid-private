@@ -31,10 +31,16 @@ private object DictionarySnapshotDirectories {
 
     fun release(directory: File) {
         val key = directory.absolutePath
-        val count = references[key] ?: return
-        if (count.decrementAndGet() == 0 && references.remove(key, count)) {
-            directory.deleteRecursively()
+        var delete = false
+        references.compute(key) { _, count ->
+            if (count == null || count.decrementAndGet() <= 0) {
+                delete = count != null
+                null
+            } else {
+                count
+            }
         }
+        if (delete) directory.deleteRecursively()
     }
 
     fun isInUse(directory: File): Boolean =
@@ -231,6 +237,6 @@ internal class DictionarySnapshot private constructor(
 
         private fun sha256(bytes: ByteArray): String =
             MessageDigest.getInstance("SHA-256").digest(bytes)
-                .joinToString("") { "%02x".format(it) }
+                .joinToString("") { "%02x".format(it.toInt() and 0xff) }
     }
 }
