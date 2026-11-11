@@ -215,12 +215,15 @@ together and is identified by SHA-256 content hashes, not file size or
 timestamps; replacing a file with different bytes is detected even when its
 size and modification time stay the same.
 
-The native bridge loads the three volumes into a detached ECI dictionary
-handle. Text entries are inserted into that handle through ECI's native
-dictionary-update API; binary volumes use the engine's saved-dictionary
-loader. Only after every selected volume succeeds does the bridge activate
-the new handle and retire the previous one. A failed volume leaves the
-previous complete set active.
+The native bridge loads each complete volume through OpenEVV's own
+`eciLoadDict` bulk-volume API into a detached ECI dictionary handle. It does
+not parse Root entries in JNI or call `eciUpdateDict` once per word. Text
+volumes are normalized with the engine's required blank-line terminator,
+which prevents the native reader from dropping the final entry at EOF.
+Only after every selected volume succeeds does the bridge activate the new
+handle and retire the previous one. A failed volume leaves the previous
+complete set active. The bridge logs native load time separately for Main,
+Root and Abbreviations, making a slow volume identifiable.
 
 Each utterance holds a native dictionary lease and a snapshot-file lease.
 Replacement waits for outstanding utterances to finish, and retired snapshot
