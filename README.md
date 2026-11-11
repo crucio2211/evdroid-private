@@ -222,22 +222,36 @@ volumes are normalized with the engine's required blank-line terminator,
 which prevents the native reader from dropping the final entry at EOF.
 Only after every selected volume succeeds does the bridge activate the new
 handle and retire the previous one. A failed volume leaves the previous
-complete set active. The bridge logs native load time separately for Main,
-Root and Abbreviations, making a slow volume identifiable.
+complete set active.
 
+After a text or imported binary volume is loaded successfully for the first
+time, the bridge also saves it through ECI's native `eciSaveDict` API as a
+compiled binary volume beside the immutable snapshot. On later engine
+initializations, the saved ECI volume is loaded directly. A rejected or
+incomplete compiled cache is discarded and regenerated from the original
+snapshot. The cache lives inside the content-addressed snapshot directory,
+so changing a source volume produces a new cache automatically. This makes
+the first load after a dictionary change the expensive conversion; subsequent
+engine starts can bypass text parsing. It does not remove the one-time native
+load or the memory needed by the engine to hold the dictionary.
 
 The service prewarms the system-locale engine as soon as Android creates the
 TTS service, so dictionary loading can begin before the screen reader sends
-its first utterance. A warm snapshot is checked against the source content
-hashes and its manifest/file sizes; the app does not reread and hash every
-generated Root volume before the native loader reads it. If the native loader
-rejects a cached volume, the snapshot is rebuilt from the original source
-files and retried once. Startup and per-volume native load times are logged.
+its first utterance. A warm snapshot is checked against source content hashes
+and its manifest/file sizes; the app does not reread and hash every generated
+Root volume before the native loader reads it. If native loading rejects a
+cached volume, the snapshot is rebuilt from the original source files and
+retried once. Native timings use a monotonic wall clock and distinguish
+compiled-cache loads from source loads.
 
 Each utterance holds a native dictionary lease and a snapshot-file lease.
 Replacement waits for outstanding utterances to finish, and retired snapshot
-files are deleted only after their last lease closes. No per-word Kotlin
-dictionary map is built, cached, or scanned during speech.
+files are deleted only after their last lease closes. Engine teardown is
+serialized behind any pending dictionary load; the ECI handle is never
+destroyed concurrently with its loader. A failed dictionary setup is not
+repeated before every utterance, which would otherwise keep re-hashing and
+reloading a large Root file. No per-word Kotlin dictionary map is built,
+cached, or scanned during speech.
 
 A picked file is copied into app storage. A content URI belongs to whichever
 app supplied it, may not be readable later, and the speech service reads the
