@@ -322,6 +322,14 @@ class EvvTtsService : TextToSpeechService() {
 		// voice is applied absolutely below, so 100 here leaves it alone and
 		// whatever TalkBack asked for is ignored. Unforced, TalkBack's numbers
 		// multiply the voice as before.
+		val snapshotLease = runCatching { dictionarySnapshot?.acquire() }.getOrNull()
+		val nativeLease = target.acquireDictionaryLease()
+		if (nativeLease == null) {
+			snapshotLease?.close()
+			callback.error(TextToSpeech.ERROR_SYNTHESIS)
+			return
+		}
+		try {
 		target.setRatePercent(if (s != null && s.forceRate) 100 else request.speechRate)
 		target.setPitchPercent(if (s != null && s.forcePitch) 100 else request.pitch)
 		// One pipeline for TalkBack and the sample button alike; the shape of
@@ -352,7 +360,7 @@ class EvvTtsService : TextToSpeechService() {
 		// No loudness tricks: an exclamation must read as one from its
 		// tune alone. Snapshot.boost stays off (1) until intonation lands.
 		val audio = s?.audioSnapshot() ?: AudioOutput.Snapshot()
-		for ((ri, rawPiece) in rawPieces.withIndex()) {
+		for (rawPiece in rawPieces) {
 			if (stopped) break
 			val fixed = TextPipeline.process(
 				rawPiece,
@@ -363,30 +371,19 @@ class EvvTtsService : TextToSpeechService() {
 				stripBackquotes = s?.backquoteTags != true,
 				punctLevel = punctLevel
 			)
-			// The user's own rewrites go last, closest to the engine, so what is
-			// written in the regex dictionary is what gets said.
-			val afterRegex = if (regexEnabled) RegexDictionaries.apply(loadedRegex, fixed) else fixed
-			// Words the dictionaries know are taught now, ahead of the engine
-			// meeting them below.
-			teachUnknownWords(target, afterRegex)
-			val text = applyRespellings(target, afterRegex)
+			val text = if (regexEnabled) RegexDictionaries.apply(loadedRegex, fixed) else fixed
 			if (text.isEmpty()) continue
-			val pieces = TextPieces.split(text)
-			for ((at, part) in pieces.withIndex()) {
-				if (stopped) break
-				// Pause behavior is handled by the engine pause-mode parameter.
-				// Do not inject Kotlin `p annotations as well: that would apply
-				// a second, overlapping pause rewrite.
-				val piece = prosody + part
-		if (!target.speak(piece)) {
-			Log.e(TAG, "the engine refused ${piece.length} characters")
-			callback.error(TextToSpeech.ERROR_SYNTHESIS)
-			return
-		}
-		if (!pump(target, callback, pace, opening, audio)) {
-					remember(pace)
-					return
-				}
+			// The native dictionary set already owns every entry in all three
+			// volumes; speech is passed through without a Kotlin word-map pass.
+			val piece = prosody + text
+			if (!target.speak(piece)) {
+				Log.e(TAG, "the engine refused ${piece.length} characters")
+				callback.error(TextToSpeech.ERROR_SYNTHESIS)
+				return
+			}
+			if (!pump(target, callback, pace, opening, audio)) {
+				remember(pace)
+				return
 			}
 		}
 		remember(pace)
@@ -401,6 +398,11 @@ class EvvTtsService : TextToSpeechService() {
 			callback.done()
 		}
 	}
+
+		} finally {
+			nativeLease.close()
+			snapshotLease?.close()
+		}
 
 	/** Hands one piece's samples on as they arrive, and answers whether the
 	 *  caller may go on to the next. The output stage is one chain for the
