@@ -21,6 +21,9 @@ class EvvTtsService : TextToSpeechService() {
 
 	@Volatile
 	private var engine: EvvEngine? = null
+	// Match Apple's per-language native engine cache. Each OpenEVV handle
+	// owns its dictionary set, so retain it while another language is active.
+	private val engines = java.util.concurrent.ConcurrentHashMap<Int, EvvEngine>()
 	private var settings: Settings? = null
 	private val engineExecutor = java.util.concurrent.Executors.newSingleThreadExecutor { task ->
 		Thread(task, "evvdroid-engine-load").apply { isDaemon = true }
@@ -35,10 +38,11 @@ class EvvTtsService : TextToSpeechService() {
 	@Volatile
 	private var stopped = false
 
-	private var appliedRevision = -1
+	private val appliedRevisions = java.util.concurrent.ConcurrentHashMap<Int, Int>()
 
-	@Volatile
-	private var dictionarySnapshot: DictionarySnapshot? = null
+	// A snapshot belongs to the native engine language, not to whichever
+	// language happened to be selected most recently.
+	private val dictionarySnapshots = HashMap<Int, DictionarySnapshot>()
 	private val dictionarySnapshotLock = Any()
 
 	private var loadedRegex: RegexDictionaries.Loaded? = null
@@ -84,14 +88,17 @@ class EvvTtsService : TextToSpeechService() {
 		synchronized(engineLoadLock) {
 			try {
 				engineExecutor.execute {
-					try {
-						engine?.close()
-					} catch (failed: Exception) {
-						Log.e(TAG, "could not close the ECI engine cleanly", failed)
-					} finally {
-						engine = null
-						retireDictionarySnapshot()
+					for ((language, cached) in engines.entries) {
+						try {
+							cached.close()
+						} catch (failed: Exception) {
+							Log.e(TAG, "could not close the ECI engine for 0x%08x".format(language), failed)
+						}
 					}
+					engines.clear()
+					engine = null
+					appliedRevisions.clear()
+					retireDictionarySnapshots()
 				}
 			} catch (rejected: java.util.concurrent.RejectedExecutionException) {
 				Log.w(TAG, "engine cleanup was already queued", rejected)
@@ -210,7 +217,8 @@ class EvvTtsService : TextToSpeechService() {
 	/** Language selection starts engine and dictionary setup on a worker. The
 	 *  synthesis callback joins that same task only if speech arrives first. */
 	private fun requestEngine(language: Int): java.util.concurrent.Future<EvvEngine?> = synchronized(engineLoadLock) {
-		engine?.takeIf { it.language == language }?.let { ready ->
+		engines[language]?.let { ready ->
+			engine = ready
 			val completed = java.util.concurrent.FutureTask<EvvEngine?>(java.util.concurrent.Callable { ready })
 			completed.run()
 			return@synchronized completed
@@ -237,14 +245,17 @@ class EvvTtsService : TextToSpeechService() {
 	/** Called only by [engineExecutor], so changing language cannot race another
 	 *  engine construction. Dictionary files are attached before the task ends. */
 	private fun openEngine(language: Int): EvvEngine? {
-		val held = engine
-		if (held != null && held.language == language) return held
-		held?.close()
-		engine = null
-		retireDictionarySnapshot()
+		val held = engines[language]
+		if (held != null) {
+			engine = held
+			return held
+		}
 		val made = EvvEngine.open(language)
-		engine = made
-		if (made != null) applySettings(made)
+		if (made != null) {
+			engines[language] = made
+			engine = made
+			applySettings(made)
+		}
 		return made
 	}
 
@@ -263,7 +274,7 @@ class EvvTtsService : TextToSpeechService() {
 		// rebuilds and retries a rejected cache once; another attempt is made
 		// when the user changes settings or the selected dictionary.
 		if (voiceReady && pauseModeReady) {
-			appliedRevision = s.revision
+			appliedRevisions[target.language] = s.revision
 		}
 		if (!dictionariesReady) {
 			Log.w(TAG, "dictionary setup failed for settings revision ${s.revision}; speech will continue without retrying on every utterance")
@@ -286,10 +297,17 @@ class EvvTtsService : TextToSpeechService() {
 		}
 	}
 
-	private fun retireDictionarySnapshot() = synchronized(dictionarySnapshotLock) {
-		dictionarySnapshot?.retire()
-		dictionarySnapshot = null
+	private fun retireDictionarySnapshots() = synchronized(dictionarySnapshotLock) {
+		dictionarySnapshots.values.forEach { it.retire() }
+		dictionarySnapshots.clear()
 	}
+
+	private fun acquireDictionarySnapshot(language: Int): DictionarySnapshot.Lease? =
+		synchronized(dictionarySnapshotLock) {
+			dictionarySnapshots[language]?.let { snapshot ->
+				runCatching { snapshot.acquire() }.getOrNull()
+			}
+		}
 
 	/** Builds one immutable snapshot for the active language, then publishes
 	 *  Main, Root and Abbreviations together through a fresh native ECI handle.
@@ -307,18 +325,17 @@ class EvvTtsService : TextToSpeechService() {
 		}
 		val root = java.io.File(filesDir, "dictionary-snapshots")
 		val started = android.os.SystemClock.elapsedRealtime()
+		val previous = dictionarySnapshots[target.language]
 		var snapshot = try {
-			DictionarySnapshot.prepare(root, target.language, sources, dictionarySnapshot)
+			DictionarySnapshot.prepare(root, target.language, sources, previous)
 		} catch (failed: Exception) {
 			Log.e(TAG, "could not prepare the dictionary snapshot; keeping the active set", failed)
 			return@synchronized false
 		}
-		if (snapshot === dictionarySnapshot) {
+		if (snapshot === previous) {
 			Log.i(TAG, "dictionary snapshot already warm for 0x%08x".format(target.language))
 			return@synchronized true
 		}
-
-		val previous = dictionarySnapshot
 		var loaded = target.replaceDictionaries(snapshot.paths)
 		if (!loaded) {
 			// The cache manifest and file sizes are checked on warm starts to
@@ -336,7 +353,7 @@ class EvvTtsService : TextToSpeechService() {
 			loaded = target.replaceDictionaries(snapshot.paths)
 		}
 		if (loaded) {
-			dictionarySnapshot = snapshot
+			dictionarySnapshots[target.language] = snapshot
 			previous?.retire()
 			val elapsed = android.os.SystemClock.elapsedRealtime() - started
 			Log.i(TAG, "published dictionary snapshot ${snapshot.identity.take(16)} for 0x%08x in ${elapsed} ms".format(target.language))
@@ -380,7 +397,7 @@ class EvvTtsService : TextToSpeechService() {
 		// moved on without saying stop. eciStop on an idle engine is safe
 		// here (upstream's fix for that wedge is in this tree).
 		target.stop()
-		if (s != null && s.revision != appliedRevision) applySettings(target)
+		if (s != null && s.revision != appliedRevisions[target.language]) applySettings(target)
 		// Re-sent every time rather than once, because it is the one setting
 		// with no way of telling whether something else has moved it.
 		s?.let { target.setAbbreviations(it.abbreviations) }
@@ -389,7 +406,7 @@ class EvvTtsService : TextToSpeechService() {
 		// voice is applied absolutely below, so 100 here leaves it alone and
 		// whatever TalkBack asked for is ignored. Unforced, TalkBack's numbers
 		// multiply the voice as before.
-		val snapshotLease = runCatching { dictionarySnapshot?.acquire() }.getOrNull()
+		val snapshotLease = acquireDictionarySnapshot(target.language)
 		val nativeLease = target.acquireDictionaryLease()
 		if (nativeLease == null) {
 			snapshotLease?.close()
