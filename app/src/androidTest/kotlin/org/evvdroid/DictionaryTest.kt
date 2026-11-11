@@ -24,7 +24,7 @@ class DictionaryTest {
 
     @Test
     fun contentHashDetectsSameSizeSameTimestampReplacement() {
-        val source = write("DOJ\tdee oh jay\n")
+        val source = write("DOJ\tthis is the special main pronunciation\n")
         val fixedTime = 1_700_000_000_000L
         assertTrue(source.setLastModified(fixedTime))
         val root = File(dir(), "snapshots-hash")
@@ -69,8 +69,8 @@ class DictionaryTest {
         val e = open()
         val root = File(dir(), "three-volumes")
         val main = write("DOJ\tdee oh jay\n")
-        val rootFile = write("ACLU\tay see ell you\n")
-        val abbr = write("LOL\tlaughing out loud\n")
+        val rootFile = write("ACLU\tthis is the special root pronunciation\n")
+        val abbr = write("LOL\tthis is the special abbreviation pronunciation\n")
         val beforeMain = samples(e, "DOJ")
         val beforeRoot = samples(e, "ACLU")
         val beforeAbbr = samples(e, "LOL")
