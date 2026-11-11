@@ -82,6 +82,18 @@ jobs:
         # would refuse it with "app not installed".
         run: ./gradlew assembleRelease assembleDebugAndroidTest -Pevvdroid.abis="$EVVDROID_ABIS" -Pevvdroid.minify=true -Pevvdroid.legacyPackaging=true -Pevvdroid.rules=bytecode -Pevvdroid.langs="$EVVDROID_LANGS" -Pevvdroid.versionCode="$((1000000 + GITHUB_RUN_NUMBER))" -Pevvdroid.versionName=2.0 -Pevvdroid.keystore="$EVVDROID_KEYSTORE" -Pevvdroid.storePass="${{ secrets.EVVDROID_STORE_PASS }}" -Pevvdroid.keyPass="${{ secrets.EVVDROID_KEY_PASS }}" --stacktrace
 
+      - name: Verify the APK contains every selected ABI
+        run: |
+          apk=$(find app/build/outputs/apk/release -maxdepth 1 -name '*.apk' -print -quit)
+          test -n "$apk"
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            if ! unzip -Z1 "$apk" | grep -Fxq "lib/$abi/libevvjni.so"; then
+              echo "Missing native library for $abi in $apk" >&2
+              exit 1
+            fi
+          done
+          echo "Verified arm64-v8a, armeabi-v7a and x86_64 in $apk"
+
       - name: Upload the APK
         uses: actions/upload-artifact@v4
         # Quota failures must not block the rolling release below.
