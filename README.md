@@ -136,23 +136,11 @@ every preset and made all eight voices wrong the same way.
 
 ## Pauses
 
-Eloquence pauses generously, which reads well in prose and badly in a screen
-reader where most utterances are a few words. The engine has no setting for it,
-but it takes an annotation: `` `p `` and a number is a pause of that many
-milliseconds, and one placed in front of a punctuation mark replaces the pause
-that mark would have had.
+The three choices go directly to the engine's native ECI pause-mode parameter:
+Never (0), At end of text only (1), and Always (2). The default is At end of
+text only. The engine itself applies the selected mode; Android does not
+rewrite punctuation or inject pause annotations.
 
-"Pauses" follows the engine's native pause-mode parameter, with the same three
-choices used by the Eloquence 64 / IBMTTS drivers: Never (0), At end of text
-only (1), and Always (2). The default is At end of text only. The native engine
-applies the selected mode; the Android service does not inject a second layer
-of pause annotations.
-
-The rule is davidacm's, from the
-[NVDA IBMTTS driver](https://github.com/davidacm/NVDA-IBMTTS-Driver), which
-calls these JAWS-like pauses. A mark counts when it follows a letter, digit or
-space and is followed by whitespace, a slash or the end, which is what leaves
-the point in 3.14, the colon in 2:30 and the comma in 1,024 alone.
 
 ## Voice, phrase prediction, abbreviations
 
@@ -214,57 +202,55 @@ digit; modifiers standing alone are dropped.
 
 ## Dictionaries
 
-Three rows pick a file each for the main, root and abbreviation volumes,
-each with a switch for whether it is used. A shared name says which volume
-it is: an enuabbr picked on the main row still goes to abbreviations, and
-so for every language prefix. A fourth row opens the regex dictionary,
-with a switch to turn it on and off. "Remove dictionaries" clears all
-four.
+Three rows pick a file each for the Main, Root and Abbreviations volumes, each
+with a switch for whether it is used. A shared filename identifies its volume
+and language, such as `enumain.dic`, `enuroot.dic` or `enuabbr.dic`. A fourth
+row opens the regex dictionary, with its own enable switch. "Remove
+dictionaries" clears the selected files and the regex dictionary.
 
-A binary dictionary is refused outright -- it belongs to the engine's own
-loader, and teaching its bytes as words can silence the engine -- as is a
-file with nothing usable in it. Unsavable entries are skipped line by line,
-and one bad volume never takes an utterance down with it.
+The speech service builds one immutable snapshot for the active language. It
+normalizes text files into the engine's byte encoding and preserves saved
+binary dictionaries unchanged. The snapshot contains all selected volumes
+together and is identified by SHA-256 content hashes, not file size or
+timestamps; replacing a file with different bytes is detected even when its
+size and modification time stay the same.
 
-The files people share are text: a word, a tab, then either a respelling
-(`dee oe jeigh`) or a pronunciation in the engine's own alphabet
-(`` `[Ekspoz1e] ``).
-[mohamed00/altibmttsdictionaries](https://github.com/mohamed00/altibmttsdictionaries)
-has the English pair.
+The native bridge loads the three volumes into a detached ECI dictionary
+handle. Text entries are inserted into that handle through ECI's native
+dictionary-update API; binary volumes use the engine's saved-dictionary
+loader. Only after every selected volume succeeds does the bridge activate
+the new handle and retire the previous one. A failed volume leaves the
+previous complete set active.
 
-The engine's own loader will not read them. `eciLoadDict` answers
-`eciDictAccessError` for every one, because it expects IBM's saved binary form.
-So the text is parsed here into memory when the files change -- tens of
-milliseconds even for tens of thousands of entries -- and the engine is
-taught a word the first time it is spoken, a call or two per utterance
-rather than sixty thousand up front. That is what keeps a big dictionary
-like the 65,000-word root set from hanging the first utterance after it is
-picked.
+Each utterance holds a native dictionary lease and a snapshot-file lease.
+Replacement waits for outstanding utterances to finish, and retired snapshot
+files are deleted only after their last lease closes. No per-word Kotlin
+dictionary map is built, cached, or scanned during speech.
 
 A picked file is copied into app storage. A content URI belongs to whichever
-app supplied it, may not be readable later, and the speech service reads it
-from another process.
+app supplied it, may not be readable later, and the speech service reads the
+private copy. Text files with no usable entries are refused at import; invalid
+lines are skipped while building the snapshot.
 
-A regex dictionary is one more text file: a pattern, a tab, and what to put
+A regex dictionary is a separate text file: a pattern, a tab, and what to put
 in its place, so `NVDA` with a tab and `en vee dee ay` says the letters.
 Lines starting with `#` are comments, blank lines are skipped, and a pattern
 that does not compile is skipped and logged rather than sinking the file.
-Replacements use `$1` group references. It applies after the crash guards
-and readability fixes, closest to the engine, so what is written there is
-what gets said. Picking a file turns it on.
+Replacements use `$1` group references. It applies after the readability
+fixes, closest to the engine, so what is written there is what gets said.
+Picking a file turns it on.
 
-The regex row opens the entries themselves: every pattern in file
-order, one stop each, where pressing one offers editing it in place or
-deleting it after asking. Adding offers a Match case switch, off by
-default so chatgpt fixes ChatGpt too; importing a file to replace it, and
-exporting a copy elsewhere. Remove all entries sits at the bottom, behind
-its own asking.
+The regex row opens the entries themselves: every pattern in file order, one
+stop each, where pressing one offers editing it in place or deleting it after
+asking. Adding offers a Match case switch, off by default so chatgpt fixes
+ChatGpt too; importing a file to replace it, and exporting a copy elsewhere.
+Remove all entries sits at the bottom, behind its own asking.
 
 No dictionary is shipped here. See LICENSE.
 
-The volume dictionaries teach Western bytes and do not cover Japanese,
-which travels Shift-JIS encoded; the regex dictionary rewrites text and
-works in every language.
+The volume dictionaries use the active language's native ECI encoding. The
+regex dictionary rewrites text and works in every language.
+
 
 ## Heteronyms
 
@@ -312,7 +298,7 @@ adb mdns services                 # the watch announces both ports
 adb pair 192.168.x.x:PAIRPORT     # then the six digits on screen
 adb connect 192.168.x.x:PORT
 adb -s SERIAL shell getprop ro.product.cpu.abilist
-./gradlew installDebug -Pevvdroid.abis=armeabi-v7a
+./gradlew installDebug -Pevvdroid.abis=arm64-v8a
 ```
 
 ## Layout
