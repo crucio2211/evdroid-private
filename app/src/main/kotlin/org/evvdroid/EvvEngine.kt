@@ -1,6 +1,7 @@
 package org.evvdroid
 
 import android.util.Log
+import java.io.File
 
 /**
  * One engine instance and the settings in force on it.
@@ -61,7 +62,7 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 				Log.e(TAG, "no engine instance for language 0x%08x".format(language))
 				return null
 			}
-		return EvvEngine(handle, language).apply { configure() }
+			return EvvEngine(handle, language).apply { configure() }
 		}
 	}
 
@@ -69,32 +70,22 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		EvvNative.setParam(handle, Eci.PARAM_LANGUAGE_DIALECT, language)
 		EvvNative.setParam(handle, Eci.PARAM_SYNTH_MODE, 0)
 		EvvNative.setParam(handle, Eci.PARAM_REAL_WORLD_UNITS, 0)
-		// Always on. The engine is the only thing that can act on an annotation,
-		// nothing in this app speaks without wanting pauses shortened, and one
-		// that is malformed is spoken rather than obeyed, so ordinary text
-		// carrying a backtick is read out as it stands.
 		setAnnotations(true)
-		// Pause annotations are applied to text in the service. Keep the native
-		// pause mode disabled so it does not add a second, conflicting policy.
-		EvvNative.setParam(handle, Eci.PARAM_PAUSES, Eci.PAUSES_NONE)
+		setPauseMode(Eci.PAUSES_DEFAULT)
 		setSampleRate(Eci.sampleRateHz(EvvNative.getParam(handle, Eci.PARAM_SAMPLE_RATE)))
 	}
 
 	fun setPauseMode(mode: Int) = synchronized(guard) {
-		// Pauses are handled at the text level identically to NVDA IBMTTS.
-		// Do not write the native parameter here; configure() deliberately keeps
-		// native pause processing disabled to avoid duplicate pause commands.
 		if (closed) return
-		pauseMode = mode.coerceIn(Pauses.KEEP, Pauses.ALL)
+		val clamped = mode.coerceIn(Eci.PAUSES_NONE, Eci.PAUSES_ALWAYS)
+		EvvNative.setParam(handle, Eci.PARAM_PAUSES, clamped)
+		pauseMode = clamped
 	}
 
 	fun setSampleRate(hz: Int) = synchronized(guard) {
 		if (closed) return
 		val index = Eci.sampleRateIndex(hz)
 		EvvNative.setParam(handle, Eci.PARAM_SAMPLE_RATE, index)
-		// Believed only when read back: a refused rate must never leave
-		// the engine and the player disagreeing, which is speech at the
-		// wrong speed. Fall back to 11025 rather than play there.
 		val landed = Eci.sampleRateIndex(Eci.sampleRateHz(EvvNative.getParam(handle, Eci.PARAM_SAMPLE_RATE)))
 		if (landed != index) {
 			Log.e(TAG, "the engine refused $hz Hz, staying at 11025")
@@ -116,9 +107,6 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		if (!closed) EvvNative.setParam(handle, Eci.PARAM_DICTIONARY, if (on) 0 else 1)
 	}
 
-	/** What preset [index] (0 based, so 0 is Reed) is set to, without changing
-	 *  the voice being spoken in. This is what the settings screen shows, so a
-	 *  row starts at the voice's own number rather than at one of ours. */
 	fun presetShape(index: Int): Map<Int, Int> = synchronized(guard) {
 		if (closed) return emptyMap()
 		val preset = (index + Eci.FIRST_PRESET).coerceIn(Eci.FIRST_PRESET, Eci.LAST_PRESET)
@@ -130,26 +118,10 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		return out
 	}
 
-	/**
-	 * Speaks in preset [index] with [shape] laid over it.
-	 *
-	 * The presets are read only, so the way to a voice of your own is to copy
-	 * one into an editable number, change it there, and copy that onto the
-	 * voice being spoken in. Anything [shape] does not name keeps what the
-	 * preset had, which is why an empty map is the right thing to pass when
-	 * nobody has chosen otherwise.
-	 */
 	fun applyVoice(index: Int, shape: Map<Int, Int> = emptyMap()): Boolean = synchronized(guard) {
 		if (closed) return false
 		val preset = (index + Eci.FIRST_PRESET).coerceIn(Eci.FIRST_PRESET, Eci.LAST_PRESET)
-		// A voice is written rather than annotated, so it can be refused: the
-		// engine takes nothing while it is speaking, and answers nought for a
-		// copy and -1 for a parameter when it does. Saying so is what lets the
-		// caller ask again rather than believe a voice is in force that never
-		// arrived.
 		if (EvvNative.copyVoice(handle, preset, Eci.SCRATCH_VOICE) == 0) return false
-		// The preset's own speed is not kept. Two of the eight ship faster than
-		// the rest, so leaving it would make changing voice change the pace.
 		if (EvvNative.setVoiceParam(
 				handle, Eci.SCRATCH_VOICE, Eci.VOICE_SPEED,
 				shape[Eci.VOICE_SPEED] ?: Eci.DEFAULT_SPEED
@@ -162,8 +134,6 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 			) return false
 		}
 		if (EvvNative.copyVoice(handle, Eci.SCRATCH_VOICE, Eci.VOICE_CURRENT) == 0) return false
-		// Reading is never refused, only writing, so these are what the engine
-		// really has.
 		baseSpeed = EvvNative.getVoiceParam(handle, Eci.VOICE_CURRENT, Eci.VOICE_SPEED)
 		basePitch = EvvNative.getVoiceParam(handle, Eci.VOICE_CURRENT, Eci.VOICE_PITCH_BASELINE)
 		wantSpeed = baseSpeed
@@ -171,14 +141,8 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		return true
 	}
 
-	/** Android hands rate and pitch over as a percentage of normal, where the
-	 *  engine wants its own numbers. Normal is the voice as [applyVoice] left
-	 *  it, so 100% changes nothing. Neither is written: [speak] sends both in
-	 *  front of the words, for the reason [Prosody] gives. */
 	fun setRatePercent(percent: Int) = synchronized(guard) {
 		if (closed || baseSpeed < 0) return
-		// Not baseSpeed * percent. The engine's speed scale is nothing like
-		// linear in how fast it speaks, so SpeechRate does the conversion.
 		wantSpeed = SpeechRate.speedForPercent(baseSpeed, percent)
 	}
 
@@ -191,11 +155,19 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		if (closed) -1 else EvvNative.getVoiceParam(handle, Eci.VOICE_CURRENT, param)
 	}
 
-	/** Hands a tab-separated text file or saved dictionary to the native loader.
-	 *  Nought is success. */
+	/** Load saved binary dictionaries through ECI; read text dictionaries and
+	 * teach their entries through the established per-word API. */
 	fun loadDictionary(volume: Int, path: String): Int = synchronized(dictionaryGuard) {
 		val current = synchronized(guard) { if (closed) 0L else handle }
-		if (current == 0L) -1 else EvvNative.loadDictionary(current, volume, path)
+		if (current == 0L) return@synchronized -1
+		val file = File(path)
+		if (!file.isFile || !file.canRead()) return@synchronized -1
+		if (Dictionaries.isBinary(file)) {
+			EvvNative.loadDictionary(current, volume, file.absolutePath)
+		} else {
+			val loaded = Dictionaries.load(this, volume, file)
+			if (loaded > 0) 0 else -1
+		}
 	}
 
 	fun teachWord(volume: Int, key: String, say: String): Int = synchronized(dictionaryGuard) {
@@ -215,18 +187,12 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		if (current != 0L) EvvNative.forgetDictionaries(current)
 	}
 
-	/** Queues [text] and starts the engine. The samples come out of [read].
-	 *  The rate and pitch asked for go in front of the words rather than into
-	 *  the voice, so that an utterance carries its own and nothing is left to
-	 *  be refused. */
 	fun speak(text: String): Boolean = synchronized(guard) {
 		if (closed) return false
 		val ask = if (wantSpeed >= 0 && wantPitch >= 0) Prosody.voice(wantSpeed, wantPitch) else ""
 		return EvvNative.speak(handle, EngineText.encode(language, ask + text))
 	}
 
-	/** Bytes of PCM, blocking until there are some. 0 ends the utterance and
-	 *  -1 says it was stopped. */
 	fun read(into: ByteArray): Int {
 		if (closed) return -1
 		return EvvNative.read(handle, into)
