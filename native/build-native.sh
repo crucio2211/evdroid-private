@@ -13,7 +13,7 @@ here=$(cd "$(dirname "$0")" && pwd)
 root=$(cd "$here/.." && pwd)
 engine="$here/openevv"
 
-ABIS=${ABIS:-"arm64-v8a armeabi-v7a x86_64"}
+ABIS=${ABIS:-"arm64-v8a x86_64"}
 API=${API:-21}
 RULES=${RULES:-c}
 LANGS=${LANGS:-lang/enus}
