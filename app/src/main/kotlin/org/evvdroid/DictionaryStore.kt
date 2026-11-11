@@ -210,6 +210,19 @@ internal object DictionaryStore {
         file.delete()
     }
 
+    /** Remove the active snapshot references when all external dictionaries are cleared. */
+    fun clear(context: Context) {
+        val app = context.applicationContext
+        worker.execute {
+            val prefs = preferences(app)
+            val editor = prefs.edit()
+            prefs.all.keys
+                .filter { it.startsWith(PREF_SNAPSHOT) || it.startsWith(PREF_STATE) }
+                .forEach(editor::remove)
+            if (editor.commit()) prune(app)
+        }
+    }
+
     private fun prune(context: Context) {
         val active = preferences(context).all.entries
             .filter { it.key.startsWith(PREF_SNAPSHOT) }

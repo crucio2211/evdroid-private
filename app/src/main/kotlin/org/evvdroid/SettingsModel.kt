@@ -301,6 +301,7 @@ class SettingsModel(context: Context) {
 		val name = pendingDictName
 		val binary = pendingDictBinary
 		val entries = pendingDictEntries
+		val previousPath = settings.dictionaryPath(slot)
 		val into = java.io.File(app.filesDir, "dictionaries")
 		val pending = java.io.File(into, "pending.dic")
 		val file = java.io.File(into, "volume-$slot-${java.util.UUID.randomUUID()}.dic")
@@ -322,6 +323,11 @@ class SettingsModel(context: Context) {
 				val said = if (binary) app.getString(R.string.dictionary_binary, name)
 				else app.getString(R.string.dictionary_entries, name, entries)
 				settings.setDictionary(slot, file.absolutePath, said)
+				previousPath?.takeIf { it != file.absolutePath }?.let {
+					val old = java.io.File(it)
+					old.delete()
+					Dictionaries.invalidate(old)
+				}
 				settings.setDictionaryLanguage(slot, language)
 				dictionaries = dictionaries + (slot to said)
 				chooseUseDictionary(slot, true)
@@ -338,6 +344,7 @@ class SettingsModel(context: Context) {
 	}
 
 	fun removeDictionaries() {
+		DictionaryStore.clear(app)
 		for (volume in Eci.DICT_VOLUMES) {
 			settings.dictionaryPath(volume)?.let {
 				val file = java.io.File(it)
