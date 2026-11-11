@@ -7,18 +7,6 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
-/**
- * One immutable, language-specific publication of all three ECI volumes.
- *
- * The identity is made from SHA-256 of each source file, not its path, size,
- * or timestamp. A source changed while the snapshot is being made is refused.
- * The three output files and manifest are written in a private staging
- * directory and the directory is renamed into place only when all are ready.
- *
- * The service owns one reference. Every utterance takes a lease; replacing a
- * snapshot retires the old owner reference, and its directory is removed only
- * after the last utterance lease has gone away.
- */
 private object DictionarySnapshotDirectories {
     private val lock = Any()
     private val references = HashMap<String, Int>()
@@ -44,6 +32,18 @@ private object DictionarySnapshotDirectories {
     }
 }
 
+/**
+ * One immutable, language-specific publication of all three ECI volumes.
+ *
+ * The identity is made from SHA-256 of each source file, not its path, size,
+ * or timestamp. A source changed while the snapshot is being made is refused.
+ * The three output files and manifest are written in a private staging
+ * directory and the directory is renamed into place only when all are ready.
+ *
+ * The service owns one reference. Every utterance takes a lease; replacing a
+ * snapshot retires the old owner reference, and its directory is removed only
+ * after the last utterance lease has gone away.
+ */
 internal class DictionarySnapshot private constructor(
     val language: Int,
     val identity: String,
