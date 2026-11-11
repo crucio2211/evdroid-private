@@ -39,7 +39,7 @@ class EvvTtsService : TextToSpeechService() {
 
 	private var loadedDictionaries: Map<Int, String> = emptyMap()
 	private var loadedDictionaryLangs: Map<Int, Int> = emptyMap()
-	private var loadedDictionaryStamps: Map<Int, Pair<Long, Long>> = emptyMap()
+	private var loadedDictionaryStamps: Map<Int, String> = emptyMap()
 	private var loadedEngine: EvvEngine? = null
 	/** Picked files as read: engine language to exact dictionary key, to every
 	 *  entry written under it, with the volume each was picked for and
@@ -290,9 +290,20 @@ class EvvTtsService : TextToSpeechService() {
 			s.useDictionary(it) && (it != Eci.DICT_ABBREVIATION || s.abbreviations)
 		}
 		val langs = want.keys.associateWith { s.dictionaryLanguageResolved(it, EvvEngine.available) }
-		val stamps = want.mapValues { (_, path) ->
+		// Hash the source bytes, not just its size and timestamp. External
+		// phoneme dictionaries are often overwritten in place; some document
+		// providers preserve both metadata fields, which otherwise leaves the
+		// old native dictionary active after an import/update.
+		val stamps = want.mapValues { (volume, path) ->
 			val file = java.io.File(path)
-			file.length() to file.lastModified()
+			if (!file.isFile) {
+				"missing"
+			} else {
+				runCatching { Dictionaries.contentFingerprint(file) }.getOrElse { failed ->
+					Log.e(TAG, "volume $volume could not be fingerprinted", failed)
+					"unreadable:${file.length()}:${file.lastModified()}"
+				}
+			}
 		}
 		if (want == loadedDictionaries && langs == loadedDictionaryLangs && stamps == loadedDictionaryStamps && target === loadedEngine) return
 		target.forgetDictionaries()
