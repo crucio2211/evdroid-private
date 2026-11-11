@@ -218,13 +218,13 @@ class EvvTtsService : TextToSpeechService() {
 	private fun applySettings(target: EvvEngine) {
 		val s = settings ?: return
 		target.setSampleRate(s.sampleRateHz)
-		target.setPauseMode(s.pauses)
+		val pauseModeReady = target.setPauseMode(s.pauses)
 		target.setAbbreviations(s.abbreviations)
 		val dictionariesReady = loadDictionaries(target, s)
 		loadRegexDictionary(s)
 		// A voice is written, so the engine can refuse it while it is speaking.
-		// A failed dictionary publication or voice update is retried next turn.
-		if (target.applyVoice(s.voice, s.shape(s.voice)) && dictionariesReady) {
+		// A failed pause mode, dictionary publication or voice update is retried.
+		if (target.applyVoice(s.voice, s.shape(s.voice)) && dictionariesReady && pauseModeReady) {
 			appliedRevision = s.revision
 		}
 	}
