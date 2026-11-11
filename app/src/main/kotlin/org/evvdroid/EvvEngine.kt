@@ -81,8 +81,11 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 	fun setPauseMode(mode: Int) = synchronized(guard) {
 		if (closed) return
 		val clamped = mode.coerceIn(Eci.PAUSES_NONE, Eci.PAUSES_ALWAYS)
-		EvvNative.setParam(handle, Eci.PARAM_PAUSES, clamped)
-		pauseMode = clamped
+		if (EvvNative.setParam(handle, Eci.PARAM_PAUSES, clamped) >= 0) {
+			pauseMode = clamped
+		} else {
+			Log.e(TAG, "the engine refused pause mode $clamped")
+		}
 	}
 
 	fun setSampleRate(hz: Int) = synchronized(guard) {
