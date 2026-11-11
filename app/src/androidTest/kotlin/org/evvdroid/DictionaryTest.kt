@@ -103,6 +103,46 @@ class DictionaryTest {
         }
     }
 
+
+    @Test
+    fun largeRootVolumeLoadsThroughNativeBulkPathAndKeepsItsLastEntry() {
+        val e = open()
+        val rows = buildString(900_000) {
+            for (i in 0 until 20_000) {
+                append("rootfixture")
+                append(i.toString().padStart(5, '0'))
+                append("\tunused pronunciation\n")
+            }
+            // Keep the pronunciation we check as the final actual entry.
+            append("walking\twalk\n")
+        }
+        val rootFile = write(rows)
+        val before = samples(e, "walking")
+        val snapshot = DictionarySnapshot.prepare(
+            File(dir(), "large-root"),
+            LANGUAGE,
+            mapOf(Eci.DICT_ROOT to rootFile),
+            null
+        )
+        try {
+            val staged = File(snapshot.paths[Eci.DICT_ROOT]!!)
+            val bytes = staged.readBytes()
+            assertTrue(
+                "native text volume must end with a blank-line terminator",
+                bytes.size >= 2 && bytes[bytes.lastIndex - 1] == '\n'.code.toByte() &&
+                    bytes[bytes.lastIndex] == '\n'.code.toByte()
+            )
+            assertTrue("native engine rejected the large Root volume", e.replaceDictionaries(snapshot.paths))
+            val after = samples(e, "walking")
+            assertTrue("baseline Root test speech failed", before > 0)
+            assertTrue("Root dictionary speech failed after bulk loading", after > 0)
+            assertNotEquals("the final Root entry was dropped or not applied", before, after)
+        } finally {
+            snapshot.retire()
+            e.close()
+        }
+    }
+
     @Test
     fun failedVolumeKeepsThePreviouslyPublishedSet() {
         val e = open()
