@@ -257,8 +257,16 @@ class EvvTtsService : TextToSpeechService() {
 		loadRegexDictionary(s)
 		// A voice is written, so the engine can refuse it while it is speaking.
 		// A failed pause mode, dictionary publication or voice update is retried.
-		if (target.applyVoice(s.voice, s.shape(s.voice)) && dictionariesReady && pauseModeReady) {
+		val voiceReady = target.applyVoice(s.voice, s.shape(s.voice))
+		// A bad dictionary file must not make every subsequent utterance repeat
+		// a full Root-volume hash and native load attempt. The loader already
+		// rebuilds and retries a rejected cache once; another attempt is made
+		// when the user changes settings or the selected dictionary.
+		if (voiceReady && pauseModeReady) {
 			appliedRevision = s.revision
+		}
+		if (!dictionariesReady) {
+			Log.w(TAG, "dictionary setup failed for settings revision ${s.revision}; speech will continue without retrying on every utterance")
 		}
 	}
 
