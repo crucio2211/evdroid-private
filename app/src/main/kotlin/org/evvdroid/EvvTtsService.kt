@@ -218,7 +218,6 @@ class EvvTtsService : TextToSpeechService() {
 	 *  synthesis callback joins that same task only if speech arrives first. */
 	private fun requestEngine(language: Int): java.util.concurrent.Future<EvvEngine?> = synchronized(engineLoadLock) {
 		engines[language]?.let { ready ->
-			engine = ready
 			val completed = java.util.concurrent.FutureTask<EvvEngine?>(java.util.concurrent.Callable { ready })
 			completed.run()
 			return@synchronized completed
@@ -247,13 +246,11 @@ class EvvTtsService : TextToSpeechService() {
 	private fun openEngine(language: Int): EvvEngine? {
 		val held = engines[language]
 		if (held != null) {
-			engine = held
 			return held
 		}
 		val made = EvvEngine.open(language)
 		if (made != null) {
 			engines[language] = made
-			engine = made
 			applySettings(made)
 		}
 		return made
@@ -392,6 +389,9 @@ class EvvTtsService : TextToSpeechService() {
 			callback.error(TextToSpeech.ERROR_SERVICE)
 			return
 		}
+		// Track the engine actually speaking. Background prewarming or a
+		// queued language load must never redirect onStop() to another handle.
+		engine = target
 		// Stopped first, NVDA-style: its driver cancels before every speak,
 		// flushing whatever a previous utterance left behind when the reader
 		// moved on without saying stop. eciStop on an idle engine is safe
