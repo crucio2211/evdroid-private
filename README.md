@@ -244,13 +244,16 @@ cached volume, the snapshot is rebuilt from the original source files and
 retried once. Native timings use a monotonic wall clock and distinguish
 compiled-cache loads from source loads.
 
-The service now retains one OpenEVV ECI engine per language, matching
-Apple's per-language native engine slots. Each handle keeps its own active
-Main/Root/Abbreviations set in memory. Switching to another language no longer
-closes the previous ECI handle; returning to it reuses the already-loaded
-native dictionary tables instead of parsing the Root volume again. The
-Apple-only `eciSetDictionaryPath` call is not used: the adapter uses
-OpenEVV's `eciNewDict`, `eciLoadDict` and `eciSetDict` APIs.
+The service retains one OpenEVV ECI engine per language, matching
+Apple's per-language native engine slots. The engine pool and its dictionary
+snapshots live for the Android application process, not only for one
+TextToSpeechService instance. When Android unbinds and recreates the TTS
+service while the process remains alive, the next instance reuses the same
+native handles and loaded Main/Root/Abbreviations tables. Android reclaims
+those handles when the process exits. Switching languages also leaves the
+previous language's native dictionary tables loaded. The Apple-only
+`eciSetDictionaryPath` call is not used: the adapter uses OpenEVV's
+`eciNewDict`, `eciLoadDict` and `eciSetDict` APIs.
 
 Each utterance holds a native dictionary lease and a snapshot-file lease.
 Replacement waits for outstanding utterances to finish, and retired snapshot
