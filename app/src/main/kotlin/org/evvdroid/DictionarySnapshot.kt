@@ -114,7 +114,7 @@ internal class DictionarySnapshot private constructor(
             root.mkdirs()
             if (digests.isEmpty()) {
                 cleanupStale(root, null)
-                return DictionarySnapshot(language, identity, arrayOfNulls(Eci.DICT_VOLUMES.size), null)
+                return DictionarySnapshot(language, identity, arrayOfNulls<String>(Eci.DICT_VOLUMES.size), null)
             }
 
             val finalDir = File(root, "snapshot-${language.toString(16)}-$identity")
