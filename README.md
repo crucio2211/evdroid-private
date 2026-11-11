@@ -244,11 +244,19 @@ cached volume, the snapshot is rebuilt from the original source files and
 retried once. Native timings use a monotonic wall clock and distinguish
 compiled-cache loads from source loads.
 
+The service now retains one OpenEVV ECI engine per language, matching
+Apple's per-language native engine slots. Each handle keeps its own active
+Main/Root/Abbreviations set in memory. Switching to another language no longer
+closes the previous ECI handle; returning to it reuses the already-loaded
+native dictionary tables instead of parsing the Root volume again. The
+Apple-only `eciSetDictionaryPath` call is not used: the adapter uses
+OpenEVV's `eciNewDict`, `eciLoadDict` and `eciSetDict` APIs.
+
 Each utterance holds a native dictionary lease and a snapshot-file lease.
 Replacement waits for outstanding utterances to finish, and retired snapshot
 files are deleted only after their last lease closes. Engine teardown is
-serialized behind any pending dictionary load; the ECI handle is never
-destroyed concurrently with its loader. A failed dictionary setup is not
+serialized behind any pending dictionary load; the ECI handles are never
+destroyed concurrently with their loaders. A failed dictionary setup is not
 repeated before every utterance, which would otherwise keep re-hashing and
 reloading a large Root file. No per-word Kotlin dictionary map is built,
 cached, or scanned during speech.
