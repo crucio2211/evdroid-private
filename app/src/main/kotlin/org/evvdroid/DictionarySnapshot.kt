@@ -139,6 +139,7 @@ internal class DictionarySnapshot private constructor(
                     } else {
                         Dictionaries.writeEngineFile(source, language, destination)
                     }
+                    FileOutputStream(destination, true).use { it.fd.sync() }
                     val after = sha256(source)
                     if (before != after) {
                         throw java.io.IOException("dictionary volume $volume changed while its snapshot was being built")
