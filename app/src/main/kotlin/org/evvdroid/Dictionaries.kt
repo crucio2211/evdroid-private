@@ -182,6 +182,26 @@ object Dictionaries {
 		return parsed
 	}
 
+	/** Writes one normalized text dictionary for an immutable snapshot.
+	 *  The engine's native loader receives the complete file; no per-word map
+	 *  is retained or rebuilt by the speech service. */
+	fun writeEngineFile(file: File, language: Int, destination: File) {
+		java.io.BufferedOutputStream(destination.outputStream()).use { out ->
+			forEachEntry(file) { entry ->
+				if (!isUsable(entry.first, entry.second)) return@forEachEntry
+				val keyBytes = EngineText.encode(language, entry.first)
+				val sayBytes = EngineText.encode(language, entry.second)
+				if (keyBytes.isEmpty() || keyBytes.size > 128 || sayBytes.isEmpty() || sayBytes.size > 512) return@forEachEntry
+				val delimiter = { byte: Byte -> byte == 0.toByte() || byte == '\\t'.code.toByte() || byte == '\\r'.code.toByte() || byte == '\\n'.code.toByte() }
+				if (keyBytes.any(delimiter) || sayBytes.any(delimiter)) return@forEachEntry
+				out.write(keyBytes)
+				out.write('\\t'.code)
+				out.write(sayBytes)
+				out.write('\\n'.code)
+			}
+		}
+	}
+
 	/** Writes a normalized, engine-encoded copy for eciLoadDict. The native
 	 *  loader indexes the whole file in one call, avoiding one JNI dictionary
 	 *  update for each entry at speech time. The source hash makes this a reusable
