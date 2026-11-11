@@ -403,6 +403,7 @@ class EvvTtsService : TextToSpeechService() {
 			nativeLease.close()
 			snapshotLease?.close()
 		}
+	}
 
 	/** Hands one piece's samples on as they arrive, and answers whether the
 	 *  caller may go on to the next. The output stage is one chain for the
