@@ -168,7 +168,8 @@ internal class DictionarySnapshot private constructor(
                     } else {
                         if (DictionarySnapshotDirectories.isInUse(finalDir)) {
                             throw java.io.IOException("an active lease holds an invalid dictionary snapshot")
-                        }\n                        if (!finalDir.deleteRecursively()) {
+                        }
+                        if (!finalDir.deleteRecursively()) {
                             throw java.io.IOException("cannot replace an invalid dictionary snapshot")
                         }
                         if (!staging.renameTo(finalDir)) {
