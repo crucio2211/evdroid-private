@@ -173,6 +173,7 @@ class DictionaryTest {
         val engine = EvvEngine.open(LANGUAGE)
         assertNotNull("no engine", engine)
         engine!!.setSampleRate(11025)
+        engine.setAbbreviations(true)
         engine.applyVoice(0)
         return engine
     }
