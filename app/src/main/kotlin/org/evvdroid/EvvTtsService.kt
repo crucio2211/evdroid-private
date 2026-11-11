@@ -37,7 +37,9 @@ class EvvTtsService : TextToSpeechService() {
 
 	private var appliedRevision = -1
 
+	@Volatile
 	private var dictionarySnapshot: DictionarySnapshot? = null
+	private val dictionarySnapshotLock = Any()
 
 	private var loadedRegex: RegexDictionaries.Loaded? = null
 	private var regexEnabled = false
@@ -248,7 +250,7 @@ class EvvTtsService : TextToSpeechService() {
 	 *  Main, Root and Abbreviations together through a fresh native ECI handle.
 	 *  Content hashes detect same-size/same-timestamp replacements. A failed
 	 *  snapshot or native load leaves the previously active set untouched. */
-	private fun loadDictionaries(target: EvvEngine, s: Settings) {
+	private fun loadDictionaries(target: EvvEngine, s: Settings) = synchronized(dictionarySnapshotLock) {
 		val selected = s.dictionaryPaths().filterKeys { volume ->
 			s.useDictionary(volume) && (volume != Eci.DICT_ABBREVIATION || s.abbreviations)
 		}
