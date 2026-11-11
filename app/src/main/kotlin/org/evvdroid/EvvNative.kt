@@ -33,6 +33,14 @@ internal object EvvNative {
 
 	external fun stop(handle: Long)
 
+	/** Atomically replaces all three native dictionary volumes as one set. */
+	external fun replaceDictionaries(handle: Long, paths: Array<String?>): Int
+
+	/** Keeps the active native dictionary set stable for one utterance. */
+	external fun acquireDictionaryLease(handle: Long): Boolean
+
+	external fun releaseDictionaryLease(handle: Long)
+
 	external fun setParam(handle: Long, param: Int, value: Int): Int
 
 	external fun getParam(handle: Long, param: Int): Int
