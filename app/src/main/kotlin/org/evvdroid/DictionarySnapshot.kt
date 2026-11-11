@@ -80,7 +80,7 @@ internal class DictionarySnapshot private constructor(
 
     companion object {
         private const val MANIFEST = "snapshot.manifest"
-        private const val VERSION = "evvdroid-dictionary-snapshot-v2"
+        private const val VERSION = "evvdroid-dictionary-snapshot-v3"
 
         /**
          * Returns [current] unchanged when its content identity still matches.
@@ -90,21 +90,28 @@ internal class DictionarySnapshot private constructor(
         fun prepare(
             root: File,
             language: Int,
-            sources: Map<Int, File>,
+            sources: Map<Int, List<File>>,
             current: DictionarySnapshot?
         ): DictionarySnapshot {
-            val digests = LinkedHashMap<Int, String>()
+            val digests = LinkedHashMap<Int, List<String>>()
             for (volume in Eci.DICT_VOLUMES.sorted()) {
-                val source = sources[volume] ?: continue
-                if (!source.isFile || !source.canRead()) {
-                    throw java.io.IOException("dictionary volume $volume is not readable")
+                val files = sources[volume].orEmpty()
+                if (files.isEmpty()) continue
+                if (files.any { !it.isFile || !it.canRead() }) {
+                    throw java.io.IOException("dictionary volume $volume has an unreadable source")
                 }
-                digests[volume] = sha256(source)
+                val binary = files.filter(Dictionaries::isBinary)
+                if (binary.isNotEmpty() && (binary.size != 1 || files.size != 1)) {
+                    throw java.io.IOException("a saved binary ECI volume cannot be merged with other sources")
+                }
+                digests[volume] = files.map(::sha256)
             }
 
             val identityText = buildString {
                 append(VERSION).append('\n').append(language).append('\n')
-                for ((volume, digest) in digests) append(volume).append(':').append(digest).append('\n')
+                for ((volume, hashes) in digests) {
+                    append(volume).append(':').append(hashes.joinToString(",")).append('\n')
+                }
             }
             val identity = sha256(identityText.toByteArray(Charsets.UTF_8))
             if (current != null && current.language == language && current.identity == identity) {
@@ -133,23 +140,30 @@ internal class DictionarySnapshot private constructor(
             try {
                 val outputDigests = LinkedHashMap<Int, String>()
                 for (volume in Eci.DICT_VOLUMES.sorted()) {
-                    val source = sources[volume] ?: continue
+                    val sourceFiles = sources[volume].orEmpty()
+                    if (sourceFiles.isEmpty()) continue
                     val before = digests[volume] ?: continue
                     val destination = File(staging, volumeFile(volume))
-                    val stagedSource = File(staging, ".source-$volume")
-                    source.copyTo(stagedSource, overwrite = true)
-                    if (sha256(stagedSource) != before) {
-                        throw java.io.IOException("dictionary volume $volume changed while its snapshot was being copied")
-                    }
-                    if (Dictionaries.isBinary(stagedSource)) {
-                        if (!stagedSource.renameTo(destination)) {
-                            throw java.io.IOException("cannot stage binary dictionary volume $volume")
+                    val stagedSources = ArrayList<File>(sourceFiles.size)
+                    try {
+                        for ((index, source) in sourceFiles.withIndex()) {
+                            val staged = File(staging, ".source-$volume-$index")
+                            source.copyTo(staged, overwrite = true)
+                            if (sha256(staged) != before[index]) {
+                                throw java.io.IOException("dictionary volume $volume source changed while its snapshot was being copied")
+                            }
+                            stagedSources.add(staged)
                         }
-                    } else {
-                        Dictionaries.writeEngineFile(stagedSource, language, destination)
-                        stagedSource.delete()
+                        if (stagedSources.size == 1 && Dictionaries.isBinary(stagedSources[0])) {
+                            if (!stagedSources[0].renameTo(destination)) {
+                                throw java.io.IOException("cannot stage binary dictionary volume $volume")
+                            }
+                        } else {
+                            Dictionaries.writeEngineFiles(stagedSources, language, volume, destination)
+                        }
+                    } finally {
+                        stagedSources.forEach { it.delete() }
                     }
-                    FileOutputStream(destination, true).use { it.fd.sync() }
                     if (!destination.setReadOnly()) {
                         throw java.io.IOException("cannot mark dictionary volume $volume immutable")
                     }
@@ -158,9 +172,10 @@ internal class DictionarySnapshot private constructor(
 
                 val manifest = buildString {
                     append(expectedManifest)
-                    for ((volume, digest) in digests) {
-                        append(volume).append(':').append(digest).append(':')
-                            .append(outputDigests[volume]).append('\n')
+                    for ((volume, hashes) in digests) {
+                        val output = File(staging, volumeFile(volume))
+                        append(volume).append(':').append(hashes.joinToString(",")).append(':')
+                            .append(outputDigests[volume]).append(':').append(output.length()).append('\n')
                     }
                 }
                 val manifestFile = File(staging, MANIFEST)
@@ -231,12 +246,18 @@ internal class DictionarySnapshot private constructor(
             if (!manifest.isFile) return false
             val text = runCatching { manifest.readText(Charsets.UTF_8) }.getOrNull() ?: return false
             if (!text.startsWith(header)) return false
-            for ((volume, sourceDigest) in digests) {
-                val line = text.lineSequence().firstOrNull { it.startsWith("$volume:$sourceDigest:") }
-                    ?: return false
-                val expectedOutput = line.substringAfterLast(':')
+            for ((volume, sourceDigests) in digests) {
+                val prefix = "$volume:${sourceDigests.joinToString(",")}:"
+                val line = text.lineSequence().firstOrNull { it.startsWith(prefix) } ?: return false
+                val fields = line.split(':')
+                if (fields.size != 4) return false
+                val expectedOutputSize = fields[3].toLongOrNull() ?: return false
                 val file = File(directory, volumeFile(volume))
-                if (!file.isFile || sha256(file) != expectedOutput) return false
+                // The snapshot lives in private app storage and every published
+                // volume is read-only. Trust its signed-by-content manifest and
+                // size on warm starts instead of reading a large Root file once
+                // more just to hash it before the native engine reads it anyway.
+                if (!file.isFile || file.length() != expectedOutputSize || file.canWrite()) return false
             }
             return true
         }
