@@ -68,11 +68,11 @@ class DictionaryTest {
     fun allThreeVolumesAreLoadedAsOneNativeSet() {
         val e = open()
         val root = File(dir(), "three-volumes")
-        val main = write("DOJ\tthis is the special main pronunciation\n")
-        val rootFile = write("ACLU\tthis is the special root pronunciation\n")
+        val main = write("walk\tthis is the special main pronunciation\n")
+        val rootFile = write("walking\twalk\n")
         val abbr = write("LOL\tthis is the special abbreviation pronunciation\n")
-        val beforeMain = samples(e, "DOJ")
-        val beforeRoot = samples(e, "ACLU")
+        val beforeMain = samples(e, "walk")
+        val beforeRoot = samples(e, "walking")
         val beforeAbbr = samples(e, "LOL")
         val snapshot = DictionarySnapshot.prepare(
             root, LANGUAGE,
@@ -85,8 +85,8 @@ class DictionaryTest {
         )
         try {
             assertTrue("native engine rejected the complete three-volume set", e.replaceDictionaries(snapshot.paths))
-            assertNotEquals("main volume was not applied", beforeMain, samples(e, "DOJ"))
-            assertNotEquals("root volume was not applied", beforeRoot, samples(e, "ACLU"))
+            assertNotEquals("main volume was not applied", beforeMain, samples(e, "walk"))
+            assertNotEquals("root volume was not applied", beforeRoot, samples(e, "walking"))
             assertNotEquals("abbreviation volume was not applied", beforeAbbr, samples(e, "LOL"))
         } finally {
             snapshot.retire()
