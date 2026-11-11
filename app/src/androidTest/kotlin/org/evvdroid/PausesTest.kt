@@ -7,104 +7,71 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Shortening the engine's pauses.
- *
- * The text checks say the annotation lands where it should and nowhere else.
- * The last one says it actually makes the speech shorter, which is the only
- * thing anybody cares about and the only one that would notice the engine
- * quietly ignoring the annotation.
- */
+/** The three Apple-compatible native ECI pause modes. */
 @RunWith(AndroidJUnit4::class)
 class PausesTest {
 
-	@Test
-	fun keepingChangesNothing() {
-		assertEquals(SENTENCE, Pauses.apply(SENTENCE, Pauses.KEEP, true))
-	}
+    @Test
+    fun modeValuesMatchTheNativeEciParameter() {
+        assertEquals(Eci.PAUSES_NONE, Pauses.KEEP)
+        assertEquals(Eci.PAUSES_AT_END, Pauses.END_ONLY)
+        assertEquals(Eci.PAUSES_ALWAYS, Pauses.ALL)
+        assertEquals(1, Eci.PAUSES_DEFAULT)
+    }
 
-	@Test
-	fun everyMarkGetsOne() {
-		assertEquals(
-			"One `p1, two `p1, three `p1.",
-			Pauses.apply("One, two, three.", Pauses.ALL, false)
-		)
-	}
+    @Test
+    fun allThreeModesAreAcceptedByTheEngine() {
+        val engine = EvvEngine.open(ENGLISH)
+        assertNotNull(engine)
+        try {
+            engine!!.setPauseMode(Pauses.KEEP)
+            assertEquals(Pauses.KEEP, engine.pauseMode)
+            engine.setPauseMode(Pauses.END_ONLY)
+            assertEquals(Pauses.END_ONLY, engine.pauseMode)
+            engine.setPauseMode(Pauses.ALL)
+            assertEquals(Pauses.ALL, engine.pauseMode)
+        } finally {
+            engine?.close()
+        }
+    }
 
-	@Test
-	fun aRunOfOneMarkIsOnePause() {
-		assertEquals("Wait `p1... Now", Pauses.apply("Wait... Now", Pauses.ALL, false))
-	}
+    @Test
+    fun nativeAlwaysModeShortensMoreThanEndOnlyAndNever() {
+        val engine = EvvEngine.open(ENGLISH)
+        assertNotNull(engine)
+        try {
+            engine!!.setSampleRate(11025)
+            engine.applyVoice(0)
+            engine.setPauseMode(Pauses.KEEP)
+            val never = say(engine, SENTENCE)
+            engine.setPauseMode(Pauses.END_ONLY)
+            val endOnly = say(engine, SENTENCE)
+            engine.setPauseMode(Pauses.ALL)
+            val always = say(engine, SENTENCE)
+            android.util.Log.e("evvpause", "never=$never endOnly=$endOnly always=$always")
+            assertTrue("no speech was generated", never > 0)
+            assertTrue("end-only mode did not shorten the final pause", endOnly < never)
+            assertTrue("always mode did not shorten punctuation pauses", always < endOnly)
+            assertTrue("too much speech disappeared", always > never / 2)
+        } finally {
+            engine?.close()
+        }
+    }
 
-	@Test
-	fun mixedMarkRunsAreOnePause() {
-		assertEquals("Really `p1?! Yes", Pauses.apply("Really?! Yes", Pauses.ALL, false))
-		assertEquals("Wow `p1! Really `p1?", Pauses.apply("Wow! Really?", Pauses.ALL, false))
-	}
+    private fun say(engine: EvvEngine, text: String): Int {
+        if (!engine.speak(text)) return -1
+        var total = 0
+        val buffer = ByteArray(4096)
+        while (true) {
+            val count = engine.read(buffer)
+            if (count <= 0) break
+            total += count
+        }
+        return total
+    }
 
-	@Test
-	fun closersDoNotHideAMark() {
-		assertEquals("\"Go `p1!\" she said", Pauses.apply("\"Go!\" she said", Pauses.ALL, false))
-	}
-
-	/** The whole reason the rule looks at what is on either side. */
-	@Test
-	fun numbersAreLeftAlone() {
-		assertEquals("It is 3.14 exactly", Pauses.apply("It is 3.14 exactly", Pauses.ALL, false))
-		assertEquals("At 2:30 today", Pauses.apply("At 2:30 today", Pauses.ALL, false))
-		assertEquals("1,024 bytes", Pauses.apply("1,024 bytes", Pauses.ALL, false))
-	}
-
-	@Test
-	fun theEndOnlyGetsOneWhenNothingElseWould() {
-		assertEquals("Navigate up `p100", Pauses.apply("Navigate up", Pauses.END_ONLY, true))
-		assertEquals("Navigate up.", Pauses.apply("Navigate up.", Pauses.END_ONLY, true))
-		assertEquals("Navigate up", Pauses.apply("Navigate up", Pauses.END_ONLY, false))
-	}
-
-	@Test
-	fun shorteningAllStillShortensTheEnd() {
-		assertEquals("Settings `p1, button `p100", Pauses.apply("Settings, button", Pauses.ALL, true))
-	}
-
-	/** Out of the engine rather than out of the rule. */
-	@Test
-	fun theSpeechIsActuallyShorter() {
-		val e = EvvEngine.open(ENGLISH)
-		assertNotNull(e)
-		try {
-			e!!.setSampleRate(11025)
-			e.applyVoice(0)
-			val kept = say(e, Pauses.apply(SENTENCE, Pauses.KEEP, true))
-			val short = say(e, Pauses.apply(SENTENCE, Pauses.ALL, true))
-			android.util.Log.e("evvpause", "kept=$kept shortened=$short (${100 * short / kept}%)")
-			assertTrue("nothing was said", kept > 0)
-			assertTrue(
-				"shortening saved nothing: $kept then $short",
-				short < kept
-			)
-			// Every word is still there, so this is pauses going rather than
-			// speech being cut.
-			assertTrue("far too much went: $kept then $short", short > kept * 0.5)
-		} finally {
-			e?.close()
-		}
-	}
-
-	private fun say(e: EvvEngine, text: String): Int {
-		if (!e.speak(text)) return -1
-		var total = 0
-		val buffer = ByteArray(4096)
-		while (true) {
-			val n = e.read(buffer)
-			if (n <= 0) break
-			total += n
-		}
-		return total
-	}
-
-	private companion object {
-		const val ENGLISH = 0x00010000
-		const val SENTENCE = "One, two, three. Four, five, six. Seven, eight."
-	}
+    private companion object {
+        const val ENGLISH = 0x00010000
+        const val SENTENCE = "One, two, three. Four, five, six. Seven, eight."
+    }
 }
