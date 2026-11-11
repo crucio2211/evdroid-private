@@ -8,6 +8,9 @@ plugins {
 
 val abis = (findProperty("evvdroid.abis") as String? ?: "arm64-v8a,x86_64")
 	.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+require(abis.all { it == "arm64-v8a" || it == "x86_64" }) {
+	"Only 64-bit Android ABIs are supported: arm64-v8a and x86_64"
+}
 val rulesForm = findProperty("evvdroid.rules") as String? ?: "c"
 val languages = findProperty("evvdroid.langs") as String? ?: "lang/enus"
 // CI passes its run number so every build installs as an update over the
