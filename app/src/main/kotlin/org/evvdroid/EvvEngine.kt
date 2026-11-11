@@ -190,42 +190,6 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 
 	/** Hands a tab-separated text file or saved dictionary to the native loader.
 	 *  Nought is success. */
-	fun loadDictionary(volume: Int, path: String): Int = synchronized(dictionaryGuard) {
-		val current = synchronized(guard) { if (closed) 0L else handle }
-		if (current == 0L) -1 else EvvNative.loadDictionary(current, volume, path)
-	}
-
-	/** Builds and publishes a complete Main/Root/Abbreviations set. A failed
-	 *  load leaves the previously active set untouched. */
-	fun replaceDictionaries(paths: Array<String?>): Boolean = synchronized(dictionaryGuard) {
-		val current = synchronized(guard) { if (closed) 0L else handle }
-		current != 0L && EvvNative.replaceDictionaries(current, paths) == 0
-	}
-
-	/** A lease spans one whole utterance. Native replacement waits for every
-	 *  lease to close before swapping the active dictionary handle. */
-	fun acquireDictionaryLease(): AutoCloseable? {
-		val current = synchronized(guard) { if (closed) 0L else handle }
-		if (current == 0L || !EvvNative.acquireDictionaryLease(current)) return null
-		return AutoCloseable { EvvNative.releaseDictionaryLease(current) }
-	}
-
-	fun teachWord(volume: Int, key: String, say: String): Int = synchronized(dictionaryGuard) {
-		val current = synchronized(guard) { if (closed) 0L else handle }
-		if (current == 0L) -1 else EvvNative.teachWord(
-			current, volume, EngineText.encode(language, key), EngineText.encode(language, say)
-		)
-	}
-
-	fun lookUpWord(volume: Int, key: String): String? = synchronized(dictionaryGuard) {
-		val current = synchronized(guard) { if (closed) 0L else handle }
-		if (current == 0L) null else EvvNative.lookUpWord(current, volume, EngineText.encode(language, key))
-	}
-
-	fun forgetDictionaries() = synchronized(dictionaryGuard) {
-		val current = synchronized(guard) { if (closed) 0L else handle }
-		if (current != 0L) EvvNative.forgetDictionaries(current)
-	}
 
 	/** Queues [text] and starts the engine. The samples come out of [read].
 	 *  The rate and pitch asked for go in front of the words rather than into
