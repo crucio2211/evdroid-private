@@ -24,9 +24,9 @@
 	<string name="force_pitch_label">Force pitch</string>
 
 	<string name="pauses_label">Pauses</string>
-	<string name="pauses_keep">Do not shorten</string>
-	<string name="pauses_end">Shorten at end of text</string>
-	<string name="pauses_all">Shorten all pauses</string>
+	<string name="pauses_keep">Never</string>
+	<string name="pauses_end">At end of text only</string>
+	<string name="pauses_all">Always</string>
 	<string name="phrase_prediction_label">Phrase prediction</string>
 	<string name="abbreviations_label">Expand abbreviations</string>
 	<string name="backquote_tags_label">Enable backquote voice tags</string>
