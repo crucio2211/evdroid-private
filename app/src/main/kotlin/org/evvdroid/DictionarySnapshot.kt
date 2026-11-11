@@ -91,7 +91,8 @@ internal class DictionarySnapshot private constructor(
             root: File,
             language: Int,
             sources: Map<Int, File>,
-            current: DictionarySnapshot?
+            current: DictionarySnapshot?,
+            forceRebuild: Boolean = false
         ): DictionarySnapshot {
             val digests = LinkedHashMap<Int, String>()
             for (volume in Eci.DICT_VOLUMES.sorted()) {
@@ -124,7 +125,7 @@ internal class DictionarySnapshot private constructor(
                 .append(language).append('\n')
                 .append(identity).append('\n')
 
-            if (validSnapshot(finalDir, digests, expectedManifest.toString())) {
+            if (!forceRebuild && validSnapshot(finalDir, digests, expectedManifest.toString())) {
                 return makeSnapshot(language, identity, finalDir, digests.keys)
             }
 
@@ -173,7 +174,7 @@ internal class DictionarySnapshot private constructor(
                 }
 
                 if (finalDir.exists()) {
-                    if (validSnapshot(finalDir, digests, expectedManifest.toString())) {
+                    if (!forceRebuild && validSnapshot(finalDir, digests, expectedManifest.toString())) {
                         staging.deleteRecursively()
                     } else {
                         if (DictionarySnapshotDirectories.isInUse(finalDir)) {
