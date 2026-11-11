@@ -35,7 +35,7 @@ redistributing anything.
   breathiness and volume.
 * Speech rate and pitch from the system settings.
 * Pronunciation dictionaries.
-* Android 6 and later. arm64-v8a, armeabi-v7a, x86_64.
+* Android 6 and later. 64-bit arm64-v8a and x86_64 only; no 32-bit ABI is shipped.
 
 `app/src/androidTest` runs on a device. 58 checks.
 
@@ -68,7 +68,7 @@ first ABI pays for it.
 
 | property | default | effect |
 | --- | --- | --- |
-| `evvdroid.abis` | `arm64-v8a,armeabi-v7a,x86_64` | which ABIs to build |
+| `evvdroid.abis` | `arm64-v8a,x86_64` | which 64-bit ABIs to build |
 | `evvdroid.rules` | `c` | `bytecode` builds in 30s and runs at under half the speed |
 | `evvdroid.langs` | `lang/enus` | language modules to link in |
 | `evvdroid.abiSplits` | `false` | one APK per ABI |
@@ -142,10 +142,11 @@ but it takes an annotation: `` `p `` and a number is a pause of that many
 milliseconds, and one placed in front of a punctuation mark replaces the pause
 that mark would have had.
 
-"Pauses" offers three choices. Do not shorten leaves the engine alone. Shorten
-at end of text trims only the gap after the last thing said. Shorten all pauses
-trims punctuation as well, which is the default. On a sentence with commas that
-took 65 percent of the original time.
+"Pauses" follows the engine's native pause-mode parameter, with the same three
+choices used by the Eloquence 64 / IBMTTS drivers: Never (0), At end of text
+only (1), and Always (2). The default is At end of text only. The native engine
+applies the selected mode; the Android service does not inject a second layer
+of pause annotations.
 
 The rule is davidacm's, from the
 [NVDA IBMTTS driver](https://github.com/davidacm/NVDA-IBMTTS-Driver), which
@@ -298,7 +299,7 @@ speaking before, about 1000 ms after.
 
 ## Wear OS
 
-Runs on a watch. Tested on a Pixel Watch 4, which is armeabi-v7a.
+Runs on a watch. The published APK is 64-bit only and does not target 32-bit watches.
 
 A Pixel Watch has no USB, so adb is wireless. On the watch: Settings, System,
 About, Versions, tap Build number seven times. Then Developer options, ADB
