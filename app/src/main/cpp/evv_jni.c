@@ -52,6 +52,8 @@ typedef struct {
 	int             pending;
 	int             busy;
 	int             quitting;
+	int             dictionary_leases;
+	int             dictionary_replacing;
 	unsigned char*  text;
 	ECIDictHand     dict;
 	short           frame[FRAME_SAMPLES];
@@ -267,6 +269,10 @@ JNIEXPORT void JNICALL Java_org_evvdroid_EvvNative_destroy(JNIEnv* env, jclass c
 		pthread_join(in->worker, NULL);
 		in->running = 0;
 	}
+	pthread_mutex_lock(&in->lock);
+	while (in->dictionary_leases > 0)
+		pthread_cond_wait(&in->work, &in->lock);
+	pthread_mutex_unlock(&in->lock);
 	if (in->dict != NULL_DICT_HAND)
 		eciDeleteDict(in->eci, in->dict);
 	eciDelete(in->eci);
@@ -299,8 +305,14 @@ JNIEXPORT jboolean JNICALL Java_org_evvdroid_EvvNative_speak(JNIEnv* env, jclass
 		return JNI_FALSE;
 	(*env)->GetByteArrayRegion(env, text, 0, n, (jbyte*)buf);
 	buf[n] = 0;
-	wait_until_idle(in);
 	pthread_mutex_lock(&in->lock);
+	while ((in->busy || in->dictionary_replacing) && !in->quitting)
+		pthread_cond_wait(&in->work, &in->lock);
+	if (in->quitting) {
+		pthread_mutex_unlock(&in->lock);
+		free(buf);
+		return JNI_FALSE;
+	}
 	in->aborted = 0;
 	in->started = 0;
 	in->done = 0;
@@ -388,6 +400,131 @@ JNIEXPORT void JNICALL Java_org_evvdroid_EvvNative_stop(JNIEnv* env, jclass cls,
 	 * safe on every path here. Buffers still in flight answer
 	 * eciDataAbort off the flag above and never reach the ring. */
 	eciStop(in->eci);
+}
+
+/* An utterance holds a lease for the whole time its words may be read. A
+   replacement marks itself in progress before building a new set, so no new
+   lease or utterance can enter until publication has finished. */
+JNIEXPORT jboolean JNICALL Java_org_evvdroid_EvvNative_acquireDictionaryLease(
+    JNIEnv* env, jclass cls, jlong handle) {
+	instance* in = unwrap(handle);
+	(void)env;
+	(void)cls;
+	if (in == NULL)
+		return JNI_FALSE;
+	pthread_mutex_lock(&in->lock);
+	while (in->dictionary_replacing && !in->quitting)
+		pthread_cond_wait(&in->work, &in->lock);
+	if (in->quitting) {
+		pthread_mutex_unlock(&in->lock);
+		return JNI_FALSE;
+	}
+	in->dictionary_leases++;
+	pthread_mutex_unlock(&in->lock);
+	return JNI_TRUE;
+}
+
+JNIEXPORT void JNICALL Java_org_evvdroid_EvvNative_releaseDictionaryLease(
+    JNIEnv* env, jclass cls, jlong handle) {
+	instance* in = unwrap(handle);
+	(void)env;
+	(void)cls;
+	if (in == NULL)
+		return;
+	pthread_mutex_lock(&in->lock);
+	if (in->dictionary_leases > 0)
+		in->dictionary_leases--;
+	pthread_cond_broadcast(&in->work);
+	pthread_mutex_unlock(&in->lock);
+}
+
+/* Build all three volumes in a detached ECI dictionary handle. Only after
+   every selected file loads do we activate the candidate and retire the old
+   handle. A bad volume therefore cannot leave a half-updated dictionary set. */
+JNIEXPORT jint JNICALL Java_org_evvdroid_EvvNative_replaceDictionaries(
+    JNIEnv* env, jclass cls, jlong handle, jobjectArray paths) {
+	instance* in = unwrap(handle);
+	char* names[3] = { NULL, NULL, NULL };
+	ECIDictHand candidate = NULL_DICT_HAND;
+	ECIDictHand previous;
+	int any = 0;
+	int answer = -1;
+	jsize count;
+	(void)cls;
+	if (in == NULL || paths == NULL)
+		return -1;
+	count = (*env)->GetArrayLength(env, paths);
+	if (count != 3)
+		return -1;
+	for (jsize i = 0; i < count; i++) {
+		jstring path = (jstring)(*env)->GetObjectArrayElement(env, paths, i);
+		if (path != NULL) {
+			const char* text = (*env)->GetStringUTFChars(env, path, NULL);
+			if (text == NULL) {
+				(*env)->DeleteLocalRef(env, path);
+				goto cleanup;
+			}
+			names[i] = strdup(text);
+			(*env)->ReleaseStringUTFChars(env, path, text);
+			(*env)->DeleteLocalRef(env, path);
+			if (names[i] == NULL)
+				goto cleanup;
+			any = 1;
+		} else {
+			(*env)->DeleteLocalRef(env, path);
+		}
+	}
+
+	pthread_mutex_lock(&in->lock);
+	while ((in->busy || in->dictionary_leases > 0 || in->dictionary_replacing)
+			&& !in->quitting)
+		pthread_cond_wait(&in->work, &in->lock);
+	if (in->quitting) {
+		pthread_mutex_unlock(&in->lock);
+		goto cleanup;
+	}
+	in->dictionary_replacing = 1;
+	pthread_mutex_unlock(&in->lock);
+
+	if (any) {
+		candidate = eciNewDict(in->eci);
+		if (candidate == NULL_DICT_HAND) {
+			LOGE("the engine would not create a replacement dictionary set");
+			goto publish_done;
+		}
+		for (int volume = 0; volume < 3; volume++) {
+			if (names[volume] == NULL)
+				continue;
+			int rc = eciLoadDict(in->eci, candidate, volume, names[volume]);
+			if (rc != 0) {
+				LOGE("dictionary volume %d refused %s: %d", volume, names[volume], rc);
+				goto publish_done;
+			}
+		}
+	}
+	if (eciSetDict(in->eci, candidate) != 0) {
+		LOGE("the engine would not activate the replacement dictionary set");
+		goto publish_done;
+	}
+	previous = in->dict;
+	in->dict = candidate;
+	candidate = NULL_DICT_HAND;
+	if (previous != NULL_DICT_HAND)
+		eciDeleteDict(in->eci, previous);
+	answer = 0;
+
+publish_done:
+	if (candidate != NULL_DICT_HAND)
+		eciDeleteDict(in->eci, candidate);
+	pthread_mutex_lock(&in->lock);
+	in->dictionary_replacing = 0;
+	pthread_cond_broadcast(&in->work);
+	pthread_mutex_unlock(&in->lock);
+
+cleanup:
+	for (int i = 0; i < 3; i++)
+		free(names[i]);
+	return answer;
 }
 
 /* The instance's own dictionary set, made the first time one is wanted. An
