@@ -183,10 +183,11 @@ class DictionaryTest {
     private fun open(): EvvEngine {
         val engine = EvvEngine.open(LANGUAGE)
         assertNotNull("no engine", engine)
-        engine!!.setSampleRate(11025)
-        engine.setAbbreviations(true)
-        engine.applyVoice(0)
-        return engine
+        val target = engine!!
+        target.setSampleRate(11025)
+        target.setAbbreviations(true)
+        target.applyVoice(0)
+        return target
     }
 
     private fun samples(engine: EvvEngine, text: String): Int {
