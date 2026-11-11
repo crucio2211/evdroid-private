@@ -37,7 +37,7 @@ redistributing anything.
 * Pronunciation dictionaries.
 * Android 6 and later. 64-bit arm64-v8a and x86_64 only; no 32-bit ABI is shipped.
 
-`app/src/androidTest` runs on a device. 58 checks.
+`app/src/androidTest` contains the native dictionary and pause-mode regression checks; run them on a device or emulator.
 
 ## Turning it on
 
