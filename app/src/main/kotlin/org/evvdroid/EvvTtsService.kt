@@ -21,6 +21,8 @@ class EvvTtsService : TextToSpeechService() {
 
 	@Volatile
 	private var engine: EvvEngine? = null
+	@Volatile
+	private var selectedEngineLanguage: Int? = null
 	// Match Apple's per-language native engine cache. Each OpenEVV handle
 	// owns its dictionary set, so retain it while another language is active.
 	private val engines = java.util.concurrent.ConcurrentHashMap<Int, EvvEngine>()
@@ -71,6 +73,7 @@ class EvvTtsService : TextToSpeechService() {
 				?: EvvEngine.available.firstOrNull()
 		}
 		if (requested != null) {
+			selectedEngineLanguage = requested
 			Log.i(TAG, "prewarming the likely screen-reader language 0x%08x".format(requested))
 			requestEngine(requested)
 		}
@@ -138,12 +141,14 @@ class EvvTtsService : TextToSpeechService() {
 
 	override fun onLoadLanguage(lang: String?, country: String?, variant: String?): Int {
 		val found = matchLanguage(lang, country) ?: return TextToSpeech.LANG_NOT_SUPPORTED
+		selectedEngineLanguage = found.first
 		requestEngine(found.first)
 		return found.second
 	}
 
 	override fun onGetLanguage(): Array<String> {
-		val language = engine?.language ?: EvvEngine.available.firstOrNull() ?: return arrayOf("eng", "USA", "")
+		val language = selectedEngineLanguage ?: engine?.language ?: EvvEngine.available.firstOrNull()
+			?: return arrayOf("eng", "USA", "")
 		val loc = Eci.localeOf(language) ?: return arrayOf("eng", "USA", "")
 		return arrayOf(loc.first, loc.second, loc.third)
 	}
@@ -191,6 +196,7 @@ class EvvTtsService : TextToSpeechService() {
 
 	override fun onLoadVoice(name: String?): Int {
 		val found = findVoice(name) ?: return TextToSpeech.ERROR
+		selectedEngineLanguage = found.first
 		requestEngine(found.first)
 		return TextToSpeech.SUCCESS
 	}
@@ -384,6 +390,7 @@ class EvvTtsService : TextToSpeechService() {
 		// unless a language is forced, which overrules every caller.
 		val wanted = findVoice(request.voiceName)
 		val language = resolveLanguage(s, wanted?.first ?: found.first)
+		selectedEngineLanguage = language
 		val target = ensureEngine(language)
 		if (target == null) {
 			callback.error(TextToSpeech.ERROR_SERVICE)
