@@ -8,91 +8,49 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Shortening the engine's pauses.
- *
- * The text checks say the annotation lands where it should and nowhere else.
- * The last one says it actually makes the speech shorter, which is the only
- * thing anybody cares about and the only one that would notice the engine
- * quietly ignoring the annotation.
+ * The three native ECI pause policies, matching Apple's mode mapping:
+ * 0 keeps pauses, 1 shortens the utterance-end pause, 2 also shortens
+ * pauses at punctuation. These tests exercise the engine, not text rewriting.
  */
 @RunWith(AndroidJUnit4::class)
 class PausesTest {
 
 	@Test
-	fun keepingChangesNothing() {
-		assertEquals(SENTENCE, Pauses.apply(SENTENCE, Pauses.KEEP, true))
+	fun modesUseTheNativeEciValues() {
+		assertEquals(0, Pauses.KEEP)
+		assertEquals(1, Pauses.END_ONLY)
+		assertEquals(2, Pauses.ALL)
 	}
 
 	@Test
-	fun everyMarkGetsOne() {
-		assertEquals(
-			"One `p1, two `p1, three `p1.",
-			Pauses.apply("One, two, three.", Pauses.ALL, false)
-		)
-	}
-
-	@Test
-	fun aRunOfOneMarkIsOnePause() {
-		assertEquals("Wait `p1... Now", Pauses.apply("Wait... Now", Pauses.ALL, false))
-	}
-
-	@Test
-	fun mixedMarkRunsAreOnePause() {
-		assertEquals("Really `p1?! Yes", Pauses.apply("Really?! Yes", Pauses.ALL, false))
-		assertEquals("Wow `p1! Really `p1?", Pauses.apply("Wow! Really?", Pauses.ALL, false))
-	}
-
-	@Test
-	fun closersDoNotHideAMark() {
-		assertEquals("\"Go `p1!\" she said", Pauses.apply("\"Go!\" she said", Pauses.ALL, false))
-	}
-
-	/** The whole reason the rule looks at what is on either side. */
-	@Test
-	fun numbersAreLeftAlone() {
-		assertEquals("It is 3.14 exactly", Pauses.apply("It is 3.14 exactly", Pauses.ALL, false))
-		assertEquals("At 2:30 today", Pauses.apply("At 2:30 today", Pauses.ALL, false))
-		assertEquals("1,024 bytes", Pauses.apply("1,024 bytes", Pauses.ALL, false))
-	}
-
-	@Test
-	fun theEndOnlyGetsOneWhenNothingElseWould() {
-		assertEquals("Navigate up `p100", Pauses.apply("Navigate up", Pauses.END_ONLY, true))
-		assertEquals("Navigate up.", Pauses.apply("Navigate up.", Pauses.END_ONLY, true))
-		assertEquals("Navigate up", Pauses.apply("Navigate up", Pauses.END_ONLY, false))
-	}
-
-	@Test
-	fun shorteningAllStillShortensTheEnd() {
-		assertEquals("Settings `p1, button `p100", Pauses.apply("Settings, button", Pauses.ALL, true))
-	}
-
-	/** Out of the engine rather than out of the rule. */
-	@Test
-	fun theSpeechIsActuallyShorter() {
+	fun nativeModesShortenOnlyTheSelectedPauseClasses() {
 		val e = EvvEngine.open(ENGLISH)
 		assertNotNull(e)
 		try {
 			e!!.setSampleRate(11025)
 			e.applyVoice(0)
-			val kept = say(e, Pauses.apply(SENTENCE, Pauses.KEEP, true))
-			val short = say(e, Pauses.apply(SENTENCE, Pauses.ALL, true))
-			android.util.Log.e("evvpause", "kept=$kept shortened=$short (${100 * short / kept}%)")
-			assertTrue("nothing was said", kept > 0)
-			assertTrue(
-				"shortening saved nothing: $kept then $short",
-				short < kept
+
+			val kept = say(e, Pauses.KEEP)
+			val endOnly = say(e, Pauses.END_ONLY)
+			val all = say(e, Pauses.ALL)
+
+			android.util.Log.i(
+				"evvpause",
+				"native samples: keep=$kept, end-only=$endOnly, all=$all"
 			)
-			// Every word is still there, so this is pauses going rather than
-			// speech being cut.
-			assertTrue("far too much went: $kept then $short", short > kept * 0.5)
+			assertTrue("keep mode produced no audio", kept > 0)
+			assertTrue("end-only mode did not shorten the final pause: $kept -> $endOnly", endOnly in 1 until kept)
+			assertTrue("all mode did not shorten punctuation pauses as well: $endOnly -> $all", all in 1 until endOnly)
+			// Audio must remain substantial; this is pause removal, not dropped speech.
+			assertTrue("native pause mode removed too much audio: $kept -> $all", all > kept / 2)
 		} finally {
 			e?.close()
 		}
 	}
 
-	private fun say(e: EvvEngine, text: String): Int {
-		if (!e.speak(text)) return -1
+	private fun say(e: EvvEngine, mode: Int): Int {
+		e.setPauseMode(mode)
+		if (!e.speak(SENTENCE)) return -1
 		var total = 0
 		val buffer = ByteArray(4096)
 		while (true) {
@@ -105,6 +63,6 @@ class PausesTest {
 
 	private companion object {
 		const val ENGLISH = 0x00010000
-		const val SENTENCE = "One, two, three. Four, five, six. Seven, eight."
+		const val SENTENCE = "One, two, three. Four, five, six. Seven, eight"
 	}
 }
