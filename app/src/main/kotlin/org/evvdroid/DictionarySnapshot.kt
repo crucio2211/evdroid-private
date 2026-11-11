@@ -136,16 +136,20 @@ internal class DictionarySnapshot private constructor(
                     val source = sources[volume] ?: continue
                     val before = digests[volume] ?: continue
                     val destination = File(staging, volumeFile(volume))
-                    if (Dictionaries.isBinary(source)) {
-                        source.copyTo(destination, overwrite = true)
+                    val stagedSource = File(staging, ".source-$volume")
+                    source.copyTo(stagedSource, overwrite = true)
+                    if (sha256(stagedSource) != before) {
+                        throw java.io.IOException("dictionary volume $volume changed while its snapshot was being copied")
+                    }
+                    if (Dictionaries.isBinary(stagedSource)) {
+                        if (!stagedSource.renameTo(destination)) {
+                            throw java.io.IOException("cannot stage binary dictionary volume $volume")
+                        }
                     } else {
-                        Dictionaries.writeEngineFile(source, language, destination)
+                        Dictionaries.writeEngineFile(stagedSource, language, destination)
+                        stagedSource.delete()
                     }
                     FileOutputStream(destination, true).use { it.fd.sync() }
-                    val after = sha256(source)
-                    if (before != after) {
-                        throw java.io.IOException("dictionary volume $volume changed while its snapshot was being built")
-                    }
                     outputDigests[volume] = sha256(destination)
                 }
 
