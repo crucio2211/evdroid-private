@@ -57,8 +57,8 @@ Studio. No Gradle install, the wrapper fetches its own.
 
 ```
 export ANDROID_NDK_HOME=/path/to/ndk
-./gradlew installDebug
-./gradlew connectedDebugAndroidTest
+./gradlew installDebug -Pevvdroid.abis=arm64-v8a
+./gradlew connectedDebugAndroidTest -Pevvdroid.abis=arm64-v8a
 ```
 
 First build is about four minutes per ABI. Most of that is the engine: every
