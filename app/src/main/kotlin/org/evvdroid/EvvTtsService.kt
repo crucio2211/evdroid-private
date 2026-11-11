@@ -257,12 +257,32 @@ class EvvTtsService : TextToSpeechService() {
 		if (held != null) {
 			return held
 		}
+		val started = android.os.SystemClock.elapsedRealtime()
+		Log.i(TAG, "opening native engine for 0x%08x".format(language))
+		val nativeStarted = android.os.SystemClock.elapsedRealtime()
 		val made = EvvEngine.open(language)
-		if (made != null) {
-			engines[language] = made
-			applySettings(made)
+		val nativeElapsed = android.os.SystemClock.elapsedRealtime() - nativeStarted
+		if (made == null) {
+			Log.e(TAG, "native engine creation failed for 0x%08x after ${nativeElapsed} ms".format(language))
+			return null
 		}
-		return made
+		try {
+			Log.i(TAG, "native engine created for 0x%08x in ${nativeElapsed} ms".format(language))
+			val settingsStarted = android.os.SystemClock.elapsedRealtime()
+			applySettings(made)
+			val settingsElapsed = android.os.SystemClock.elapsedRealtime() - settingsStarted
+			// Do not publish a half-initialized engine. requestEngine() treats
+			// every entry in engines as ready and otherwise may let the first
+			// synthesis callback race dictionary preparation/native publication.
+			engines[language] = made
+			val totalElapsed = android.os.SystemClock.elapsedRealtime() - started
+			Log.i(TAG, "engine ready for 0x%08x: native=${nativeElapsed} ms, settings=${settingsElapsed} ms, total=${totalElapsed} ms".format(language))
+			return made
+		} catch (failed: Exception) {
+			runCatching { made.close() }
+			Log.e(TAG, "engine initialization failed for 0x%08x".format(language), failed)
+			throw failed
+		}
 	}
 
 	private fun applySettings(target: EvvEngine) {
