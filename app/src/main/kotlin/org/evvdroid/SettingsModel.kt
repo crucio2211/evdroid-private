@@ -251,7 +251,6 @@ class SettingsModel(context: Context) {
 				val name = nameOf(uri) ?: pending.name
 				val source = app.contentResolver.openInputStream(uri)
 					?: throw java.io.IOException("the selected dictionary could not be opened")
-				Dictionaries.invalidate(pending)
 				source.use { input -> pending.outputStream().use { output -> input.copyTo(output) } }
 				val binary = Dictionaries.isBinary(pending)
 				val routed = Dictionaries.volumeForFile(name) ?: volume
@@ -310,8 +309,6 @@ class SettingsModel(context: Context) {
 				if (!pending.exists()) throw java.io.IOException("the pending dictionary is missing")
 				pending.copyTo(file, overwrite = true)
 				pending.delete()
-				into.listFiles()?.filter { it.name.startsWith(".evvdroid-volume-$slot-") }?.forEach { it.delete() }
-				Dictionaries.invalidate(file)
 			}
 			mainHandler.post {
 				dictionaryImporting = false
@@ -346,9 +343,6 @@ class SettingsModel(context: Context) {
 			}
 			settings.setDictionary(volume, null, null)
 		}
-		java.io.File(app.filesDir, "dictionaries").listFiles()
-			?.filter { it.name.startsWith(".evvdroid-") }
-			?.forEach { it.delete() }
 		dictionaries = emptyMap()
 		settings.regexDictionaryPath()?.let { java.io.File(it).delete() }
 		settings.setRegexDictionary(null, null)
