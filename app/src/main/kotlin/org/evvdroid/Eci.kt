@@ -1,7 +1,7 @@
 package org.evvdroid
 
 /** The numbers the published ECI interface takes, and the few tables that turn
- * them into something Android understands. */
+ *  them into something Android understands. */
 object Eci {
 
 	const val PARAM_SYNTH_MODE = 0
@@ -131,8 +131,8 @@ object Eci {
 	const val JAPANESE = 0x00080000
 	const val POLISH = 0x00110000
 
-	/** A language is a family in the top half, the code set in the third byte
-	 *  and the dialect in the bottom one. */
+	/** A language word is the family in the top half, the code set in the third
+	 *  byte and the dialect in the bottom one. */
 	fun family(language: Int): Int = language and 0xFFFF0000.toInt()
 
 	fun baseLanguage(language: Int): Int = language and UNICODE_CODE_SET.inv()

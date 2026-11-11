@@ -186,11 +186,20 @@ object Dictionaries {
 	 *  loader indexes the whole file in one call, avoiding one JNI dictionary
 	 *  update for each entry at speech time. The source hash makes this a reusable
 	 *  cache; imports with the same path but new contents get a fresh file. */
-	fun prepareForEngine(file: File, language: Int): File = synchronized(this) {
+	fun prepareForEngine(file: File, language: Int): File {
+		val hasher = java.security.MessageDigest.getInstance("SHA-256")
+		file.inputStream().buffered().use { input ->
+			val buffer = ByteArray(16 * 1024)
+			while (true) {
+				val read = input.read(buffer)
+				if (read < 0) break
+				hasher.update(buffer, 0, read)
+			}
+		}
+		val digest = hasher.digest().take(12).joinToString("") { "%02x".format(it.toInt() and 0xff) }
 		val parent = file.parentFile ?: throw java.io.IOException("dictionary has no parent directory")
 		val sourceTag = file.nameWithoutExtension.replace(Regex("[^A-Za-z0-9_-]"), "_").take(24)
-		val stamp = "${file.length()}-${file.lastModified()}"
-		val cached = File(parent, ".evvdroid-$sourceTag-${language.toString(16)}-$stamp.dic")
+		val cached = File(parent, ".evvdroid-$sourceTag-${language.toString(16)}-$digest.dic")
 		if (cached.exists()) return cached
 
 		val temporary = File.createTempFile("evv-dict-", ".tmp", parent)
@@ -213,17 +222,11 @@ object Dictionaries {
 				if (!cached.exists()) temporary.copyTo(cached)
 				temporary.delete()
 			}
-			// Clean up older cache versions for this file
-			parent.listFiles()?.forEach { old ->
-				if (old.name.startsWith(".evvdroid-$sourceTag-${language.toString(16)}-") && old.name != cached.name) {
-					old.delete()
-				}
-			}
 		} catch (failed: Exception) {
 			temporary.delete()
 			throw failed
 		}
-		cached
+		return cached
 	}
 
 	/** One key and what to say, or null when it is no entry.
