@@ -33,7 +33,7 @@ class DictionaryTest {
         val firstPath = File(first.paths[Eci.DICT_MAIN]!!)
 
         source.writeText("DOJ\tbee oh jay\n", Charsets.ISO_8859_1)
-        assertEquals("replacement fixture must keep its byte length", 14L, source.length())
+        assertEquals("replacement fixture must keep its byte length", 15L, source.length())
         assertTrue(source.setLastModified(fixedTime))
         val second = DictionarySnapshot.prepare(root, LANGUAGE, mapOf(Eci.DICT_MAIN to source), first)
         try {
@@ -71,6 +71,9 @@ class DictionaryTest {
         val main = write("DOJ\tdee oh jay\n")
         val rootFile = write("ACLU\tay see ell you\n")
         val abbr = write("LOL\tlaughing out loud\n")
+        val beforeMain = samples(e, "DOJ")
+        val beforeRoot = samples(e, "ACLU")
+        val beforeAbbr = samples(e, "LOL")
         val snapshot = DictionarySnapshot.prepare(
             root, LANGUAGE,
             mapOf(
@@ -82,9 +85,9 @@ class DictionaryTest {
         )
         try {
             assertTrue("native engine rejected the complete three-volume set", e.replaceDictionaries(snapshot.paths))
-            assertTrue("main volume did not change speech", samples(e, "DOJ") > 0)
-            assertTrue("root volume did not change speech", samples(e, "ACLU") > 0)
-            assertTrue("abbreviation volume did not change speech", samples(e, "LOL") > 0)
+            assertNotEquals("main volume was not applied", beforeMain, samples(e, "DOJ"))
+            assertNotEquals("root volume was not applied", beforeRoot, samples(e, "ACLU"))
+            assertNotEquals("abbreviation volume was not applied", beforeAbbr, samples(e, "LOL"))
         } finally {
             snapshot.retire()
             e.close()
