@@ -26,9 +26,9 @@ concurrency:
 
 env:
   NDK_VERSION: 26.1.10909125
-  # arm64 for phones, 32-bit ARM for older phones and watches. x86_64 is
-  # emulator-only and nobody installs there, so it does not ship.
-  EVVDROID_ABIS: arm64-v8a,armeabi-v7a
+  # This verification build intentionally targets 64-bit ARM phones only.
+  # Do not package 32-bit ARM or x86 libraries in this APK.
+  EVVDROID_ABIS: arm64-v8a
   # Every language the vendored engine ships. Korean and Chinese are still
   # absent: the SDK this engine was transcribed from never had them.
   # Japanese travels as Shift-JIS through a path of its own; Polish keeps
@@ -82,6 +82,17 @@ jobs:
         # would read as a downgrade next to an installed build and Android
         # would refuse it with "app not installed".
         run: ./gradlew assembleRelease assembleDebugAndroidTest -Pevvdroid.abis="$EVVDROID_ABIS" -Pevvdroid.minify=true -Pevvdroid.legacyPackaging=true -Pevvdroid.rules=bytecode -Pevvdroid.langs="$EVVDROID_LANGS" -Pevvdroid.versionCode="$((1000000 + GITHUB_RUN_NUMBER))" -Pevvdroid.keystore="$EVVDROID_KEYSTORE" -Pevvdroid.storePass="${{ secrets.EVVDROID_STORE_PASS }}" -Pevvdroid.keyPass="${{ secrets.EVVDROID_KEY_PASS }}" --stacktrace
+
+      - name: Verify APK contains ARM64 native libraries only
+        run: |
+          apk=$(find app/build/outputs/apk/release -maxdepth 1 -name '*.apk' -print -quit)
+          test -n "$apk"
+          abis=$(unzip -Z1 "$apk" | awk -F/ '$1 == "lib" {print $2}' | sort -u | paste -sd, -)
+          echo "APK native ABIs: $abis"
+          if [ "$abis" != "arm64-v8a" ]; then
+            echo "::error::Expected only arm64-v8a native libraries, found: $abis"
+            exit 1
+          fi
 
       - name: Upload the APK
         uses: actions/upload-artifact@v4
