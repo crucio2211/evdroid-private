@@ -381,6 +381,8 @@ JNIEXPORT void JNICALL Java_org_evvdroid_EvvNative_stop(JNIEnv* env, jclass cls,
 	if (in == NULL)
 		return;
 	pthread_mutex_lock(&in->lock);
+	while (in->dictionary_replacing && !in->quitting)
+		pthread_cond_wait(&in->work, &in->lock);
 	in->aborted = 1;
 	in->head = in->tail = in->count = 0;
 	pthread_cond_broadcast(&in->room);
