@@ -97,7 +97,7 @@ class DictionaryTest {
     @Test
     fun failedVolumeKeepsThePreviouslyPublishedSet() {
         val e = open()
-        val valid = write("DOJ\tdee oh jay\n")
+        val valid = write("DOJ\tthis is the stable active pronunciation\n")
         val snapshot = DictionarySnapshot.prepare(
             File(dir(), "atomic-old"),
             LANGUAGE,
@@ -105,8 +105,10 @@ class DictionaryTest {
             null
         )
         try {
+            val original = samples(e, "DOJ")
             assertTrue(e.replaceDictionaries(snapshot.paths))
             val before = samples(e, "DOJ")
+            assertNotEquals("initial dictionary set was not applied", original, before)
             val bad = arrayOf(valid.absolutePath, File(dir(), "missing-root.dic").absolutePath, null)
             assertFalse("invalid root volume was published", e.replaceDictionaries(bad))
             assertEquals("failed replacement disturbed the active main volume", before, samples(e, "DOJ"))
