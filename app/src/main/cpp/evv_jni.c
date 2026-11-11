@@ -157,15 +157,6 @@ static jboolean finished(instance* in) {
 	return JNI_FALSE;
 }
 
-/* Waits for the worker to be out of the engine, which is what makes it safe to
-   put the next utterance in. The lock must not be held. */
-static void wait_until_idle(instance* in) {
-	pthread_mutex_lock(&in->lock);
-	while (in->busy)
-		pthread_cond_wait(&in->work, &in->lock);
-	pthread_mutex_unlock(&in->lock);
-}
-
 /* Runs on the engine's synthesis thread. It may not call back into the same
    instance, and it does not: everything it touches is ours. */
 static int ECICALL on_message(ECIHand handle, ECIMessage message, int param, void* data) {
