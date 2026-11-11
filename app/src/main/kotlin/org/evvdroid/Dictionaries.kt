@@ -31,8 +31,8 @@ object Dictionaries {
 
 	/** Whether [file] looks like the engine's saved binary form rather than
 	 *  text. Its bytes are never taught as words, which can fault the engine
-	 *  into silence: a file with nought bytes in its head goes to the
-	 *  engine's own loader instead, through [loadBinary]. */
+	 *  into silence: a file with nought bytes in its head is never parsed as text and
+	 *  is passed to the native loader unchanged. */
 	fun isBinary(file: File): Boolean = try {
 		file.inputStream().use { source ->
 			val head = ByteArray(8192)
@@ -43,7 +43,7 @@ object Dictionaries {
 		false
 	}
 
-	/** Whether [key] to [say] is safe to teach: both present, modestly
+	/** Whether [key] to [say] is safe to encode: both present, modestly
 	 *  sized, and free of control characters that come out of binary reads
 	 *  and malformed lines. Anything else is skipped and counted refused
 	 *  rather than handed to the engine.
@@ -89,12 +89,12 @@ object Dictionaries {
 				val keyBytes = EngineText.encode(language, entry.first)
 				val sayBytes = EngineText.encode(language, entry.second)
 				if (keyBytes.isEmpty() || keyBytes.size > 128 || sayBytes.isEmpty() || sayBytes.size > 512) return@forEachEntry
-				val delimiter = { byte: Byte -> byte == 0.toByte() || byte == '\\t'.code.toByte() || byte == '\\r'.code.toByte() || byte == '\\n'.code.toByte() }
+				val delimiter = { byte: Byte -> byte == 0.toByte() || byte == '\t'.code.toByte() || byte == '\r'.code.toByte() || byte == '\n'.code.toByte() }
 				if (keyBytes.any(delimiter) || sayBytes.any(delimiter)) return@forEachEntry
 				out.write(keyBytes)
-				out.write('\\t'.code)
+				out.write('\t'.code)
 				out.write(sayBytes)
-				out.write('\\n'.code)
+				out.write('\n'.code)
 			}
 		}
 	}
