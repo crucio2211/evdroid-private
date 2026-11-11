@@ -322,6 +322,7 @@ class SettingsModel(context: Context) {
 				settings.setDictionaryLanguage(slot, language)
 				dictionaries = dictionaries + (slot to said)
 				chooseUseDictionary(slot, true)
+				settings.invalidateRevision()
 				pendingDictSlot = null
 				pendingDictBinary = false
 				pendingDictEntries = 0
@@ -346,6 +347,7 @@ class SettingsModel(context: Context) {
 		settings.regexDictionaryPath()?.let { java.io.File(it).delete() }
 		settings.setRegexDictionary(null, null)
 		chooseRegexDictionaryEnabled(false)
+		settings.invalidateRevision()
 		regexDictionary = app.getString(R.string.dictionary_none)
 		regexEntries = emptyList()
 	}
@@ -375,6 +377,7 @@ class SettingsModel(context: Context) {
 		if (patterns == 0) {
 			file.delete()
 			settings.setRegexDictionary(null, null)
+			settings.invalidateRevision()
 			regexDictionary = app.getString(R.string.dictionary_none)
 			regexEntries = emptyList()
 			return
@@ -383,6 +386,7 @@ class SettingsModel(context: Context) {
 		settings.setRegexDictionary(file.absolutePath, said)
 		regexDictionary = said
 		chooseRegexDictionaryEnabled(true)
+		settings.invalidateRevision()
 		refreshRegexEntries()
 	}
 
@@ -408,6 +412,7 @@ class SettingsModel(context: Context) {
 		if (!RegexDictionaries.appendEntry(file, RegexDictionaries.withCase(pattern, matchCase), replacement)) return false
 		refreshRegexName(file)
 		chooseRegexDictionaryEnabled(true)
+		settings.invalidateRevision()
 		refreshRegexEntries()
 		return true
 	}
@@ -424,6 +429,7 @@ class SettingsModel(context: Context) {
 		} else {
 			refreshRegexName(file)
 		}
+		settings.invalidateRevision()
 		refreshRegexEntries()
 		return true
 	}
@@ -435,6 +441,7 @@ class SettingsModel(context: Context) {
 			return false
 		}
 		refreshRegexName(file)
+		settings.invalidateRevision()
 		refreshRegexEntries()
 		return true
 	}
@@ -445,6 +452,7 @@ class SettingsModel(context: Context) {
 		settings.regexDictionaryPath()?.let { java.io.File(it).delete() }
 		settings.setRegexDictionary(null, null)
 		chooseRegexDictionaryEnabled(false)
+		settings.invalidateRevision()
 		regexDictionary = app.getString(R.string.dictionary_none)
 		regexEntries = emptyList()
 	}

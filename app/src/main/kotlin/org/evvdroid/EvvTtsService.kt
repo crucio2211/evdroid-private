@@ -35,13 +35,8 @@ class EvvTtsService : TextToSpeechService() {
 	@Volatile
 	private var stopped = false
 
-	private val appliedRevisions = java.util.concurrent.ConcurrentHashMap<Int, Int>()
-
 	// A snapshot belongs to the native engine language, not to whichever
 	// language happened to be selected most recently.
-
-	private var loadedRegex: RegexDictionaries.Loaded? = null
-	private var regexEnabled = false
 
 	override fun onCreate() {
 		settings = Settings(this)
@@ -285,16 +280,18 @@ class EvvTtsService : TextToSpeechService() {
 	 *  the only time the file it reads can have changed: it is a copy of
 	 *  our own, written by the settings screen. */
 	private fun loadRegexDictionary(s: Settings) {
-		regexEnabled = s.regexDictionaryEnabled
-		val path = if (regexEnabled) s.regexDictionaryPath() else null
+		val nextEnabled = s.regexDictionaryEnabled
+		val path = if (nextEnabled) s.regexDictionaryPath() else null
 		val file = path?.let { java.io.File(it) }
-		loadedRegex = if (file != null && file.exists()) {
+		val nextLoaded = if (file != null && file.exists()) {
 			RegexDictionaries.load(file).also {
 				Log.i(TAG, "regex dictionary: ${it?.entries?.size ?: 0} patterns from ${file.name}")
 			}
 		} else {
 			null
 		}
+		loadedRegex = nextLoaded
+		regexEnabled = nextEnabled
 	}
 
 	private fun acquireDictionarySnapshot(language: Int): DictionarySnapshot.Lease? =
@@ -572,6 +569,12 @@ class EvvTtsService : TextToSpeechService() {
 		private val pendingEngines = java.util.concurrent.ConcurrentHashMap<Int, java.util.concurrent.Future<EvvEngine?>>()
 		private val dictionarySnapshots = HashMap<Int, DictionarySnapshot>()
 		private val dictionarySnapshotLock = Any()
+		// Settings and regex state survive TTS service rebinding just like the
+		// native ECI engines. A service recreation must not re-hash a large Root
+		// source merely because its local settings object was recreated.
+		private val appliedRevisions = java.util.concurrent.ConcurrentHashMap<Int, Int>()
+		@Volatile private var loadedRegex: RegexDictionaries.Loaded? = null
+		@Volatile private var regexEnabled = false
 
 		/** The most audio, in milliseconds, that any one utterance has handed
 		 *  over since this was last cleared. Nothing in the app reads it. It is
