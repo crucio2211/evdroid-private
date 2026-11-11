@@ -104,7 +104,7 @@ class Settings(context: Context) {
 	/** How much of the engine's own pausing to keep. One of the Pauses
 	 *  constants, and not a voice's business. */
 	var pauses: Int
-		get() = prefs.getInt(KEY_PAUSES, Pauses.ALL).coerceIn(Pauses.KEEP, Pauses.ALL)
+		get() = prefs.getInt(KEY_PAUSES, Eci.PAUSES_DEFAULT).coerceIn(Pauses.KEEP, Pauses.ALL)
 		set(value) = prefs.edit().putInt(KEY_PAUSES, value).apply()
 
 	/** Whether the engine guesses at phrase boundaries and shapes the
