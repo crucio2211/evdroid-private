@@ -25,15 +25,9 @@ class EvvTtsService : TextToSpeechService() {
 	private var selectedEngineLanguage: Int? = null
 	// Match Apple's per-language native engine cache. Each OpenEVV handle
 	// owns its dictionary set, so retain it while another language is active.
-	private val engines = java.util.concurrent.ConcurrentHashMap<Int, EvvEngine>()
 	private var settings: Settings? = null
-	private val engineExecutor = java.util.concurrent.Executors.newSingleThreadExecutor { task ->
-		Thread(task, "evvdroid-engine-load").apply { isDaemon = true }
-	}
-	private val engineLoadLock = Any()
 	// A pending load is tracked per language, so rapid language requests do
 	// not overwrite one another or queue duplicate ECI initializations.
-	private val pendingEngines = java.util.concurrent.ConcurrentHashMap<Int, java.util.concurrent.Future<EvvEngine?>>()
 
 	/** Written on one binder thread and read on another: a stop the pump
 	 *  never sees is audio committed past it, and that is the stale sliver
@@ -45,8 +39,6 @@ class EvvTtsService : TextToSpeechService() {
 
 	// A snapshot belongs to the native engine language, not to whichever
 	// language happened to be selected most recently.
-	private val dictionarySnapshots = HashMap<Int, DictionarySnapshot>()
-	private val dictionarySnapshotLock = Any()
 
 	private var loadedRegex: RegexDictionaries.Loaded? = null
 	private var regexEnabled = false
@@ -83,33 +75,14 @@ class EvvTtsService : TextToSpeechService() {
 
 	override fun onDestroy() {
 		super.onDestroy()
-		// Engine creation and native dictionary loading can take longer than
-		// two seconds for a large Root volume. Closing the ECI handle after a
-		// timed-out wait races the still-running loader and can leave the
-		// native worker in a damaged state. Queue destruction behind every
-		// pending engine task instead; the handle is closed only after loading
-		// or replacement has returned.
-		synchronized(engineLoadLock) {
-			try {
-				engineExecutor.execute {
-					for ((language, cached) in engines.entries) {
-						try {
-							cached.close()
-						} catch (failed: Exception) {
-							Log.e(TAG, "could not close the ECI engine for 0x%08x".format(language), failed)
-						}
-					}
-					engines.clear()
-					pendingEngines.clear()
-					engine = null
-					appliedRevisions.clear()
-					retireDictionarySnapshots()
-				}
-			} catch (rejected: java.util.concurrent.RejectedExecutionException) {
-				Log.w(TAG, "engine cleanup was already queued", rejected)
-			}
-			engineExecutor.shutdown()
-		}
+		// TextToSpeechService instances can be unbound and recreated while the
+		// application process remains alive (for example, when a screen reader
+		// reconnects). Keep the bounded per-language native ECI pool and its
+		// dictionary snapshots at process scope so a new service instance can
+		// reuse the already-loaded engines. Android reclaims these native
+		// handles when the process itself exits.
+		Log.i(TAG, "TTS service instance destroyed; retaining ${engines.size} process-wide native engines")
+		engine = null
 	}
 
 	// ---- languages -------------------------------------------------------
@@ -226,6 +199,7 @@ class EvvTtsService : TextToSpeechService() {
 	 *  synthesis callback joins that same task only if speech arrives first. */
 	private fun requestEngine(language: Int): java.util.concurrent.Future<EvvEngine?> = synchronized(engineLoadLock) {
 		engines[language]?.let { ready ->
+			Log.i(TAG, "reusing process-wide native engine for 0x%08x".format(language))
 			val completed = java.util.concurrent.FutureTask<EvvEngine?>(java.util.concurrent.Callable { ready })
 			completed.run()
 			return@synchronized completed
@@ -321,11 +295,6 @@ class EvvTtsService : TextToSpeechService() {
 		} else {
 			null
 		}
-	}
-
-	private fun retireDictionarySnapshots() = synchronized(dictionarySnapshotLock) {
-		dictionarySnapshots.values.forEach { it.retire() }
-		dictionarySnapshots.clear()
 	}
 
 	private fun acquireDictionarySnapshot(language: Int): DictionarySnapshot.Lease? =
@@ -591,6 +560,19 @@ class EvvTtsService : TextToSpeechService() {
 	}
 
 	internal companion object {
+		// Mirror Apple's native per-language engine slots. These are process
+		// scoped rather than service-instance scoped so Android can unbind and
+		// recreate TextToSpeechService without forcing every large dictionary
+		// to be loaded again. Access is serialized by engineLoadLock.
+		private val engines = java.util.concurrent.ConcurrentHashMap<Int, EvvEngine>()
+		private val engineExecutor = java.util.concurrent.Executors.newSingleThreadExecutor { task ->
+			Thread(task, "evvdroid-engine-load").apply { isDaemon = true }
+		}
+		private val engineLoadLock = Any()
+		private val pendingEngines = java.util.concurrent.ConcurrentHashMap<Int, java.util.concurrent.Future<EvvEngine?>>()
+		private val dictionarySnapshots = HashMap<Int, DictionarySnapshot>()
+		private val dictionarySnapshotLock = Any()
+
 		/** The most audio, in milliseconds, that any one utterance has handed
 		 *  over since this was last cleared. Nothing in the app reads it. It is
 		 *  what lets a test say the engine is not running ahead of the speech,
