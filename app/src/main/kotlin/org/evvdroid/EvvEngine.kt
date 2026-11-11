@@ -190,6 +190,12 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 
 	/** Hands a tab-separated text file or saved dictionary to the native loader.
 	 *  Nought is success. */
+	fun replaceDictionaries(volumes: Map<Int, String>): Boolean = synchronized(dictionaryGuard) {
+		val current = synchronized(guard) { if (closed) 0L else handle }
+		if (current == 0L) return false
+		EvvNative.replaceDictionaries(current, volumes[Eci.DICT_MAIN], volumes[Eci.DICT_ROOT], volumes[Eci.DICT_ABBREVIATION]) == 0
+	}
+
 	fun loadDictionary(volume: Int, path: String): Int = synchronized(dictionaryGuard) {
 		val current = synchronized(guard) { if (closed) 0L else handle }
 		if (current == 0L) -1 else EvvNative.loadDictionary(current, volume, path)

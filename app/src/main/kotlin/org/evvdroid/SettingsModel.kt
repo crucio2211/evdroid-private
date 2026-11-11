@@ -303,7 +303,7 @@ class SettingsModel(context: Context) {
 		val entries = pendingDictEntries
 		val into = java.io.File(app.filesDir, "dictionaries")
 		val pending = java.io.File(into, "pending.dic")
-		val file = java.io.File(into, "volume-$slot.dic")
+		val file = java.io.File(into, "volume-$slot-${System.currentTimeMillis()}.dic")
 		dictionaryImporting = true
 		dictionaryIo.execute {
 			val result = runCatching {
@@ -312,7 +312,6 @@ class SettingsModel(context: Context) {
 				pending.delete()
 				into.listFiles()?.filter { it.name.startsWith(".evvdroid-volume-$slot-") }?.forEach { it.delete() }
 				Dictionaries.invalidate(file)
-				if (!binary) Dictionaries.prepareForEngine(file, language)
 			}
 			mainHandler.post {
 				dictionaryImporting = false
@@ -348,7 +347,10 @@ class SettingsModel(context: Context) {
 			settings.setDictionary(volume, null, null)
 		}
 		java.io.File(app.filesDir, "dictionaries").listFiles()
-			?.filter { it.name.startsWith(".evvdroid-") }
+			?.filter {
+				it.name.startsWith(".evvdroid-") || it.name.startsWith("volume-") ||
+					it.name == "pending.dic"
+			}
 			?.forEach { it.delete() }
 		dictionaries = emptyMap()
 		settings.regexDictionaryPath()?.let { java.io.File(it).delete() }

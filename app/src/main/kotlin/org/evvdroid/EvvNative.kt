@@ -46,6 +46,8 @@ internal object EvvNative {
 	/** Answers one of the eciDict codes, so nought is success. */
 	external fun loadDictionary(handle: Long, volume: Int, path: String): Int
 
+	external fun replaceDictionaries(handle: Long, main: String?, root: String?, abbreviations: String?): Int
+
 	external fun teachWord(handle: Long, volume: Int, key: ByteArray, say: ByteArray): Int
 
 	external fun lookUpWord(handle: Long, volume: Int, key: ByteArray): String?
