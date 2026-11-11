@@ -37,24 +37,7 @@ class EvvTtsService : TextToSpeechService() {
 
 	private var appliedRevision = -1
 
-	private var loadedDictionaries: Map<Int, String> = emptyMap()
-	private var loadedDictionaryLangs: Map<Int, Int> = emptyMap()
-	private var loadedDictionaryStamps: Map<Int, Pair<Long, Long>> = emptyMap()
-	private var loadedEngine: EvvEngine? = null
-	/** Picked files as read: engine language to exact dictionary key, to every
-	 *  entry written under it, with the volume each was picked for and
-	 *  the key as written and what to say. Files for one language read
-	 *  as one map, so a word is taught to the engine that will speak
-	 *  it. Taught words live on the engine instance, so [taughtWords]
-	 *  starts over with every new one. */
-	private data class DictEntry(val volume: Int, val key: String, val say: String)
-	private var wordMaps: Map<Int, Map<String, List<DictEntry>>> = emptyMap()
-	private val taughtWords = java.util.concurrent.ConcurrentHashMap.newKeySet<Pair<Int, String>>()
-
-	/** Dictionary tokens can include Unicode letters and marks, apostrophes,
-	 *  hyphens, and the punctuation found inside legitimate keys such as P!nk.
-	 *  This keeps Windows-1252 names and other non-ASCII entries matchable. */
-	private val WORD = Regex("""\+?[\p{L}\p{M}\p{N}\u0080-\u009F]+(?:['’-][\p{L}\p{M}\p{N}\u0080-\u009F]+|![\p{L}\p{M}\p{N}\u0080-\u009F]+)*""")
+	private var dictionarySnapshot: DictionarySnapshot? = null
 
 	private var loadedRegex: RegexDictionaries.Loaded? = null
 	private var regexEnabled = false
@@ -62,35 +45,17 @@ class EvvTtsService : TextToSpeechService() {
 	override fun onCreate() {
 		settings = Settings(this)
 		super.onCreate()
-		warmDictionaryCaches()
 		// The emoji table builds on first touch, which
 		// would otherwise land on the first utterance. Warm it here, off
 		// every thread that speaks.
 		Thread({ EmojiNames.STARTERS.size }, "emoji-warmup").start()
 	}
 
-	/** Prepare native dictionary cache files after service startup, without
-	 *  making the first TalkBack request parse every saved dictionary. */
-	private fun warmDictionaryCaches() {
-		val saved = settings ?: return
-		val paths = saved.dictionaryPaths()
-		Thread({
-			for ((volume, path) in paths) {
-				try {
-					val file = java.io.File(path)
-					if (file.exists() && !Dictionaries.isBinary(file)) {
-						val language = saved.dictionaryLanguageResolved(volume, EvvEngine.available)
-						Dictionaries.prepareForEngine(file, language)
-					}
-				} catch (failed: Exception) {
-					Log.e(TAG, "could not warm dictionary volume $volume", failed)
-				}
-			}
-		}, "evvdroid-dictionary-cache").apply { isDaemon = true }.start()
-	}
 
 	override fun onDestroy() {
 		super.onDestroy()
+		dictionarySnapshot?.retire()
+		dictionarySnapshot = null
 		engineExecutor.shutdown()
 		try {
 			engineExecutor.awaitTermination(2, java.util.concurrent.TimeUnit.SECONDS)
