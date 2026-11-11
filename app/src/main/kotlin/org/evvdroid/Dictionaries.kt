@@ -4,28 +4,20 @@ import android.util.Log
 import java.io.File
 
 /**
- * The pronunciation dictionaries people write for this engine.
+ * External pronunciation dictionaries for the native ECI dictionary handle.
  *
- * Two forms come in. A file in the engine's own saved binary form -- what
- * enumain.dic, enuroot.dic and enuabbr.dic are on Windows -- is handed to the
- * engine's loader, which reads it exactly as it does there ([loadBinary]).
- * What people share as text is normalized here to the engine's byte set and
- * handed to its native loader, which indexes the whole file in one pass.
- *
- * The engine matches a key against the word as spoken, byte for byte and
- * case included: a key "fatima" does not touch "Fatima". So every key is kept
- * exactly as written, two entries that differ only in case are two entries,
- * and nothing here folds case on the way in.
+ * A saved binary volume is passed unchanged to the engine's native volume
+ * loader. Text dictionaries are decoded as UTF-8 when valid, otherwise as
+ * Windows-1252, then encoded for the active language and staged as immutable
+ * files. The JNI bridge inserts their entries into a detached ECI dictionary
+ * handle before publishing all selected volumes together.
  *
  * A line is a key, a tab, and what to say instead. What to say is either a
  * respelling ("dee oe jeigh") or a pronunciation in the engine's own alphabet
- * ("`[Ekspoz1e]"), and the engine takes both. The bytes are the engine's own
- * code set already -- an e-acute is one byte -- so the file is read as
- * Windows-1252 when it is not UTF-8, which shared files commonly use.
+ * ("`[Ekspoz1e]"). Keys are case-sensitive and remain exactly as written.
  *
- * That is the Western byte set, so a file for Polish or Japanese is not read
- * right here. Neither has a dictionary anyone shares, and guessing at a form
- * for one would be inventing a format rather than reading one.
+ * EngineText performs the language-specific encoding, including Shift-JIS
+ * and Polish paths; this reader does not guess at those byte sets.
  */
 object Dictionaries {
 
