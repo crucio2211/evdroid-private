@@ -54,8 +54,6 @@ class EvvTtsService : TextToSpeechService() {
 
 	override fun onDestroy() {
 		super.onDestroy()
-		dictionarySnapshot?.retire()
-		dictionarySnapshot = null
 		engineExecutor.shutdown()
 		try {
 			engineExecutor.awaitTermination(2, java.util.concurrent.TimeUnit.SECONDS)
@@ -64,6 +62,8 @@ class EvvTtsService : TextToSpeechService() {
 		}
 		engine?.close()
 		engine = null
+		dictionarySnapshot?.retire()
+		dictionarySnapshot = null
 	}
 
 	// ---- languages -------------------------------------------------------
@@ -207,10 +207,10 @@ class EvvTtsService : TextToSpeechService() {
 		if (held != null && held.language == language) return held
 		held?.close()
 		engine = null
+		dictionarySnapshot?.retire()
+		dictionarySnapshot = null
 		val made = EvvEngine.open(language)
 		engine = made
-		// A new engine owns a fresh native dictionary set.
-		taughtWords.clear()
 		if (made != null) applySettings(made)
 		return made
 	}
@@ -244,218 +244,40 @@ class EvvTtsService : TextToSpeechService() {
 		}
 	}
 
-	/** Parses imported files for apostrophe handling, then loads each normalized
-	 *  text dictionary through the engine's native file loader in one call. */
+	/** Builds one immutable snapshot for the active language, then publishes
+	 *  Main, Root and Abbreviations together through a fresh native ECI handle.
+	 *  Content hashes detect same-size/same-timestamp replacements. A failed
+	 *  snapshot or native load leaves the previously active set untouched. */
 	private fun loadDictionaries(target: EvvEngine, s: Settings) {
-		// The engine flag below controls its built-in abbreviation list. Keep
-		// the user's abbreviation volume behind the same switch: otherwise a
-		// custom enuabbr dictionary still expands entries such as `jan` when
-		// the setting is off.
-		val want = s.dictionaryPaths().filterKeys {
-			s.useDictionary(it) && (it != Eci.DICT_ABBREVIATION || s.abbreviations)
+		val selected = s.dictionaryPaths().filterKeys { volume ->
+			s.useDictionary(volume) && (volume != Eci.DICT_ABBREVIATION || s.abbreviations)
 		}
-		val langs = want.keys.associateWith { s.dictionaryLanguageResolved(it, EvvEngine.available) }
-		val stamps = want.mapValues { (_, path) ->
+		val sources = LinkedHashMap<Int, java.io.File>()
+		for ((volume, path) in selected) {
+			if (s.dictionaryLanguageResolved(volume, EvvEngine.available) != target.language) continue
 			val file = java.io.File(path)
-			file.length() to file.lastModified()
+			if (file.isFile && file.canRead()) sources[volume] = file
 		}
-		if (want == loadedDictionaries && langs == loadedDictionaryLangs && stamps == loadedDictionaryStamps && target === loadedEngine) return
-		target.forgetDictionaries()
-		if (want != loadedDictionaries || langs != loadedDictionaryLangs || stamps != loadedDictionaryStamps || target !== loadedEngine) {
-			val read = LinkedHashMap<Int, LinkedHashMap<String, MutableList<DictEntry>>>()
-			for ((volume, path) in want) {
-				try {
-					val file = java.io.File(path)
-					if (!file.exists()) continue
-					// A file in the engine's own form is not parsed here: the
-					// engine reads it, below.
-					if (Dictionaries.isBinary(file)) continue
-					val entries = Dictionaries.apostropheEntries(file)
-					Log.i(TAG, "volume $volume: ${entries.size} apostrophe entries from ${file.name}")
-					// Keep each dictionary with the language chosen at import:
-					// enuroot belongs to US English; engroot belongs to UK English.
-					val into = read.getOrPut(langs[volume] ?: target.language) { LinkedHashMap() }
-					for ((exact, entry) in entries) {
-						into.getOrPut(exact) { mutableListOf() }
-							.add(DictEntry(volume, entry.first, entry.second))
-					}
-				} catch (failed: Exception) {
-					// One bad volume must not take the utterance, or every
-					// utterance after it, down with it.
-					Log.e(TAG, "volume $volume not read", failed)
-				}
-			}
-			wordMaps = read
+		val snapshot = try {
+			DictionarySnapshot.prepare(
+				java.io.File(filesDir, "dictionary-snapshots"),
+				target.language,
+				sources,
+				dictionarySnapshot
+			)
+		} catch (failed: Exception) {
+			Log.e(TAG, "could not build the dictionary snapshot; keeping the active set", failed)
+			return
 		}
-		taughtWords.clear()
-		loadedDictionaries = want
-		loadedDictionaryLangs = langs
-		loadedDictionaryStamps = stamps
-		loadedEngine = target
-		loadEngineDictionaries(target, want, langs)
-	}
-
-	/** Binary dictionaries use the engine's saved form. Text dictionaries are
-	 *  normalized and encoded during import/cache warmup, then indexed natively
-	 *  in one call. A root file also goes to main so it can override a built-in
-	 *  main entry, matching the existing root precedence. */
-	private fun loadEngineDictionaries(target: EvvEngine, want: Map<Int, String>, langs: Map<Int, Int>) {
-		for ((volume, path) in want) {
-			if ((langs[volume] ?: target.language) != target.language) continue
-			try {
-				val file = java.io.File(path)
-				if (!file.exists()) continue
-				if (Dictionaries.isBinary(file)) {
-					val ok = Dictionaries.loadBinary(target, volume, file)
-					Log.i(TAG, "volume $volume: ${file.name} ${if (ok) "loaded by the engine" else "refused by the engine"}")
-					continue
-				}
-				val ready = Dictionaries.prepareForEngine(file, target.language)
-				val destinations = if (volume == Eci.DICT_ROOT) listOf(Eci.DICT_MAIN, Eci.DICT_ROOT) else listOf(volume)
-				for (destination in destinations) {
-					val result = target.loadDictionary(destination, ready.absolutePath)
-					if (result != 0) Log.e(TAG, "volume $destination refused ${file.name}: $result")
-				}
-				Log.i(TAG, "volume $volume: text dictionary indexed natively from ${file.name}")
-			} catch (failed: Exception) {
-				Log.e(TAG, "volume $volume not loaded by the engine", failed)
-			}
-		}
-	}
-
-	/** Volumes one entry goes to: its own, and main too for a root
-	 *  word, so a built-in main never shouts over a taught root. An
-	 *  abbreviation stays in abbreviations: its key carries periods
-	 *  the other volumes must never learn. */
-	private fun teachVolumes(volume: Int): List<Int> =
-		if (volume == Eci.DICT_ROOT) listOf(Eci.DICT_MAIN, Eci.DICT_ROOT) else listOf(volume)
-
-	/** True when [say] is Eloquence inline phonemes (backtick form), which
-	 *  must go through teachWord — never into the text stream (that broke
-	 *  hetero roots and words like produce / persona). */
-	private fun isPhonemeSay(say: String): Boolean =
-		say.indexOf('`') >= 0 || (say.startsWith("[") && say.endsWith("]"))
-
-	private fun binaryDictionarySay(target: EvvEngine, volume: Int, word: String): String? {
-		val forms = LinkedHashSet<String>()
-		for (form in apostropheVariants(word)) {
-			forms.add(form)
-			if (isSentenceCapitalized(form)) forms.add(form.lowercase())
-		}
-		for (form in forms) {
-			target.lookUpWord(volume, form)?.let { return it }
-		}
-		return null
-	}
-	/** A root entry applies to a possessive/contraction form as well. Keep the
-	 *  suffix in the text sent to Eloquence: only the root key is taught, so the
-	 *  engine can pronounce the suffix using its own morphology. */
-	private fun rootApostropheStems(word: String): List<String> {
-		val at = word.indexOfAny(charArrayOf('\'', '\u2019'))
-		if (at <= 0 || at == word.lastIndex) return emptyList()
-		val suffix = word.substring(at + 1)
-		if (!suffix.equals("s", ignoreCase = true)) return emptyList()
-		return listOf(word.substring(0, at))
-	}
-	private fun lookupRootEntries(target: EvvEngine, language: Int, word: String): List<DictEntry> {
-		if (target.language != language || Eci.DICT_ROOT !in loadedDictionaries) return emptyList()
-		if ((loadedDictionaryLangs[Eci.DICT_ROOT] ?: language) != language) return emptyList()
-		return rootApostropheStems(word).mapNotNull { stem ->
-			target.lookUpWord(Eci.DICT_ROOT, stem)?.let { say -> DictEntry(Eci.DICT_ROOT, stem, say) }
-		}.distinctBy { it.key }
-	}
-	private fun apostropheVariants(word: String): Set<String> = linkedSetOf(
-		word,
-		word.replace('\u2019', '\''),
-		word.replace('\'', '\u2019')
-	)
-	/** Match dictionary keys with Eloquence's case-sensitive rule. A sentence
-	 *  initial capital may use a lowercase key, as the on-demand teacher installs
-	 *  that form; an uppercase key such as `NA` must not rewrite lowercase `na`.
-	 *  Prefer MAIN over ROOT when several volumes match. */
-	private fun lookupEntries(language: Int, word: String): List<DictEntry> {
-		val entries = wordMaps[language] ?: return emptyList()
-		for (form in apostropheVariants(word)) {
-			(entries[form] ?: entries[form + "."])?.let { return it }
-		}
-		if (!isSentenceCapitalized(word)) return emptyList()
-		for (form in apostropheVariants(word.lowercase())) {
-			(entries[form] ?: entries[form + "."])?.let { return it }
-		}
-		return emptyList()
-	}
-	private fun isSentenceCapitalized(word: String): Boolean =
-		word.isNotEmpty() && word[0].isUpperCase() && word.drop(1).none { it.isUpperCase() }
-
-	/** Plain respellings are written in place. Phoneme readings for words with
-	 *  apostrophes are inlined because the engine's word scan can split there;
-	 *  other phoneme entries continue through teachWord. */
-	private fun applyRespellings(target: EvvEngine, text: String): String {
-		if (text.isEmpty()) return text
-		return WORD.replace(text) { match ->
-			val word = match.value
-			val entry = lookupEntries(target.language, word).minByOrNull { it.volume }
-			val say = entry?.say ?: if (word.any { it == '\'' || it == '\u2019' }) {
-				loadedDictionaries.entries
-					.filter { (volume, _) -> (loadedDictionaryLangs[volume] ?: target.language) == target.language }
-					.sortedBy { it.key }
-					.firstNotNullOfOrNull { (volume, path) ->
-						val file = java.io.File(path)
-						if (file.exists() && Dictionaries.isBinary(file)) binaryDictionarySay(target, volume, word) else null
-					}
-			} else null
-			if (say != null && isPhonemeSay(say) && word.any { it == '\'' || it == '\u2019' }) {
-				if (say.startsWith("[") && say.endsWith("]") && !say.startsWith("`[")) "`$say" else say
-			} else if (say != null && entry != null && !isPhonemeSay(say)) {
-				if (word.isNotEmpty() && word[0].isUpperCase() && say.isNotEmpty() && say[0].isLowerCase()) {
-					say.replaceFirstChar { it.uppercase() }
-				} else {
-					say
-				}
-			} else {
-				word
-			}
-		}
-	}
-
-	/** Keeps the root-stem fallback for possessives and contractions. Normal
-	 *  dictionary words are already indexed by the native file loader. */
-	private fun teachUnknownWords(target: EvvEngine, text: String) {
-		if (wordMaps.isEmpty() || text.isEmpty()) return
-		for (raw in WORD.findAll(text)) {
-			val word = raw.value
-			if (word.none { it == '\'' || it == '\u2019' }) continue
-			// The native loader already indexed all ordinary entries. Keep this
-			// single-word fallback only for a root stem before an apostrophe.
-			val hits = lookupRootEntries(target, target.language, word).distinctBy { it.volume to it.key }
-			if (hits.isEmpty()) continue
-			for (entry in hits) {
-				val say = if (entry.say.startsWith("[") && entry.say.endsWith("]") && !entry.say.startsWith("`[")) {
-					"`${entry.say}"
-				} else {
-					entry.say
-				}
-				for (volume in teachVolumes(entry.volume)) {
-					val forms = if (entry.key.firstOrNull()?.isLowerCase() == true) {
-						linkedSetOf(entry.key, entry.key.replaceFirstChar { it.uppercase() })
-					} else {
-						linkedSetOf(entry.key)
-					}
-					for (form in forms) {
-						val k = volume to form
-						if (k in taughtWords) continue
-						try {
-							if (target.teachWord(volume, form, say) == 0) {
-								taughtWords.add(k)
-							} else {
-								Log.e(TAG, "volume $volume refused dictionary word $form")
-							}
-						} catch (failed: Exception) {
-							Log.e(TAG, "volume $volume could not teach dictionary word $form", failed)
-						}
-					}
-				}
-			}
+		if (snapshot === dictionarySnapshot) return
+		val previous = dictionarySnapshot
+		if (target.replaceDictionaries(snapshot.paths)) {
+			dictionarySnapshot = snapshot
+			previous?.retire()
+			Log.i(TAG, "published dictionary snapshot ${snapshot.identity.take(16)} for 0x%08x".format(target.language))
+		} else {
+			snapshot.retire()
+			Log.e(TAG, "native engine refused the complete dictionary snapshot; keeping the active set")
 		}
 	}
 
