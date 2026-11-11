@@ -179,7 +179,7 @@ internal class DictionarySnapshot private constructor(
                 if (!validSnapshot(finalDir, digests, expectedManifest.toString())) {
                     throw java.io.IOException("published dictionary snapshot failed validation")
                 }
-                return makeSnapshot(language, identity, finalDir)
+                return makeSnapshot(language, identity, finalDir, digests.keys)
             } catch (failed: Exception) {
                 staging.deleteRecursively()
                 throw failed
@@ -189,6 +189,7 @@ internal class DictionarySnapshot private constructor(
         private fun makeSnapshot(language: Int, identity: String, directory: File, volumes: Set<Int>): DictionarySnapshot {
             val paths = arrayOfNulls<String>(Eci.DICT_VOLUMES.size)
             for (volume in Eci.DICT_VOLUMES) {
+                if (volume !in volumes) continue
                 val file = File(directory, volumeFile(volume))
                 if (file.isFile) paths[volume] = file.absolutePath
             }
