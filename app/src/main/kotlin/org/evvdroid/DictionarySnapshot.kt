@@ -80,7 +80,7 @@ internal class DictionarySnapshot private constructor(
 
     companion object {
         private const val MANIFEST = "snapshot.manifest"
-        private const val VERSION = "evvdroid-dictionary-snapshot-v1"
+        private const val VERSION = "evvdroid-dictionary-snapshot-v2"
 
         /**
          * Returns [current] unchanged when its content identity still matches.
