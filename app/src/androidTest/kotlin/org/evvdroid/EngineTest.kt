@@ -61,6 +61,24 @@ class EngineTest {
 	 *  and a text path that hands the engine only its first character: eight
 	 *  times the text has to give roughly eight times the audio. An absolute
 	 *  length would only say what this engine happens to sound like. */
+	/**
+	 * Sixteen kilohertz is the engine's direct native wideband path. Every
+	 * higher output rate must select the 22.05 kHz companion and then convert
+	 * that combined stream, rather than synthesizing the whole voice at the
+	 * requested rate. In particular, 48 kHz is only valid through this path:
+	 * the native high-rate experiment refuses it.
+	 */
+	@Test
+	fun sampleRateChangesKeepTheWidebandCompanionAbove16Khz() {
+		val e = open()
+		for (hz in Eci.SAMPLE_RATES) {
+			e.setSampleRate(hz)
+			assertEquals("the engine did not accept the requested $hz Hz output rate", hz, e.sampleRateHz)
+			val pcm = collect(e, SENTENCE)
+			assertTrue("$hz Hz produced only ${pcm.size} bytes", pcm.size > hz)
+		}
+	}
+
 	@Test
 	fun theAudioGrowsWithTheText() {
 		val e = open()

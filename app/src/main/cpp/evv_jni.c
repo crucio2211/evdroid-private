@@ -191,15 +191,14 @@ JNIEXPORT jlong JNICALL Java_org_evvdroid_EvvNative_create(JNIEnv* env, jclass c
 	instance* in;
 	(void)env;
 	(void)cls;
-	/* Synthesize high rates natively instead of upsampling 11 kHz. The
-	 * engine holds 11 kHz output up through a converter unless EVV_UPSAMPLE
-	 * is "none", in which case rates above it are synthesized outright with
-	 * resonator tables built for the rate (klatt_buildRateTables, verified
-	 * entry by entry against IBM's own). Read once per process, so this runs
-	 * before the first engine exists. 8k and 11k are untouched either way.
-	 * Upstream's wideband companion stays out: at our rates it is
-	 * inaudible, and the flag never engages under native synthesis. */
-	setenv("EVV_UPSAMPLE", "none", 1);
+	/* Keep OpenEVV's default sample-rate pipeline. At 16 kHz the engine uses
+	 * its direct native synthesizer; above 16 kHz it automatically enables
+	 * the 22.05 kHz wideband companion, then its default sinc converter raises
+	 * the combined stream to the requested output rate. EVV_UPSAMPLE=none
+	 * bypasses that path and disables the companion; it is an experiment
+	 * switch, not the Android output mode. Clear any inherited override before
+	 * the first engine opens, since the native rate policy is cached process-wide. */
+	unsetenv("EVV_UPSAMPLE");
 	/* The heteronym filter stays on: its forced readings are written in
 	 * the words' place when they match and honoured literally, stress
 	 * marks and all -- measured in the oracle, where persona answers

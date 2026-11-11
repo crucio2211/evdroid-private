@@ -89,7 +89,8 @@ Launcher icon, or the gear beside the engine in the text-to-speech settings.
 
 Dialogs for the seven voice parameters, plus voice, force language,
 force speech rate, force pitch, an output volume with a peak limiter,
-sample rate (8, 11, 16, 22, 32 and 44.1 kHz, all synthesized natively),
+sample rate (8, 11, 16, 22.05, 32, 44.1 and 48 kHz; 16 kHz native, higher
+rates use the automatic Wide Band companion and sinc conversion),
 pauses, phrase prediction, abbreviations, backquote voice tags, emoji,
 numbers, camel case, punctuation, volume dictionaries and a regex dictionary.
 "Speak a sample" sits under the voice rows, speaking through the same rewrites
