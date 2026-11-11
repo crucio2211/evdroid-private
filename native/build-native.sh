@@ -13,7 +13,7 @@ here=$(cd "$(dirname "$0")" && pwd)
 root=$(cd "$here/.." && pwd)
 engine="$here/openevv"
 
-ABIS=${ABIS:-"arm64-v8a x86_64"}
+ABIS=${ABIS:-"arm64-v8a armeabi-v7a x86_64"}
 API=${API:-21}
 RULES=${RULES:-c}
 LANGS=${LANGS:-lang/enus}
@@ -145,6 +145,7 @@ done
 triple_for() {
 	case "$1" in
 		arm64-v8a)   echo "aarch64-linux-android$API" ;;
+		armeabi-v7a) echo "armv7a-linux-androideabi$API" ;;
 		x86_64)      echo "x86_64-linux-android$API" ;;
 		*)           echo "unknown ABI $1" >&2; exit 1 ;;
 	esac

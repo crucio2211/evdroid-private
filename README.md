@@ -35,7 +35,9 @@ redistributing anything.
   breathiness and volume.
 * Speech rate and pitch from the system settings.
 * Pronunciation dictionaries.
-* Android 6 and later. 64-bit arm64-v8a and x86_64 only; no 32-bit ABI is shipped.
+* Android 6 and later. Native libraries are included for 64-bit ARM (arm64-v8a),
+  32-bit ARM (armeabi-v7a) and x86_64 emulators. Android installs the matching
+  ABI library, so architecture selection does not add work to the speech path.
 
 `app/src/androidTest` contains the native dictionary and pause-mode regression checks; run them on a device or emulator.
 
@@ -68,7 +70,7 @@ first ABI pays for it.
 
 | property | default | effect |
 | --- | --- | --- |
-| `evvdroid.abis` | `arm64-v8a,x86_64` | which 64-bit ABIs to build |
+| `evvdroid.abis` | `arm64-v8a,armeabi-v7a,x86_64` | which Android ABIs to build |
 | `evvdroid.rules` | `c` | `bytecode` builds in 30s and runs at under half the speed |
 | `evvdroid.langs` | `lang/enus` | language modules to link in |
 | `evvdroid.abiSplits` | `false` | one APK per ABI |
@@ -328,7 +330,8 @@ speaking before, about 1000 ms after.
 
 ## Wear OS
 
-Runs on a watch. The published APK is 64-bit only and does not target 32-bit watches.
+Runs on compatible Wear OS watches. The APK includes arm64-v8a and armeabi-v7a
+native libraries, so compatible 32-bit ARM watches remain supported.
 
 A Pixel Watch has no USB, so adb is wireless. On the watch: Settings, System,
 About, Versions, tap Build number seven times. Then Developer options, ADB
@@ -341,7 +344,7 @@ adb mdns services                 # the watch announces both ports
 adb pair 192.168.x.x:PAIRPORT     # then the six digits on screen
 adb connect 192.168.x.x:PORT
 adb -s SERIAL shell getprop ro.product.cpu.abilist
-./gradlew installDebug -Pevvdroid.abis=arm64-v8a
+./gradlew installDebug -Pevvdroid.abis=armeabi-v7a
 ```
 
 ## Layout
