@@ -6,7 +6,6 @@ import java.security.MessageDigest
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * One immutable, language-specific publication of all three ECI volumes.
@@ -21,30 +20,28 @@ import java.util.concurrent.ConcurrentHashMap
  * after the last utterance lease has gone away.
  */
 private object DictionarySnapshotDirectories {
-    private val references = ConcurrentHashMap<String, AtomicInteger>()
+    private val lock = Any()
+    private val references = HashMap<String, Int>()
 
-    fun retain(directory: File) {
-        references.compute(directory.absolutePath) { _, count ->
-            (count ?: AtomicInteger()).also { it.incrementAndGet() }
-        }
-    }
-
-    fun release(directory: File) {
+    fun retain(directory: File) = synchronized(lock) {
         val key = directory.absolutePath
-        var delete = false
-        references.compute(key) { _, count ->
-            if (count == null || count.decrementAndGet() <= 0) {
-                delete = count != null
-                null
-            } else {
-                count
-            }
-        }
-        if (delete) directory.deleteRecursively()
+        references[key] = (references[key] ?: 0) + 1
     }
 
-    fun isInUse(directory: File): Boolean =
-        (references[directory.absolutePath]?.get() ?: 0) > 0
+    fun release(directory: File) = synchronized(lock) {
+        val key = directory.absolutePath
+        val count = references[key] ?: return@synchronized
+        if (count <= 1) {
+            references.remove(key)
+            directory.deleteRecursively()
+        } else {
+            references[key] = count - 1
+        }
+    }
+
+    fun isInUse(directory: File): Boolean = synchronized(lock) {
+        (references[directory.absolutePath] ?: 0) > 0
+    }
 }
 
 internal class DictionarySnapshot private constructor(
@@ -126,7 +123,7 @@ internal class DictionarySnapshot private constructor(
                 .append(identity).append('\n')
 
             if (validSnapshot(finalDir, digests, expectedManifest.toString())) {
-                return makeSnapshot(language, identity, finalDir)
+                return makeSnapshot(language, identity, finalDir, digests.keys)
             }
 
             val staging = File(root, ".snapshot-${UUID.randomUUID()}.tmp")
@@ -189,7 +186,7 @@ internal class DictionarySnapshot private constructor(
             }
         }
 
-        private fun makeSnapshot(language: Int, identity: String, directory: File): DictionarySnapshot {
+        private fun makeSnapshot(language: Int, identity: String, directory: File, volumes: Set<Int>): DictionarySnapshot {
             val paths = arrayOfNulls<String>(Eci.DICT_VOLUMES.size)
             for (volume in Eci.DICT_VOLUMES) {
                 val file = File(directory, volumeFile(volume))
