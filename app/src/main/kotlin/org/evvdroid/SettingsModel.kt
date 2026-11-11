@@ -568,8 +568,7 @@ class SettingsModel(context: Context) {
 			stripBackquotes = !settings.backquoteTags,
 			punctLevel = settings.punctLevel.takeIf { settings.punctProcessing }
 		)
-		val text = Prosody.prefix(settings.phrasePrediction) +
-			Pauses.apply(heard, settings.pauses, true)
+		val text = Prosody.prefix(settings.phrasePrediction) + heard
 		preview?.say(
 			text,
 			voice,
