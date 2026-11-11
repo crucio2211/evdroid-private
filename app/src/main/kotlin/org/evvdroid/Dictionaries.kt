@@ -10,7 +10,9 @@ import java.io.File
  * loader. Text dictionaries are decoded as UTF-8 when valid, otherwise as
  * Windows-1252, then encoded for the active language and staged as immutable
  * files. The JNI bridge inserts their entries into a detached ECI dictionary
- * handle before publishing all selected volumes together.
+ * handle before publishing all selected volumes together. The native ECI
+ * bulk loader consumes each completed file in one operation; it is not
+ * expanded into one JNI/API call per dictionary entry.
  *
  * A line is a key, a tab, and what to say instead. What to say is either a
  * respelling ("dee oe jeigh") or a pronunciation in the engine's own alphabet
@@ -23,7 +25,7 @@ object Dictionaries {
 
 	/** Whether [file] is a saved binary ECI volume. Binary files bypass
 	 *  text decoding and are passed unchanged to eciLoadDict; text files are
-	 *  normalized and inserted through the native dictionary-update API. */
+	 *  normalized and loaded through ECI's native bulk-volume API. */
 	fun isBinary(file: File): Boolean = try {
 		file.inputStream().use { source ->
 			val head = ByteArray(8192)
@@ -88,6 +90,10 @@ object Dictionaries {
 				out.write('\n'.code)
 				written++
 			}
+			// OpenEVV's native volume reader drops the final record if EOF
+			// immediately follows it. Its own dictfile fixture uses a blank
+			// line after the final record, so preserve that exact file format.
+			if (written > 0) out.write('\n'.code)
 		}
 		if (written == 0) throw java.io.IOException("text dictionary has no usable entries")
 		java.io.FileOutputStream(destination, true).use { it.fd.sync() }
