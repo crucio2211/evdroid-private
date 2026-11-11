@@ -303,7 +303,7 @@ class SettingsModel(context: Context) {
 		val entries = pendingDictEntries
 		val into = java.io.File(app.filesDir, "dictionaries")
 		val pending = java.io.File(into, "pending.dic")
-		val file = java.io.File(into, "volume-$slot-${System.currentTimeMillis()}.dic")
+		val file = java.io.File(into, "volume-$slot-${java.util.UUID.randomUUID()}.dic")
 		dictionaryImporting = true
 		dictionaryIo.execute {
 			val result = runCatching {

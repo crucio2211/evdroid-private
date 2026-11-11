@@ -159,26 +159,28 @@ internal object DictionaryStore {
 
     private fun sourceState(sources: Map<Int, File>): String =
         sources.entries.joinToString("|") { (volume, file) ->
-            "$volume:${file.absolutePath}:${file.length()}:${file.lastModified()}"
+            "$volume:${DictionaryData.sourceFingerprint(file)}"
         }
 
-    private fun completeSnapshot(context: Context, path: String?): Boolean = try {
+    private fun completeSnapshot(context: Context, path: String?): Boolean {
         if (path == null) return false
-        val folder = File(path).canonicalFile
-        if (folder.parentFile != root(context).canonicalFile ||
-            !folder.name.matches(Regex("[a-f0-9]{64}"))) return false
-        val marker = File(folder, "ready")
-        if (!marker.isFile || marker.readText(Charsets.US_ASCII) != folder.name) return false
-        val data = LinkedHashMap<Int, ByteArray>()
-        for (volume in Eci.DICT_VOLUMES) {
-            val file = File(folder, DictionaryData.volumeName(volume))
-            if (!file.exists()) continue
-            if (!file.isFile || file.canonicalFile.parentFile != folder) return false
-            data[volume] = read(file)
+        return try {
+            val folder = File(path).canonicalFile
+            if (folder.parentFile != root(context).canonicalFile ||
+                !folder.name.matches(Regex("[a-f0-9]{64}"))) return false
+            val marker = File(folder, "ready")
+            if (!marker.isFile || marker.readText(Charsets.US_ASCII) != folder.name) return false
+            val data = LinkedHashMap<Int, ByteArray>()
+            for (volume in Eci.DICT_VOLUMES) {
+                val file = File(folder, DictionaryData.volumeName(volume))
+                if (!file.exists()) continue
+                if (!file.isFile || file.canonicalFile.parentFile != folder) return false
+                data[volume] = read(file)
+            }
+            data.isNotEmpty() && DictionaryData.snapshotHash(data) == folder.name
+        } catch (_: Exception) {
+            false
         }
-        data.isNotEmpty() && DictionaryData.snapshotHash(data) == folder.name
-    } catch (_: Exception) {
-        false
     }
 
     private fun read(file: File): ByteArray {

@@ -59,6 +59,20 @@ internal object DictionaryData {
         return normalized
     }
 
+    /** Hash source bytes, not metadata: equal-size/equal-timestamp edits must reload. */
+    fun sourceFingerprint(file: File): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        file.inputStream().buffered().use { input ->
+            val buffer = ByteArray(16 * 1024)
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                digest.update(buffer, 0, count)
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it.toInt() and 0xff) }
+    }
+
     fun snapshotHash(volumes: Map<Int, ByteArray>): String {
         val digest = MessageDigest.getInstance("SHA-256")
         for ((volume, bytes) in volumes.toSortedMap()) {

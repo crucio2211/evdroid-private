@@ -76,6 +76,20 @@ class DictionaryTest {
     }
 
     @Test
+    fun sourceFingerprintDetectsSameSizeSameTimestampReplacement() {
+        val source = write("DOJ\tfirst\n")
+        val first = DictionaryData.sourceFingerprint(source)
+        val oldTime = source.lastModified()
+        val oldSize = source.length()
+
+        source.writeBytes("DOJ\tother\n".toByteArray(Charsets.ISO_8859_1))
+        source.setLastModified(oldTime)
+
+        assertEquals(oldSize, source.length())
+        assertNotEquals(first, DictionaryData.sourceFingerprint(source))
+    }
+
+    @Test
     fun binaryDictionarySourceIsCopiedWithoutTextRewriting() {
         val source = writeBytes(byteArrayOf(0x41, 0x09, 0x42, 0x00, 0x43))
         assertTrue(Dictionaries.isBinary(source))
