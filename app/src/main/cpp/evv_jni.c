@@ -25,6 +25,7 @@
 
 #define TAG "evvdroid"
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
 
 /* What the engine writes at a time, in samples, and what the ring holds, in
    bytes. The ring has to be bigger than one frame or the callback would wait
