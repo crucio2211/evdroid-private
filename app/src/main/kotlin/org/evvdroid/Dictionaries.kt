@@ -181,6 +181,37 @@ object Dictionaries {
 		return count
 	}
 
+
+	/**
+	 * Parses an imported text dictionary while preserving exact key casing.
+	 * Later duplicate keys replace earlier ones, matching the dictionary editor.
+	 * Cache entries are tied to the source file's size and modification time;
+	 * callers rebuilding a snapshot invalidate the entry before reading bytes.
+	 */
+	fun parse(file: File): Map<String, Pair<String, String>> {
+		if (!file.isFile) return emptyMap()
+		val path = file.absolutePath
+		val length = file.length()
+		val modified = file.lastModified()
+		parseCache[path]?.let { cached ->
+			if (cached.length == length && cached.modified == modified) {
+				return cached.entries
+			}
+		}
+		val entries = LinkedHashMap<String, Pair<String, String>>()
+		try {
+			forEachEntry(file) { entry ->
+				if (isUsable(entry.first, entry.second)) entries[entry.first] = entry
+			}
+		} catch (unreadable: Exception) {
+			Log.e(TAG, "cannot parse ${file.name}", unreadable)
+			return emptyMap()
+		}
+		val parsed = entries.toMap()
+		parseCache[path] = ParsedCache(length, modified, parsed)
+		return parsed
+	}
+
 	private const val TAG = "evvdroid"
 
 	private const val MAX_KEY = 128
