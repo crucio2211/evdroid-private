@@ -28,7 +28,10 @@
    bytes. The ring has to be bigger than one frame or the callback would wait
    for room that can never arrive. */
 #define FRAME_SAMPLES 1024
-#define RING_BYTES    (128 * 1024)
+/* Match Apple's bounded 16-block handoff. One frame is 1024 mono samples,
+   stored as 16-bit PCM, so the producer can run ahead by at most 32 KiB. */
+#define RING_BLOCKS   16
+#define RING_BYTES    (RING_BLOCKS * FRAME_SAMPLES * sizeof(short))
 
 /* How many milliseconds the end-of-utterance wait will spend watching for the
    engine to take the work up before it stops waiting for that. */
@@ -406,6 +409,75 @@ static int ensure_dict(instance* in) {
 		return 0;
 	}
 	return 1;
+}
+
+
+/* Build a complete replacement beside the active set, then switch it in one
+   ECI call. A failure in any volume leaves the current set untouched. */
+JNIEXPORT jint JNICALL Java_org_evvdroid_EvvNative_replaceDictionaries(
+	JNIEnv* env, jclass cls, jlong handle, jstring mainPath, jstring rootPath, jstring abbrPath) {
+	instance* in = unwrap(handle);
+	jstring javaPaths[3] = { mainPath, rootPath, abbrPath };
+	const char* paths[3] = { NULL, NULL, NULL };
+	ECIDictHand candidate = NULL_DICT_HAND;
+	ECIDictHand previous;
+	int any = 0, result = -1, i;
+	(void)cls;
+	if (in == NULL) return -1;
+
+	for (i = 0; i < 3; ++i) {
+		if (javaPaths[i] != NULL) {
+			paths[i] = (*env)->GetStringUTFChars(env, javaPaths[i], NULL);
+			if (paths[i] == NULL || (*env)->ExceptionCheck(env)) goto done;
+			if (paths[i][0] != '\0') any = 1;
+		}
+	}
+
+	wait_until_idle(in);
+	if (any) {
+		candidate = eciNewDict(in->eci);
+		if (candidate == NULL_DICT_HAND) {
+			LOGE("the engine would not create a replacement dictionary set");
+			goto done;
+		}
+		for (i = 0; i < 3; ++i) {
+			if (paths[i] == NULL || paths[i][0] == '\0') continue;
+			result = eciLoadDict(in->eci, candidate, i, paths[i]);
+			if (result != 0) {
+				LOGE("replacement dictionary volume %d failed with %d", i, result);
+				eciDeleteDict(in->eci, candidate);
+				candidate = NULL_DICT_HAND;
+				goto done;
+			}
+		}
+		if (eciSetDict(in->eci, candidate) != 0) {
+			LOGE("the engine refused the replacement dictionary set");
+			eciDeleteDict(in->eci, candidate);
+			candidate = NULL_DICT_HAND;
+			result = -1;
+			goto done;
+		}
+	} else {
+		if (eciSetDict(in->eci, NULL_DICT_HAND) != 0) {
+			LOGE("the engine refused to restore its built-in dictionaries");
+			result = -1;
+			goto done;
+		}
+	}
+
+	previous = in->dict;
+	in->dict = any ? candidate : NULL_DICT_HAND;
+	candidate = NULL_DICT_HAND;
+	if (previous != NULL_DICT_HAND) eciDeleteDict(in->eci, previous);
+	result = 0;
+
+done:
+	if (candidate != NULL_DICT_HAND) eciDeleteDict(in->eci, candidate);
+	for (i = 0; i < 3; ++i) {
+		if (paths[i] != NULL && javaPaths[i] != NULL)
+			(*env)->ReleaseStringUTFChars(env, javaPaths[i], paths[i]);
+	}
+	return result;
 }
 
 /* Hands a file to the engine's own dictionary loader. Answers one of the

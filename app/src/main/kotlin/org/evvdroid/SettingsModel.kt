@@ -301,9 +301,10 @@ class SettingsModel(context: Context) {
 		val name = pendingDictName
 		val binary = pendingDictBinary
 		val entries = pendingDictEntries
+		val previousPath = settings.dictionaryPath(slot)
 		val into = java.io.File(app.filesDir, "dictionaries")
 		val pending = java.io.File(into, "pending.dic")
-		val file = java.io.File(into, "volume-$slot.dic")
+		val file = java.io.File(into, "volume-$slot-${java.util.UUID.randomUUID()}.dic")
 		dictionaryImporting = true
 		dictionaryIo.execute {
 			val result = runCatching {
@@ -312,7 +313,6 @@ class SettingsModel(context: Context) {
 				pending.delete()
 				into.listFiles()?.filter { it.name.startsWith(".evvdroid-volume-$slot-") }?.forEach { it.delete() }
 				Dictionaries.invalidate(file)
-				if (!binary) Dictionaries.prepareForEngine(file, language)
 			}
 			mainHandler.post {
 				dictionaryImporting = false
@@ -323,6 +323,11 @@ class SettingsModel(context: Context) {
 				val said = if (binary) app.getString(R.string.dictionary_binary, name)
 				else app.getString(R.string.dictionary_entries, name, entries)
 				settings.setDictionary(slot, file.absolutePath, said)
+				previousPath?.takeIf { it != file.absolutePath }?.let {
+					val old = java.io.File(it)
+					old.delete()
+					Dictionaries.invalidate(old)
+				}
 				settings.setDictionaryLanguage(slot, language)
 				dictionaries = dictionaries + (slot to said)
 				chooseUseDictionary(slot, true)
@@ -339,6 +344,7 @@ class SettingsModel(context: Context) {
 	}
 
 	fun removeDictionaries() {
+		DictionaryStore.clear(app)
 		for (volume in Eci.DICT_VOLUMES) {
 			settings.dictionaryPath(volume)?.let {
 				val file = java.io.File(it)
@@ -348,7 +354,10 @@ class SettingsModel(context: Context) {
 			settings.setDictionary(volume, null, null)
 		}
 		java.io.File(app.filesDir, "dictionaries").listFiles()
-			?.filter { it.name.startsWith(".evvdroid-") }
+			?.filter {
+				it.name.startsWith(".evvdroid-") || it.name.startsWith("volume-") ||
+					it.name == "pending.dic"
+			}
 			?.forEach { it.delete() }
 		dictionaries = emptyMap()
 		settings.regexDictionaryPath()?.let { java.io.File(it).delete() }

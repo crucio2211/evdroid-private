@@ -6,11 +6,10 @@ import java.io.File
 /**
  * The pronunciation dictionaries people write for this engine.
  *
- * Two forms come in. A file in the engine's own saved binary form -- what
- * enumain.dic, enuroot.dic and enuabbr.dic are on Windows -- is handed to the
- * engine's loader, which reads it exactly as it does there ([loadBinary]).
- * What people share as text is normalized here to the engine's byte set and
- * handed to its native loader, which indexes the whole file in one pass.
+ * Imported sources are either saved ECI binary volumes, copied unchanged,
+ * or tab-separated text, parsed once and normalized by DictionaryData.
+ * Native ECI owns the active three-volume dictionary set and all lookups;
+ * Kotlin does not rewrite words while an utterance is being synthesized.
  *
  * The engine matches a key against the word as spoken, byte for byte and
  * case included: a key "fatima" does not touch "Fatima". So every key is kept
@@ -35,18 +34,16 @@ object Dictionaries {
 		val entries: Map<String, Pair<String, String>>
 	)
 	private val parseCache = java.util.concurrent.ConcurrentHashMap<String, ParsedCache>()
-	private val apostropheCache = java.util.concurrent.ConcurrentHashMap<String, ParsedCache>()
 
 	/** Invalidates a parsed copy when an imported file is replaced in place. */
 	fun invalidate(file: File) {
 		parseCache.remove(file.absolutePath)
-		apostropheCache.remove(file.absolutePath)
 	}
 
 	/** Whether [file] looks like the engine's saved binary form rather than
 	 *  text. Its bytes are never taught as words, which can fault the engine
 	 *  into silence: a file with nought bytes in its head goes to the
-	 *  engine's own loader instead, through [loadBinary]. */
+	 *  native snapshot builder unchanged. */
 	fun isBinary(file: File): Boolean = try {
 		file.inputStream().use { source ->
 			val head = ByteArray(8192)
@@ -57,10 +54,9 @@ object Dictionaries {
 		false
 	}
 
-	/** Whether [key] to [say] is safe to teach: both present, modestly
-	 *  sized, and free of control characters that come out of binary reads
-	 *  and malformed lines. Anything else is skipped and counted refused
-	 *  rather than handed to the engine.
+
+	/** Whether [key] and [say] are valid entries for a native snapshot:
+	 *  both are present, modestly sized, and free of unsafe control characters.
 	 *
 	 *  Only the C0 controls and DEL count. Windows-1252 maps the C1 byte range
 	 *  to letters and marks (curly apostrophe, oe, s caron) rather than controls. */
@@ -70,14 +66,6 @@ object Dictionaries {
 		return !(key + say).any { it.code < 0x20 || it.code == 0x7F }
 	}
 
-	/** Hands a file in the engine's own saved form to the engine's loader, for
-	 *  [volume]. True when it took the whole file. The engine refuses while it
-	 *  is speaking, so this is for a moment when it is not. */
-	fun loadBinary(engine: EvvEngine, volume: Int, file: File): Boolean {
-		val rc = engine.loadDictionary(volume, file.absolutePath)
-		if (rc != 0) Log.e(TAG, "${file.name}: the engine's loader answered $rc for volume $volume")
-		return rc == 0
-	}
 
 	/** The volume a shared file names, if its name says: enumain goes to
 	 *  main, enuroot to root, enuabbr to abbreviations, and so for every
@@ -102,132 +90,8 @@ object Dictionaries {
 		return LANGUAGE_NAMES[match.groupValues[1].lowercase()]
 	}
 
-	/** Teaches the engine every entry in [file]. Answers how many went in.
-	 *  Only for small files and tests: a big dictionary taught this way
-	 *  blocks the synthesis thread past any reasonable wait, so the service
-	 *  parses once and teaches words as they are spoken instead. */
-	fun load(engine: EvvEngine, volume: Int, file: File): Int {
-		var taught = 0
-		var refused = 0
-		try {
-			forEachEntry(file) { entry ->
-				if (isUsable(entry.first, entry.second)) {
-					if (engine.teachWord(volume, entry.first, entry.second) == 0) taught++ else refused++
-				} else {
-					refused++
-				}
-			}
-		} catch (unreadable: Exception) {
-			Log.e(TAG, "cannot read ${file.name}", unreadable)
-			return taught
-		}
-		if (refused > 0) Log.e(TAG, "${file.name}: $refused of ${taught + refused} entries refused")
-		return taught
-	}
 
-	/** Every usable entry in [file] by its key exactly as written, with what to
-	 *  say instead. Case is part of the key, because it is part of the match in
-	 *  the engine: "US" and "us" are two entries. Reading is fast -- tens of
-	 *  milliseconds even for tens of thousands of lines -- because nothing
-	 *  here touches the engine. A later duplicate of the very same key wins,
-	 *  the way sequential teaching would leave it. */
-	fun parse(file: File): Map<String, Pair<String, String>> {
-		val path = file.absolutePath
-		val length = file.length()
-		val modified = file.lastModified()
-		parseCache[path]?.takeIf { it.length == length && it.modified == modified }?.let {
-			return it.entries
-		}
-		// Do not hold a global lock while reading a large dictionary. The TTS
-		// service warms caches in the background; if speech arrives at the same
-		// time, it may do a second parse instead of blocking TalkBack behind the
-		// cache warmup. Imported files are immutable after being copied in.
-		val out = LinkedHashMap<String, Pair<String, String>>()
-		try {
-			forEachEntry(file) { entry ->
-				if (isUsable(entry.first, entry.second)) {
-					out[entry.first] = entry
-				}
-			}
-		} catch (unreadable: Exception) {
-			Log.e(TAG, "cannot read ${file.name}", unreadable)
-		}
-		val parsed = out.toMap()
-		parseCache[path] = ParsedCache(file.length(), file.lastModified(), parsed)
-		return parsed
-	}
 
-	/** The small text-dictionary subset needed for apostrophe rewriting. All
-	 *  ordinary entries go straight to the native dictionary and do not need a
-	 *  duplicate 65k-entry Kotlin map. */
-	fun apostropheEntries(file: File): Map<String, Pair<String, String>> {
-		val path = file.absolutePath
-		val length = file.length()
-		val modified = file.lastModified()
-		apostropheCache[path]?.takeIf { it.length == length && it.modified == modified }?.let {
-			return it.entries
-		}
-		val out = LinkedHashMap<String, Pair<String, String>>()
-		try {
-			forEachEntry(file) { entry ->
-				if (isUsable(entry.first, entry.second) && entry.first.any { it == '\'' || it == '\u2019' }) {
-					out[entry.first] = entry
-				}
-			}
-		} catch (unreadable: Exception) {
-			Log.e(TAG, "cannot read ${file.name}", unreadable)
-		}
-		val parsed = out.toMap()
-		apostropheCache[path] = ParsedCache(file.length(), file.lastModified(), parsed)
-		return parsed
-	}
-
-	/** Writes a normalized, engine-encoded copy for eciLoadDict. The native
-	 *  loader indexes the whole file in one call, avoiding one JNI dictionary
-	 *  update for each entry at speech time. The source hash makes this a reusable
-	 *  cache; imports with the same path but new contents get a fresh file. */
-	fun prepareForEngine(file: File, language: Int): File {
-		val hasher = java.security.MessageDigest.getInstance("SHA-256")
-		file.inputStream().buffered().use { input ->
-			val buffer = ByteArray(16 * 1024)
-			while (true) {
-				val read = input.read(buffer)
-				if (read < 0) break
-				hasher.update(buffer, 0, read)
-			}
-		}
-		val digest = hasher.digest().take(12).joinToString("") { "%02x".format(it.toInt() and 0xff) }
-		val parent = file.parentFile ?: throw java.io.IOException("dictionary has no parent directory")
-		val sourceTag = file.nameWithoutExtension.replace(Regex("[^A-Za-z0-9_-]"), "_").take(24)
-		val cached = File(parent, ".evvdroid-$sourceTag-${language.toString(16)}-$digest.dic")
-		if (cached.exists()) return cached
-
-		val temporary = File.createTempFile("evv-dict-", ".tmp", parent)
-		try {
-			java.io.BufferedOutputStream(temporary.outputStream()).use { out ->
-				forEachEntry(file) { entry ->
-					if (!isUsable(entry.first, entry.second)) return@forEachEntry
-					val keyBytes = EngineText.encode(language, entry.first)
-					val sayBytes = EngineText.encode(language, entry.second)
-					if (keyBytes.isEmpty() || keyBytes.size > 128 || sayBytes.isEmpty() || sayBytes.size > 512) return@forEachEntry
-					val delimiter = { byte: Byte -> byte == 0.toByte() || byte == '\t'.code.toByte() || byte == '\r'.code.toByte() || byte == '\n'.code.toByte() }
-					if (keyBytes.any(delimiter) || sayBytes.any(delimiter)) return@forEachEntry
-					out.write(keyBytes)
-					out.write('\t'.code)
-					out.write(sayBytes)
-					out.write('\n'.code)
-				}
-			}
-			if (!temporary.renameTo(cached)) {
-				if (!cached.exists()) temporary.copyTo(cached)
-				temporary.delete()
-			}
-		} catch (failed: Exception) {
-			temporary.delete()
-			throw failed
-		}
-		return cached
-	}
 
 	/** One key and what to say, or null when it is no entry.
 	 *  Accepts tab separation or whitespace, ignores comments (#, //, ;),
@@ -315,6 +179,37 @@ object Dictionaries {
 			return 0
 		}
 		return count
+	}
+
+
+	/**
+	 * Parses an imported text dictionary while preserving exact key casing.
+	 * Later duplicate keys replace earlier ones, matching the dictionary editor.
+	 * Cache entries are tied to the source file's size and modification time;
+	 * callers rebuilding a snapshot invalidate the entry before reading bytes.
+	 */
+	fun parse(file: File): Map<String, Pair<String, String>> {
+		if (!file.isFile) return emptyMap()
+		val path = file.absolutePath
+		val length = file.length()
+		val modified = file.lastModified()
+		parseCache[path]?.let { cached ->
+			if (cached.length == length && cached.modified == modified) {
+				return cached.entries
+			}
+		}
+		val entries = LinkedHashMap<String, Pair<String, String>>()
+		try {
+			forEachEntry(file) { entry ->
+				if (isUsable(entry.first, entry.second)) entries[entry.first] = entry
+			}
+		} catch (unreadable: Exception) {
+			Log.e(TAG, "cannot parse ${file.name}", unreadable)
+			return emptyMap()
+		}
+		val parsed = entries.toMap()
+		parseCache[path] = ParsedCache(length, modified, parsed)
+		return parsed
 	}
 
 	private const val TAG = "evvdroid"

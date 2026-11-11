@@ -75,9 +75,10 @@ class EngineTest {
 	fun aLongerUtteranceRunsPastOneRingful() {
 		val e = open()
 		val pcm = collect(e, SENTENCE.repeat(12))
-		// The ring holds 128 kilobytes, so this proves the engine's thread and
-		// the reader hand over more than one ringful without deadlocking.
-		assertTrue("only ${pcm.size} bytes came out", pcm.size > 128 * 1024)
+		// The bounded native ring holds 16 frames of 1024 mono 16-bit
+		// samples (32 KiB). This proves longer speech streams across many
+		// ringfuls without deadlocking the producer and reader.
+		assertTrue("only ${pcm.size} bytes came out", pcm.size > 16 * 1024 * 2)
 	}
 
 	@Test
