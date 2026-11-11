@@ -31,8 +31,9 @@ class EvvTtsService : TextToSpeechService() {
 		Thread(task, "evvdroid-engine-load").apply { isDaemon = true }
 	}
 	private val engineLoadLock = Any()
-	private var pendingEngineLanguage: Int? = null
-	private var pendingEngine: java.util.concurrent.Future<EvvEngine?>? = null
+	// A pending load is tracked per language, so rapid language requests do
+	// not overwrite one another or queue duplicate ECI initializations.
+	private val pendingEngines = java.util.concurrent.ConcurrentHashMap<Int, java.util.concurrent.Future<EvvEngine?>>()
 
 	/** Written on one binder thread and read on another: a stop the pump
 	 *  never sees is audio committed past it, and that is the stale sliver
@@ -99,6 +100,7 @@ class EvvTtsService : TextToSpeechService() {
 						}
 					}
 					engines.clear()
+					pendingEngines.clear()
 					engine = null
 					appliedRevisions.clear()
 					retireDictionarySnapshots()
@@ -228,11 +230,12 @@ class EvvTtsService : TextToSpeechService() {
 			completed.run()
 			return@synchronized completed
 		}
-		pendingEngine?.takeIf { pendingEngineLanguage == language && !it.isDone }?.let {
+		pendingEngines[language]?.takeIf { !it.isDone }?.let {
 			return@synchronized it
 		}
-		pendingEngineLanguage = language
-		engineExecutor.submit<EvvEngine?> { openEngine(language) }.also { pendingEngine = it }
+		engineExecutor.submit<EvvEngine?> { openEngine(language) }.also {
+			pendingEngines[language] = it
+		}
 	}
 
 	private fun ensureEngine(language: Int): EvvEngine? {
