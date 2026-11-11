@@ -47,10 +47,29 @@ class EvvTtsService : TextToSpeechService() {
 	override fun onCreate() {
 		settings = Settings(this)
 		super.onCreate()
-		// The emoji table builds on first touch, which
-		// would otherwise land on the first utterance. Warm it here, off
-		// every thread that speaks.
+		// The emoji table builds on first touch, which would otherwise land
+		// on the first utterance. Warm it away from the speech thread.
 		Thread({ EmojiNames.STARTERS.size }, "emoji-warmup").start()
+
+		// Screen readers often reconnect and speak immediately after the TTS
+		// service is created. Start the likely engine now, rather than waiting
+		// for onLoadLanguage or the first onSynthesizeText call to begin loading
+		// Main, Root and Abbreviations. This work stays on engineExecutor, so
+		// binding and settings callbacks remain responsive.
+		val selected = settings
+		val systemLocale = Locale.getDefault()
+		val requested = if (selected?.forceLanguage == true &&
+			EvvEngine.available.contains(selected.forcedLanguage)
+		) {
+			selected.forcedLanguage
+		} else {
+			matchLanguage(systemLocale.language, systemLocale.country)?.first
+				?: EvvEngine.available.firstOrNull()
+		}
+		if (requested != null) {
+			Log.i(TAG, "prewarming the likely screen-reader language 0x%08x".format(requested))
+			requestEngine(requested)
+		}
 	}
 
 
