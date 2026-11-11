@@ -51,14 +51,6 @@ internal object EvvNative {
 
 	external fun copyVoice(handle: Long, from: Int, to: Int): Int
 
-	/** Answers one of the eciDict codes, so nought is success. */
-	external fun loadDictionary(handle: Long, volume: Int, path: String): Int
-
-	external fun teachWord(handle: Long, volume: Int, key: ByteArray, say: ByteArray): Int
-
-	external fun lookUpWord(handle: Long, volume: Int, key: ByteArray): String?
-
-	external fun forgetDictionaries(handle: Long)
 
 	external fun languages(): IntArray
 
