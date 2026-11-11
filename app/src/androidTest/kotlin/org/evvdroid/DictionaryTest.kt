@@ -70,7 +70,7 @@ class DictionaryTest {
 	fun preparedPhonemeFileLoadsThroughTheNativeFileLoader() {
 		val e = open()
 		try {
-			val source = write("DOJ\\tdee oe jeigh\\nDOS\\t`[das]\\n")
+			val source = write("DOJ\tdee oe jeigh\nDOS\t`[das]\n")
 			val prepared = Dictionaries.prepareForEngine(source, e.language)
 			assertEquals("native file loader refused the external dictionary", 0,
 				e.loadDictionary(Eci.DICT_MAIN, prepared.absolutePath))
@@ -83,11 +83,11 @@ class DictionaryTest {
 
 	@Test
 	fun contentFingerprintDetectsSameSizeSameTimestampReplacement() {
-		val file = write("DOJ\\tfirst\\n")
+		val file = write("DOJ\tfirst\n")
 		val length = file.length()
 		val modified = file.lastModified()
 		val before = Dictionaries.contentFingerprint(file)
-		file.writeBytes("DOJ\\tother\\n".toByteArray(Charsets.ISO_8859_1))
+		file.writeBytes("DOJ\tother\n".toByteArray(Charsets.ISO_8859_1))
 		assertEquals("test replacement must keep the same size", length, file.length())
 		assertTrue("could not restore the original timestamp", file.setLastModified(modified))
 		assertEquals("test replacement must keep the same timestamp", modified, file.lastModified())
