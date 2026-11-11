@@ -17,7 +17,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <sys/types.h>
 #include <time.h>
 #include <android/log.h>
 
@@ -446,9 +445,8 @@ static int load_dictionary_volume(ECIHand eci, ECIDictHand dict,
 	size_t got;
 	int answer = 0;
 	int entries = 0;
-	char* line = NULL;
-	size_t capacity = 0;
-	ssize_t length;
+	char line[1024];
+	size_t length;
 	if (file == NULL)
 		return -1;
 	got = fread(head, 1, sizeof head, file);
@@ -464,8 +462,14 @@ static int load_dictionary_volume(ECIHand eci, ECIDictHand dict,
 		fclose(file);
 		return -1;
 	}
-	while ((length = getline(&line, &capacity, file)) >= 0) {
+	while (fgets(line, sizeof line, file) != NULL) {
 		char* tab;
+		length = strlen(line);
+		if (length == sizeof line - 1 && line[length - 1] != '\n' && !feof(file)) {
+			LOGE("dictionary volume %d contains an oversized text line in %s", volume, path);
+			answer = -1;
+			break;
+		}
 		while (length > 0 && (line[length - 1] == '\n' || line[length - 1] == '\r'))
 			line[--length] = 0;
 		if (length == 0 || line[0] == '#' || line[0] == ';' ||
@@ -486,7 +490,6 @@ static int load_dictionary_volume(ECIHand eci, ECIDictHand dict,
 	}
 	if (ferror(file) && answer == 0)
 		answer = -1;
-	free(line);
 	fclose(file);
 	if (answer == 0)
 		LOGI("dictionary volume %d staged %d text entries from %s", volume, entries, path);
