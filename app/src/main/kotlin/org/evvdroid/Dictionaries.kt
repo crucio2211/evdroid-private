@@ -83,6 +83,7 @@ object Dictionaries {
 	 *  The engine's native loader receives the complete file; no per-word map
 	 *  is retained or rebuilt by the speech service. */
 	fun writeEngineFile(file: File, language: Int, destination: File) {
+		var written = 0
 		java.io.BufferedOutputStream(destination.outputStream()).use { out ->
 			forEachEntry(file) { entry ->
 				if (!isUsable(entry.first, entry.second)) return@forEachEntry
@@ -95,8 +96,11 @@ object Dictionaries {
 				out.write('\t'.code)
 				out.write(sayBytes)
 				out.write('\n'.code)
+				written++
 			}
 		}
+		if (written == 0) throw java.io.IOException("text dictionary has no usable entries")
+		java.io.FileOutputStream(destination, true).use { it.fd.sync() }
 	}
 
 	/** One key and what to say, or null when it is no entry.
