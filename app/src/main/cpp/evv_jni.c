@@ -28,7 +28,10 @@
    bytes. The ring has to be bigger than one frame or the callback would wait
    for room that can never arrive. */
 #define FRAME_SAMPLES 1024
-#define RING_BYTES    (128 * 1024)
+/* Match Apple's bounded 16-block handoff. One frame is 1024 mono samples,
+   stored as 16-bit PCM, so the producer can run ahead by at most 32 KiB. */
+#define RING_BLOCKS   16
+#define RING_BYTES    (RING_BLOCKS * FRAME_SAMPLES * sizeof(short))
 
 /* How many milliseconds the end-of-utterance wait will spend watching for the
    engine to take the work up before it stops waiting for that. */
