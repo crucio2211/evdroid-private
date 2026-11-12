@@ -1035,8 +1035,11 @@ int synthesize(DeltaThis *d, void *buf, int32_t isArray, int32_t *streamA,
     cp.callback_mode = 2;
     cp.samples_fn = (klatt_samples_fn)ourKlattCallback;
 
-    if (!a7)
-        a7 = 5;
+    /* Original Eloquence acoustic clock: sample the native acoustic
+       parameter streams on their fixed five-millisecond grid. The final
+       frame is shortened by sendStreamParameters/sendArrayParameters when
+       needed, so this does not alter the utterance's total duration. */
+    a7 = 5;
 
     last = (LastGlob *)DL_BUF_140(lang);
     /* Turning the companion on or off starts both synthesisers afresh, so
