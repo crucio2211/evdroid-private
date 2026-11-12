@@ -80,7 +80,7 @@ jobs:
         # build host restarts its run numbers at 1, so a raw run number
         # would read as a downgrade next to an installed build and Android
         # would refuse it with "app not installed".
-        run: ./gradlew assembleRelease assembleDebugAndroidTest -Pevvdroid.abis="$EVVDROID_ABIS" -Pevvdroid.minify=true -Pevvdroid.legacyPackaging=true -Pevvdroid.rules=bytecode -Pevvdroid.langs="$EVVDROID_LANGS" -Pevvdroid.versionCode="$((1000000 + GITHUB_RUN_NUMBER))" -Pevvdroid.versionName=2.0 -Pevvdroid.keystore="$EVVDROID_KEYSTORE" -Pevvdroid.storePass="${{ secrets.EVVDROID_STORE_PASS }}" -Pevvdroid.keyPass="${{ secrets.EVVDROID_KEY_PASS }}" --stacktrace
+        run: ./gradlew assembleRelease assembleDebugAndroidTest -Pevvdroid.abis="$EVVDROID_ABIS" -Pevvdroid.minify=true -Pevvdroid.legacyPackaging=true -Pevvdroid.rules=bytecode -Pevvdroid.langs="$EVVDROID_LANGS" -Pevvdroid.versionCode="$((1000000 + GITHUB_RUN_NUMBER))" -Pevvdroid.versionName=2.1 -Pevvdroid.keystore="$EVVDROID_KEYSTORE" -Pevvdroid.storePass="${{ secrets.EVVDROID_STORE_PASS }}" -Pevvdroid.keyPass="${{ secrets.EVVDROID_KEY_PASS }}" --stacktrace
 
       - name: Verify the APK contains every selected ABI
         run: |
