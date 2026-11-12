@@ -1036,8 +1036,8 @@ int synthesize(DeltaThis *d, void *buf, int32_t isArray, int32_t *streamA,
     cp.samples_fn = (klatt_samples_fn)ourKlattCallback;
 
     /* Refined acoustic clock: sample the native acoustic parameter
-       streams on a fixed two-millisecond grid. */
-    a7 = 2;
+       streams on a fixed five-millisecond grid. */
+    a7 = 5;
 
     last = (LastGlob *)DL_BUF_140(lang);
     /* Turning the companion on or off starts both synthesisers afresh, so
