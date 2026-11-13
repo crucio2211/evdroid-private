@@ -303,12 +303,19 @@ int STDCALL es_reset(OldInst *h)
         OI_BUSY(inst) = 0;
         return 0;
     }
+    if (setECIerror(api_set_param(OI_NEW(inst), 0,
+                                  ECI_PARAM_NATIVE_SPEED_SCALE, 1000), inst)) {
+        OI_BUSY(inst) = 0;
+        return 0;
+    }
 
     /* A reset puts every setting back, the wideband voice with them. The
        engine keeps its own across a reset, so it is told at the next
        utterance, as it is of any other change. */
     inst->wideband = 0;
     inst->pauses = g_DefaultPauses;
+    inst->native_speed_permille = 1000;
+    inst->native_speed_permille_sent = 1000;
 
     eo_clearManualQueue(inst);
     if (!eo_getDefaultEnvironment(inst, 0)

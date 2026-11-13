@@ -287,7 +287,7 @@ JNIEXPORT void JNICALL Java_org_evvdroid_EvvNative_destroy(JNIEnv* env, jclass c
  * the engine allows only for Chinese, Japanese and Korean; Kotlin has already
  * turned it into that set. It is kept until the next utterance because nothing
  * here knows whether the engine copied it. */
-JNIEXPORT jboolean JNICALL Java_org_evvdroid_EvvNative_speak(JNIEnv* env, jclass cls, jlong handle, jbyteArray text) {
+JNIEXPORT jboolean JNICALL Java_org_evvdroid_EvvNative_speak(JNIEnv* env, jclass cls, jlong handle, jbyteArray text, jint native_speed_permille) {
 	instance*      in = unwrap(handle);
 	jsize          n;
 	unsigned char* buf;
@@ -318,6 +318,14 @@ JNIEXPORT jboolean JNICALL Java_org_evvdroid_EvvNative_speak(JNIEnv* env, jclass
 	in->text = buf;
 	if (!in->running) {
 		LOGE("there is no worker to run the engine");
+		return finished(in);
+	}
+	if (native_speed_permille < 1 || native_speed_permille > 60000) {
+		LOGE("invalid native speed scale %d", native_speed_permille);
+		return finished(in);
+	}
+	if (eciSetParam(in->eci, eciNativeSpeedScale, native_speed_permille) < 0) {
+		LOGE("the engine refused native speed scale %d", native_speed_permille);
 		return finished(in);
 	}
 	if (!eciAddText(in->eci, buf)) {

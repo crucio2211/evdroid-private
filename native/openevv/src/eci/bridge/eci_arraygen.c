@@ -241,7 +241,11 @@ int32_t sendArrayParameters(delta_state *d, int32_t from, int32_t to,
 {
     int32_t frame[FRAME_PARMS];
     int32_t stopped = 0;
-    int32_t at;
+    int64_t sourceAt;
+    int64_t sourceEnd;
+    int32_t speed;
+    int32_t sampleAt;
+    int32_t frameStep;
     int32_t i;
 
     (void)unused;
@@ -292,27 +296,38 @@ int32_t sendArrayParameters(delta_state *d, int32_t from, int32_t to,
         GEN_SET(d)->to = to;
     }
 
-    for (at = from; !stopped; at += step) {
+    speed = GEN(d)->native_speed_permille;
+    if (speed < 1 || speed > 60000)
+        speed = 1000;
+    sourceAt = (int64_t)from * 1000;
+    sourceEnd = (int64_t)to * 1000;
+    while (!stopped && sourceAt < sourceEnd) {
+        int64_t remaining;
         if (checkInterrupt(d))
             break;
-        if (!valueSetInRange(GEN_SET(d), at))
+        sampleAt = (int32_t)((sourceAt + 500) / 1000);
+        if (sampleAt >= to)
+            sampleAt = to - 1;
+        if (sampleAt < from)
+            sampleAt = from;
+        if (!valueSetInRange(GEN_SET(d), sampleAt))
             break;
-
         if (arrayTap() != 0)
-            fprintf(arrayTap(), "frame %d\n", (int)at);
-
+            fprintf(arrayTap(), "frame %d\n", (int)sampleAt);
         for (i = 0; i < FRAME_PARMS; i++) {
             if (map[i + 1] == -1)
                 continue;
-            frame[i] = valueSetValue(d, GEN_SET(d), map[i + 1], at);
+            frame[i] = valueSetValue(d, GEN_SET(d), map[i + 1], sampleAt);
         }
-
-        /* The last frame is short, so the run stops where it was asked to. */
-        if (at + step > to)
-            frame[0] = at + step - to;
-
+        remaining = (sourceEnd - sourceAt + speed - 1) / speed;
+        frameStep = remaining > step ? step : (int32_t)remaining;
+        if (frameStep < 1)
+            frameStep = 1;
+        frame[0] = frameStep;
         if (!klattSynthFrame(d, frame))
             stopped = 1;
+        else
+            sourceAt += (int64_t)frameStep * speed;
     }
 
     return stopped == 0;

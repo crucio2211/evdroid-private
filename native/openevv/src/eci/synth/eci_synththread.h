@@ -205,6 +205,8 @@ struct SynthThread {
    Eloquence 64 drivers give their own setting of the same name. */
 #define ECI_PARAM_PAUSES    22
 #define ECI_OLD_PAUSES      33
+#define ECI_PARAM_NATIVE_SPEED_SCALE 23
+#define ECI_OLD_NATIVE_SPEED_SCALE   34
 #define PAUSES_NONE         0
 #define PAUSES_AT_END       1
 #define PAUSES_ALWAYS       2

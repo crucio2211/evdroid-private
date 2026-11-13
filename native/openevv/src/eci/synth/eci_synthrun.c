@@ -269,6 +269,20 @@ void setPausesRun(SynthThread *t, int32_t mode, int32_t seq)
     finished(t);
 }
 
+/* This queue item changes duration traversal between utterances, without
+   changing Klatt's sample clock or the voice's stored speed parameter. */
+extern void *ew_machine(void *engine);
+extern int setNativeSpeedPermille(void *d, int32_t speed);
+
+void setNativeSpeedScaleRun(SynthThread *t, int32_t speed, int32_t seq)
+{
+    (void)seq;
+    stw_processRemaining(t);
+    if (!setNativeSpeedPermille(ew_machine(ST_ENGINE(t)), speed))
+        stb_postEngineError(t);
+    finished(t);
+}
+
 /* A voice change is the widest of them: the sample format may have moved
    under it, the concatenative side may or may not have this voice, and if
    that answer has changed since last time the caller is told so. */

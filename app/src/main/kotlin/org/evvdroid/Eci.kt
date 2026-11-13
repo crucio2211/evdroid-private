@@ -14,6 +14,7 @@ object Eci {
 	const val PARAM_NUMBER_MODE = 10
 	// Public eciSetParam uses the legacy parameter 33; OpenEVV forwards it internally to parameter 22.
 	const val PARAM_PAUSES = 33
+	const val PARAM_NATIVE_SPEED_SCALE = 34
 
 	const val PAUSES_NONE = 0
 	const val PAUSES_AT_END = 1

@@ -28,9 +28,8 @@ object Prosody {
 	/** The rate and pitch to speak one utterance at, in the engine's own
 	 *  numbers. A malformed annotation is spoken aloud rather than obeyed, so
 	 *  both are clamped to what the engine will take. */
-	fun voice(speed: Int, pitch: Int): String =
-		"`vs${Eci.clampVoice(Eci.VOICE_SPEED, speed)} " +
-			"`vb${Eci.clampVoice(Eci.VOICE_PITCH_BASELINE, pitch)} "
+	fun pitch(value: Int): String =
+		"`vb${Eci.clampVoice(Eci.VOICE_PITCH_BASELINE, value)} "
 
 	private const val ON = "`pp1 "
 	private const val OFF = "`pp0 "

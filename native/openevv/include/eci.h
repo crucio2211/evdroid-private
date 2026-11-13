@@ -179,7 +179,9 @@ typedef enum {
        did. A pause annotation at the very end is the caller's choice and is
        left alone. eciSetDefaultParam takes it too, and eciReset puts back
        the default. */
-    eciPauseMode          = 33
+    eciPauseMode          = 33,
+    /* Native duration scaling; 1000 is the language's native timing. */
+    eciNativeSpeedScale   = 34
 } ECIParam;
 
 /* A voice's eight, which every one of the eight preset voices has.

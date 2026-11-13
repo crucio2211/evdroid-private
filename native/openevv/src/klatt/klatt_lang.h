@@ -98,6 +98,9 @@ struct DeltaLang {
        of it; like the rate, it is read at the top of an utterance. */
     int32_t      wide_wanted;
     struct WideBand *wide;
+
+    /* Source-time progression per output millisecond; 1000 is native timing. */
+    int32_t      native_speed_permille;
 };
 
 /* Every parameter frame goes to the synthesiser through this, so that the

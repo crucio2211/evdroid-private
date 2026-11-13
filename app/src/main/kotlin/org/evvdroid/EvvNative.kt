@@ -25,7 +25,7 @@ internal object EvvNative {
 
 	external fun destroy(handle: Long)
 
-	external fun speak(handle: Long, text: ByteArray): Boolean
+	external fun speak(handle: Long, text: ByteArray, nativeSpeedPermille: Int): Boolean
 
 	/** Fills [dst] with PCM bytes. Answers 0 at the end of the utterance and
 	 *  -1 when it was stopped or something went wrong. */

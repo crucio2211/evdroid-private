@@ -77,6 +77,8 @@ typedef struct OldInst {
     /* And eciPauseMode, which goes the same way. */
     int32_t  pauses;
     int32_t  pauses_sent;
+    int32_t  native_speed_permille;
+    int32_t  native_speed_permille_sent;
 } OldInst;
 
 /* What eciPauseMode a new instance starts with, which eciSetDefaultParam

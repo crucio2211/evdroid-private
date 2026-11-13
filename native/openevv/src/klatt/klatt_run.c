@@ -77,6 +77,7 @@ typedef delta_state DeltaThis;
 #define DL_BUILT_CO(l)    ((l)->built_co)
 #define DL_WIDE_WANTED(l) ((l)->wide_wanted)
 #define DL_WIDE(l)        ((l)->wide)
+#define DL_NATIVE_SPEED(l) ((l)->native_speed_permille)
 #define DL_BYTES          sizeof(DeltaLang)
 
 /* What the language record keeps of the last utterance: the synthesiser's
@@ -520,6 +521,7 @@ int dlang_new(DeltaThis *d)
         return DELTA_NO_ROOM;
     lang = DT_LANG(d);
     memset(lang, 0, DL_BYTES);
+    DL_NATIVE_SPEED(lang) = 1000;
 
     DL_BUF_100(lang) = malloc(BUF_100_BYTES);
     if (!DL_BUF_100(lang)) {
@@ -847,6 +849,15 @@ int setNativeSampleRate(DeltaThis *d, int32_t hz)
     return 1;
 }
 
+/* Independent native duration scaling; 1000 leaves language timing intact. */
+int setNativeSpeedPermille(DeltaThis *d, int32_t speed)
+{
+    if (!d || !DT_LANG(d) || speed < 1 || speed > 60000)
+        return 0;
+    DL_NATIVE_SPEED(DT_LANG(d)) = speed;
+    return 1;
+}
+
 /* Whether the caller wants the wideband voice. Like the rate, it is read at
    the top of every utterance rather than acted on here. */
 int setWidebandSynthesis(DeltaThis *d, int32_t on)
@@ -938,6 +949,9 @@ int synthesize(DeltaThis *d, void *buf, int32_t isArray, int32_t *streamA,
     KlattConstParms cp;
     LastGlob *last;
     int32_t duration;
+    int32_t renderedDuration;
+    int32_t renderedMore;
+    int32_t nativeSpeed;
     int32_t outRate;
     int wasIdle;
     int changed = 0;
@@ -1035,8 +1049,8 @@ int synthesize(DeltaThis *d, void *buf, int32_t isArray, int32_t *streamA,
     cp.callback_mode = 2;
     cp.samples_fn = (klatt_samples_fn)ourKlattCallback;
 
-    /* Refined acoustic clock: sample the native acoustic parameter
-       streams on a fixed five-millisecond grid. */
+    /* Keep the native acoustic sampling grid fixed. The separate speed
+       setting changes only the language-time stream cursor. */
     a7 = 5;
 
     last = (LastGlob *)DL_BUF_140(lang);
@@ -1121,10 +1135,23 @@ int synthesize(DeltaThis *d, void *buf, int32_t isArray, int32_t *streamA,
         SD_OPEN(dev) = 1;
     }
 
+    /* Convert source-language duration to output duration. The renderer
+       still emits frames on the fixed five-ms acoustic clock. */
+    nativeSpeed = DL_NATIVE_SPEED(lang);
+    if (nativeSpeed < 1 || nativeSpeed > 60000)
+        nativeSpeed = 1000;
+    renderedDuration = duration > 0
+        ? (int32_t)(((int64_t)duration * 1000 + nativeSpeed - 1) / nativeSpeed)
+        : 0;
+    renderedMore = more > 0
+        ? (int32_t)(((int64_t)more * 1000 + nativeSpeed - 1) / nativeSpeed)
+        : 0;
+
     /* How much of this utterance is being asked for now, and how much is
-       being carried over. */
+       being carried over. These counts are output milliseconds. */
     if (more) {
-        SD_PENDING(dev) = (more > duration) ? more : duration;
+        SD_PENDING(dev) = (renderedMore > renderedDuration)
+            ? renderedMore : renderedDuration;
         if (SD_SAMPLE_CB(dev) && SD_DUR_CB(dev))
             ((void (*)(int32_t, uint32_t, void *))SD_DUR_CB(dev))(
                 SD_PENDING(dev) * outRate / MS_PER_SECOND,
@@ -1150,8 +1177,8 @@ int synthesize(DeltaThis *d, void *buf, int32_t isArray, int32_t *streamA,
     if (checkInterrupt(d))
         SD_PENDING(dev) = 0;
 
-    if (SD_PENDING(dev) > duration)
-        SD_PENDING(dev) -= duration;
+    if (SD_PENDING(dev) > renderedDuration)
+        SD_PENDING(dev) -= renderedDuration;
     else
         SD_PENDING(dev) = 0;
 

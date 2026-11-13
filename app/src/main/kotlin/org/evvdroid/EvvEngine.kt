@@ -208,14 +208,18 @@ class EvvEngine private constructor(private var handle: Long, val language: Int)
 		AutoCloseable { EvvNative.releaseDictionaryLease(current) }
 	}
 
-	/** Queues [text] and starts the engine. The samples come out of [read].
-	 *  The rate and pitch asked for go in front of the words rather than into
-	 *  the voice, so that an utterance carries its own and nothing is left to
-	 *  be refused. */
+	/** Queues [text] and starts synthesis. Rate uses the independent native
+	 *  duration control; pitch remains an annotation. The saved voice Speed and
+	 *  the renderer's fixed acoustic clock are left unchanged. */
 	fun speak(text: String): Boolean = synchronized(guard) {
 		if (closed) return false
-		val ask = if (wantSpeed >= 0 && wantPitch >= 0) Prosody.voice(wantSpeed, wantPitch) else ""
-		return EvvNative.speak(handle, EngineText.encode(language, ask + text))
+		val scale = if (baseSpeed >= 0 && wantSpeed >= 0) {
+			kotlin.math.round(
+				SpeechRate.timesFor(wantSpeed) / SpeechRate.timesFor(baseSpeed) * 1000.0
+			).toInt().coerceIn(1, 60000)
+		} else 1000
+		val pitch = if (wantPitch >= 0) Prosody.pitch(wantPitch) else ""
+		return EvvNative.speak(handle, EngineText.encode(language, pitch + text), scale)
 	}
 
 	/** Bytes of PCM, blocking until there are some. 0 ends the utterance and

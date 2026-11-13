@@ -52,6 +52,7 @@ extern THIS int32_t st_setPhonemeIndicies(void *t, int32_t v)
     MANGLED("?setPhonemeIndicies@SynthThread@@QAEJJ@Z");
 extern int32_t st_setWideband(void *t, int32_t v);
 extern int32_t st_setPauses(void *t, int32_t v);
+extern int32_t st_setNativeSpeedScale(void *t, int32_t v);
 extern THIS int32_t st_changeFilter(void *t, int32_t a, int32_t b, int32_t c,
                                     int8_t d)
     MANGLED("?changeFilter@SynthThread@@QAEJJJJ_N@Z");
@@ -272,6 +273,8 @@ THIS int32_t es_getParam(ECIstate *s, int32_t kind, int32_t p, int32_t *out)
         if (kind == 0) {
             if (p >= 0 && (p <= 4 || (p > 12 && p <= 16)))
                 *out = s->param[p];
+            else if (p == ECI_PARAM_NATIVE_SPEED_SCALE)
+                *out = s->param[17] ? s->param[17] : 1000;
             else
                 rc = ECI_BAD_PARAM;
         } else if (kind == 1) {
@@ -360,6 +363,14 @@ static THIS int32_t setGeneral(ECIstate *s, int32_t p, int32_t v,
         if (v < PAUSES_NONE || v > PAUSES_ALWAYS)
             return ECI_BAD_PARAM;
         return st_setPauses(thread, v);
+
+    case ECI_PARAM_NATIVE_SPEED_SCALE:
+        if (v < 1 || v > 60000)
+            return ECI_BAD_PARAM;
+        rc = st_setNativeSpeedScale(thread, v);
+        if (rc == 0)
+            s->param[17] = v;
+        return rc;
 
     case 19:
         return st_changeFilter(thread, p, v, extra, 0);
@@ -538,6 +549,7 @@ THIS int32_t es_setInitialState(ECIstate *s, void *thread, int32_t lang)
         ini_dtor(ini);
         return ECI_FAILED;
     }
+    s->param[17] = 1000;
 
     if (s->lang != 0) {
         cpp_delete(s->lang);

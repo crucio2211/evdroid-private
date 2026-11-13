@@ -348,7 +348,11 @@ int32_t sendStreamParameters(delta_state *d, int32_t start, int32_t unused,
     int32_t frame[FRAME_PARMS];
     int32_t stopped = 0;
     int8_t  field = MAP_FIELD(map);
-    int32_t at;
+    int64_t sourceAt;
+    int64_t sourceEnd;
+    int32_t speed;
+    int32_t sampleAt;
+    int32_t frameStep;
     int32_t i;
 
     (void)b;
@@ -371,26 +375,40 @@ int32_t sendStreamParameters(delta_state *d, int32_t start, int32_t unused,
         valueSetReset(d, GEN_SET(d), field, start, unused, end);
     }
 
-    for (at = 0; !stopped; at += step) {
+    speed = GEN(d)->native_speed_permille;
+    if (speed < 1 || speed > 60000)
+        speed = 1000;
+    sourceAt = 0;
+    sourceEnd = (int64_t)end * 1000;
+
+    /* Only the source cursor is scaled. Output frames remain on the fixed
+       acoustic grid; sub-ms source positions are rounded for the stream reader. */
+    while (!stopped && sourceAt < sourceEnd) {
+        int64_t remaining;
         if (checkInterrupt(d))
             break;
-        if (!valueSetInRange(GEN_SET(d), at))
+        sampleAt = (int32_t)((sourceAt + 500) / 1000);
+        if (sampleAt >= end)
+            sampleAt = end - 1;
+        if (sampleAt < 0)
+            sampleAt = 0;
+        if (!valueSetInRange(GEN_SET(d), sampleAt))
             break;
-
         for (i = 0; i < FRAME_PARMS; i++) {
             if (MAP_STREAM(map, i) == NO_STREAM)
                 continue;
-            /* A value that cannot be read stops the run, which is why the
-               same flag serves both. */
-            frame[i] = valueSetValue(d, GEN_SET(d), MAP_STREAM(map, i), at,
-                                     &stopped);
+            frame[i] = valueSetValue(d, GEN_SET(d), MAP_STREAM(map, i),
+                                     sampleAt, &stopped);
         }
-
-        if (at + step > end)
-            frame[0] = at + step - end;
-
+        remaining = (sourceEnd - sourceAt + speed - 1) / speed;
+        frameStep = remaining > step ? step : (int32_t)remaining;
+        if (frameStep < 1)
+            frameStep = 1;
+        frame[0] = frameStep;
         if (!klattSynthFrame(d, frame))
             stopped = 1;
+        else
+            sourceAt += (int64_t)frameStep * speed;
     }
 
     return stopped == 0;

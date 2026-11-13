@@ -551,6 +551,7 @@ int ev_sendChangedEnvironment(OldInst *h, Environment env, int32_t force)
     const int32_t *e = env.w;
     int32_t *sent = OI_ENV_SAVED(h);
     int32_t langMoved = 0;
+    int32_t languageChanged = 0;
     int i;
 
     if (force
@@ -599,12 +600,22 @@ int ev_sendChangedEnvironment(OldInst *h, Environment env, int32_t force)
     /* The language first and on its own, because a change of family has to
        be noticed before the romanizer setting is decided. */
     if (force || e[ENV_LANGUAGE] != sent[ENV_LANGUAGE]) {
+        languageChanged = 1;
         if (setECIerror(api_set_param(OI_NEW(h), 0, 2, e[ENV_LANGUAGE]), h))
             return 0;
         if (((sent[ENV_LANGUAGE] & 0xff0000) >> 16)
             != ((e[ENV_LANGUAGE] & 0xff0000) >> 16))
             langMoved = 1;
         sent[ENV_LANGUAGE] = e[ENV_LANGUAGE];
+    }
+
+    /* The selected language owns this scale, so reapply on every language switch. */
+    if (languageChanged || h->native_speed_permille != h->native_speed_permille_sent) {
+        if (setECIerror(api_set_param(OI_NEW(h), 0,
+                                      ECI_PARAM_NATIVE_SPEED_SCALE,
+                                      h->native_speed_permille), h))
+            return 0;
+        h->native_speed_permille_sent = h->native_speed_permille;
     }
 
     for (i = 0; i < (int)(sizeof SEND / sizeof SEND[0]); i++) {
@@ -715,6 +726,14 @@ int32_t STDCALL ev_setParam(OldInst *h, int32_t which, int32_t value)
             return -1;
         old = inst->pauses;
         inst->pauses = value;
+        return old;
+    }
+
+    if (which == ECI_OLD_NATIVE_SPEED_SCALE) {
+        if (value < 1 || value > 60000)
+            return -1;
+        old = inst->native_speed_permille;
+        inst->native_speed_permille = value;
         return old;
     }
 
