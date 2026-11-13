@@ -10,7 +10,7 @@ rule GA_vals takes 1
   place p175d70
   place p175d9f
   place p175df9
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   call lpta_loadp addr g628
   call setscan_r 2
   if answer is not 0
@@ -342,7 +342,7 @@ rule ga_ph_X takes 1
   set h_rsi to addr c100
   call push_ptr_init h_rsi
   set h_rax to answer
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   set h_rax to 400
   set global half 3266 to 400
   set global half 3270 to 400
@@ -1803,7 +1803,7 @@ rule ga_ph_a takes 1
   place p177120
   place p177155
   place p1771b5
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   set h_rsi to 1
   call starttest h_rsi
   set h_rax to answer
@@ -2216,7 +2216,7 @@ rule ga_ph_i takes 1
   set h_rsi to addr c108
   call push_ptr_init h_rsi
   set h_rax to answer
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   set h_rax to 270
   set global half 3266 to 270
   set global half 3270 to 270
@@ -2664,7 +2664,7 @@ rule ga_ph_I takes 1
   place p177cd8
   place p177d15
   place p177d48
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   set global half 3266 to 380
   set global half 3270 to 440
   set global half 3274 to 1800
@@ -2966,7 +2966,7 @@ rule ga_ph_E takes 1
   set h_r14 to 94
   place p178115
   place p178148
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   set global half 3266 to 570
   set global half 3270 to 570
   set global half 3274 to 1650
@@ -3276,7 +3276,7 @@ rule ga_ph_y takes 1
   place p178594
   place p1785c7
   place p1785f6
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   call eng_high_pal_Fv
   match
 end
@@ -3287,7 +3287,7 @@ rule ga_ph_R takes 1
   place p178635
   place p178662
   place p1786b6
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   set global half 3266 to 440
   set global half 3270 to 440
   call lpta_loadp addr g628
@@ -3321,7 +3321,7 @@ rule ga_ph_c takes 1
   place p178721
   place p178756
   place p1787b6
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   set h_rax to 700
   set global half 3266 to 700
   set global half 3270 to 700
@@ -3541,7 +3541,7 @@ rule ga_ph_e takes 1
   set h_r14 to 94
   place p178aa9
   place p178b09
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   set global half 3266 to 470
   set global half 3270 to 350
   set global half 3274 to 1800
@@ -4112,7 +4112,7 @@ rule ga_ph_A takes 1
   place p179174
   place p1791b1
   place p1791e4
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   set h_rax to 750
   set global half 3266 to 750
   set global half 3270 to 750
@@ -4523,7 +4523,7 @@ rule ga_ph_H takes 1
   place p179700
   place p17972f
   place p17978d
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   set h_rax to 600
   set global half 3266 to 600
   set global half 3270 to 600
@@ -4677,7 +4677,7 @@ rule ga_ph_r takes 1
   place p1799c8
   place p1799fd
   place p179a5d
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   set global half 3266 to 440
   set global half 3270 to 440
   call starttest_l 1
@@ -4767,7 +4767,7 @@ rule ga_ph_u takes 1
   set h_rsi to addr c100
   call push_ptr_init h_rsi
   set h_rax to answer
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   set h_rax to 270
   set global half 3266 to 270
   set global half 3270 to 270
@@ -5870,7 +5870,7 @@ rule ga_ph_o takes 1
   place p17a7c0
   place p17a7f5
   place p17a855
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   set global half 3266 to 550
   set global half 3270 to 400
   set global half 3274 to 1100
@@ -6128,7 +6128,7 @@ rule ga_ph_w takes 1
   place p17ac04
   place p17ac37
   place p17ac66
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   call eng_bilab_Fv
   set global half 3070 to 500
   match
@@ -6146,7 +6146,7 @@ rule ga_ph_n takes 1
   place p17acae
   place p17ace3
   place p17ad43
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   set h_rax to 300
   set global half 3266 to 300
   set global half 3270 to 300
@@ -6303,7 +6303,7 @@ rule ga_ph_U takes 1
   place p17afb4
   place p17afe9
   place p17b048
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   set global half 3266 to 440
   set global half 3270 to 440
   set global half 3274 to 1150
@@ -6390,7 +6390,7 @@ rule ga_ph_m takes 1
   place p17b20c
   place p17b239
   place p17b291
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   set global half 3266 to 300
   set global half 3270 to 300
   set global half 3274 to 1200
@@ -6434,7 +6434,7 @@ rule get_GA_nuc_AV takes 1
   set h_rsi to addr c100
   call push_ptr_init h_rsi
   set h_rax to answer
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1bef0a
   and 0 into global half 3054
   set h_rdx to 2
   set h_rsi to addr g320

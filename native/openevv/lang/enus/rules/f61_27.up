@@ -14,7 +14,7 @@ rule compounds takes 3
   call get_parm addr c120 arg 1 -6
   call get_parm addr c110 arg 2 -6
   call push_ptr_init addr c100
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1b9a72
   call starttest 2
   call lpta_rpta_loadp addr c120 addr c110
   call actd_lookup 6 addr c100 0
@@ -72,7 +72,7 @@ rule nonlex_prefixes takes 4
   set h_rax to answer
   call push_ptr_init addr c118
   set h_rax to answer
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1b9a72
   call starttest 114
   set h_rax to answer
   set h_rdx to addr c138
@@ -1054,7 +1054,7 @@ rule lex_prefixes takes 3
   set h_rdx to arg 2
   set h_rcx to -6
   call get_parm addr c118 h_rdx h_rcx
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1b9a72
   call starttest 6
   set h_rdx to addr c118
   call lpta_rpta_loadp addr c108 h_rdx
@@ -1191,7 +1191,7 @@ rule clitics takes 5
   and 0 into cell c178 half 0
   set cell c178 byte 2 to 0
   set c178 to -65533
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1b9a72
   set h_rsi to addr c160
   set h_rdx to addr c150
   call lpta_rpta_loadp h_rsi h_rdx
@@ -1723,7 +1723,7 @@ rule suffixes takes 3
   set h_rcx to -6
   call get_parm addr c118 h_rdx h_rcx
   call push_ptr_init addr c108
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1b9a72
   call starttest 78
   set h_rdx to addr c118
   call lpta_rpta_loadp addr c128 h_rdx

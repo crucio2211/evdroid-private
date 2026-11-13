@@ -141,7 +141,7 @@ rule homog_roots takes 5
   set h_rsi to addr c240
   call push_ptr_init h_rsi
   set h_rax to answer
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1b94cc
   set h_rsi to addr c230
   set h_rdx to addr c1e0
   call lpta_rpta_loadp h_rsi h_rdx
@@ -16291,7 +16291,7 @@ rule eng_homog_words takes 3
   set h_rsi to addr c148
   call push_ptr_init h_rsi
   set h_rax to answer
-  call fence 0 sym eti_null
+  call fence 1 sym eti_s_1b94cc
   set h_rsi to addr c188
   set h_rdx to addr c178
   call lpta_rpta_loadp h_rsi h_rdx
