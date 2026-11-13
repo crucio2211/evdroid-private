@@ -1051,7 +1051,7 @@ int synthesize(DeltaThis *d, void *buf, int32_t isArray, int32_t *streamA,
 
     /* Keep the native acoustic sampling grid fixed. The separate speed
        setting changes only the language-time stream cursor. */
-    a7 = 5;
+    a7 = 6;
 
     last = (LastGlob *)DL_BUF_140(lang);
     /* Turning the companion on or off starts both synthesisers afresh, so
@@ -1136,7 +1136,7 @@ int synthesize(DeltaThis *d, void *buf, int32_t isArray, int32_t *streamA,
     }
 
     /* Convert source-language duration to output duration. The renderer
-       still emits frames on the fixed five-ms acoustic clock. */
+       still emits frames on the fixed six-ms acoustic clock. */
     nativeSpeed = DL_NATIVE_SPEED(lang);
     if (nativeSpeed < 1 || nativeSpeed > 60000)
         nativeSpeed = 1000;
